@@ -23,7 +23,7 @@ public class MountainMetrics {
         System.out.println(calculateWeightedMountainDistance(s1, sz));
     }
     
-    public static double calculateMountainSimilarity(int[] pairedSites1, int[] pairedSites2)
+    public static double calculateWeightedMountainSimilarity(int[] pairedSites1, int[] pairedSites2)
     {
     	return 1 - calculateNormalizedWeightedMountainDistance(pairedSites1, pairedSites2);
     }

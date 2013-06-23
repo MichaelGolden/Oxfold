@@ -1046,6 +1046,21 @@ public class RNAFoldingTools {
         }
         return null;
     }
+    
+    public static int[] getPairedSitesFromDotBracketFile(File dbnFile) {
+        try {
+            BufferedReader buffer = new BufferedReader(new FileReader(dbnFile));
+            buffer.readLine();
+            buffer.readLine();
+            String textline = buffer.readLine();
+            buffer.close();
+            System.out.println(textline);
+            return getPairedSitesFromDotBracketString(textline);
+        } catch (IOException ex) {
+            ex.printStackTrace();
+        }
+        return null;
+    }
 
     public static double[][] loadMatrix(File bpFile) throws Exception {
         //File bpFile = new File("C:/Users/Michael/Dropbox/RNA and StatAlign/TestRNAData/TestRNAData1.dat.bp");		

@@ -4,7 +4,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 
-public class StructureData {
+public class StructureData implements Comparable<StructureData> {
 	
 	File file;
 	
@@ -41,7 +41,7 @@ public class StructureData {
             if (textline.startsWith(">")) {
                 data.sequenceNames.add(textline.substring(1));
                 if (!sequence.equals("")) {
-                	data.sequences.add(sequence.toUpperCase());
+                	data.sequences.add(sequence.replace(".", "-").toUpperCase());
                     sequence = "";
                 }
             } else {
@@ -51,7 +51,7 @@ public class StructureData {
         }
         buffer.close();
         if (!sequence.equals("")) {
-        	data.sequences.add(sequence.toUpperCase());
+        	data.sequences.add(sequence.replace(".", "-").toUpperCase());
         }
         
         return data;
@@ -68,4 +68,10 @@ public class StructureData {
 		}
 		return ret;		
 	}
+
+	@Override
+	public int compareTo(StructureData o) { // sort by paired sites lengths
+		return this.pairedSites.length - o.pairedSites.length;
+	}
+	
 }

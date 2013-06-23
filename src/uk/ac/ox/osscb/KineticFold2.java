@@ -1,6 +1,11 @@
 package uk.ac.ox.osscb;
 
 
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -108,6 +113,22 @@ public class KineticFold2 {
 		OutputGenerator outputGenerator = new LoggingOutputGenerator();
 		outputGenerator.generate(structure);
 		outputGenerator.generateFinal(structure);
+		
+		writeDotBracketFile(new File(alignmentFile+".noevol.dbn"),new File(alignmentFile).getName(), structure);
+	}
+	
+	public static void writeDotBracketFile(File dbnFile, String title, int [] structure)
+	{
+		try {
+			BufferedWriter writer = new BufferedWriter(new FileWriter(dbnFile));
+			writer.write(">"+title+"\n");
+			writer.write("\n");
+			writer.write(LoggingOutputGenerator.dumpStructure(structure)+"\n");
+			writer.close();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 
 	public void foldEvolutionary(String alignmentFile, String grammarFile, String paramsFile, String treeFile, double weight){
@@ -199,6 +220,8 @@ public class KineticFold2 {
 		OutputGenerator outputGenerator = new LoggingOutputGenerator();
 		outputGenerator.generate(structure);
 		outputGenerator.generateFinal(structure);
+		
+		writeDotBracketFile(new File(alignmentFile+".evol.dbn"),new File(alignmentFile).getName(), structure);
 	}
 	
 	private void dumpExitReason(boolean exitBecauseOfDiff) {

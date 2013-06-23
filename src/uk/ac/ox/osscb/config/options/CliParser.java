@@ -40,6 +40,10 @@ public class CliParser {
 	        // oops, something went wrong
 	        System.err.println( "Parsing failed.  Reason: " + exp.getMessage() );	        
 	    }		
+	    
+
+	  //  System.err.println("public RunOptionsPartial parse(String[] args) "+OptionsHelper.treeOptName);
+
 	    	    
 		String grammar = line.getOptionValue(OptionsHelper.grammarOptName);
 		String grammarPath = line.getOptionValue(OptionsHelper.grammarParamsOptName);
@@ -50,6 +54,7 @@ public class CliParser {
 		
 	    String[] argList = line.getArgs();
 	    String alignmentPath = argList.length > 0 ? argList[0] : null;
+	    
 
 		return new RunOptionsPartial(alignmentPath, grammar, grammarPath, treePath, weight);
 	}

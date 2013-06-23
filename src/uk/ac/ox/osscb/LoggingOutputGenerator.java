@@ -28,7 +28,7 @@ public class LoggingOutputGenerator implements OutputGenerator{
 		ProgramOutput.outMsg2(String.format("Final structure is:%n%s", dumpStructure(structure)));
 	}
 
-	public String dumpStructure(int[] structure) {
+	public static String dumpStructure(int[] structure) {
 		StringBuilder sb = new StringBuilder();
 		for(int i=0; i<structure.length; i++)
 		{
