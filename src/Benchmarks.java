@@ -12,6 +12,8 @@ public class Benchmarks {
 	public static void main(String [] args)
 	{
 		File dataDir = new File("datasets/");
+		File outputDir = new File("output/");
+		outputDir.mkdir();
 		
 		ArrayList<StructureData> experimentalStructures = new ArrayList<>();
 		for(File experimentalFile : dataDir.listFiles())
@@ -29,7 +31,7 @@ public class Benchmarks {
 		ArrayList<StructureData> predictedStructures = new ArrayList<>();
 		for(StructureData s : experimentalStructures)
 		{
-			predictedStructures.add(Benchmarks.foldOxfold(new File("output/"), s.file.getName(), s.sequences, s.sequenceNames, false, 3.0));
+			predictedStructures.add(Benchmarks.foldOxfold(outputDir, s.file.getName(), s.sequences, s.sequenceNames, false, 3.0));
 			
 			try {
 				Benchmarks.saveBenchmarksCSV(new File("results.csv"), experimentalStructures, predictedStructures);
