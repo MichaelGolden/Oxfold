@@ -18,21 +18,21 @@ public class FastTree {
           
 	}
 	
-	   public static void nullOutput(final InputStream inputStream) {
-	        new Thread() {
+   public static void nullOutput(final InputStream inputStream) {
+        new Thread() {
 
-	            @Override
-	            public void run() {
-	                try {
+            @Override
+            public void run() {
+                try {
 
-	                    BufferedReader buffer = new BufferedReader(new InputStreamReader(inputStream));
-	                    String textline = null;
-	                    while ((textline = buffer.readLine()) != null) {
-	                    }
-	                    buffer.close();
-	                } catch (IOException ex) {
-	                }
-	            }
-	        }.start();
-	    }
+                    BufferedReader buffer = new BufferedReader(new InputStreamReader(inputStream));
+                    String textline = null;
+                    while ((textline = buffer.readLine()) != null) {
+                    }
+                    buffer.close();
+                } catch (IOException ex) {
+                }
+            }
+        }.start();
+    }
 }
