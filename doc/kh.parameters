@@ -1,0 +1,13 @@
+# Knudsen-Hein Grammar
+
+!alphabet N,A,C,G,U,R,Y,W,S,M,K,H,B,V,D
+
+!special R A G;Y C U;W A U;S C G;M A C;K G U;H A C U;B C G U;V A C G;D A G U;N A U G C
+
+!unpaired
+0.337 0.207 0.202 0.254
+?
+
+!paired
+0.007 0.004 0.011 0.127 0.006 0.005 0.283 0.005 0.023 0.275 0.006 0.045 0.132 0.004 0.060 0.001
+?
