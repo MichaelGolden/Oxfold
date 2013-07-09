@@ -23,9 +23,21 @@ public class Constants {
 	/**
 	 * Set it to zero to get more iterations
 	 */
-	public final static Double IterationCutOffDouble = 0.5;
-	public final static BigDecimal IterationCutOff = BigDecimal.valueOf(IterationCutOffDouble);
+	public static  Double IterationCutOffDouble = 0.5;
+	public  static BigDecimal IterationCutOff = BigDecimal.valueOf(IterationCutOffDouble);
 	
+	//public static  Double IterationCutOffDouble;
+	//public  static BigDecimal IterationCutOff;
+	
+	/*public Double getIterationCutOffDouble(){
+		IterationCutOffDouble = Delta.IterationCutOffDouble;
+		return IterationCutOffDouble.doubleValue();
+	}
+	*/
+	/*public void setIterationCutOffDouble(double d){
+		IterationCutOffDouble = d;
+		IterationCutOff = BigDecimal.valueOf(IterationCutOffDouble);
+	}*/
 	
 	/**
 	 * cutoff for switch from heuristic to evolutionary model

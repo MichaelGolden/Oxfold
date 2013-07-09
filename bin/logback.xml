@@ -1,0 +1,92 @@
+<configuration>
+
+  <appender name="stdout" class="ch.qos.logback.core.FileAppender">
+    <file>logs/KineticFold.log</file>
+    <filter class="uk.ac.ox.osscb.util.StdOutFilter" />
+    <encoder>
+      <pattern>%date %msg%n</pattern>
+    </encoder>
+  </appender>
+  
+ <appender name="stderr" class="ch.qos.logback.core.FileAppender">
+    <file>logs/KineticFold_err.log</file>
+    <filter class="uk.ac.ox.osscb.util.StdErrFilter" />
+     <encoder>
+         <Pattern>%date %msg%n</Pattern>
+     </encoder>
+  </appender>
+
+ <appender name="console" class="ch.qos.logback.core.ConsoleAppender">
+    <!-- encoders are assigned the type
+         ch.qos.logback.classic.encoder.PatternLayoutEncoder by default -->
+    <encoder>
+      <pattern>%relative ms: %msg %n</pattern>
+    </encoder>
+  </appender>
+  
+ <appender name="seqIterationLog" class="ch.qos.logback.classic.sift.SiftingAppender">
+    <!-- in the absence of the class attribute, it is assumed that the
+         desired discriminator type is
+         ch.qos.logback.classic.sift.MDCBasedDiscriminator
+         see http://logback.qos.ch/manual/appenders.html#SiftingAppender
+          -->
+    <discriminator>
+      <key>runSuffix</key>
+      <defaultValue>_unparsed</defaultValue>
+    </discriminator>
+    <sift>
+      <appender name="FILE-${runSuffix}" class="ch.qos.logback.core.FileAppender">
+        <file>logs/TestRNAData${runSuffix}_seqIter.out</file>
+        <append>true</append>
+        <layout class="ch.qos.logback.classic.PatternLayout">
+          <pattern>%msg%n</pattern>
+        </layout>
+      </appender>
+    </sift>
+  </appender>
+
+ <appender name="progOutputFile" class="ch.qos.logback.classic.sift.SiftingAppender">
+    <!-- in the absence of the class attribute, it is assumed that the
+         desired discriminator type is
+         ch.qos.logback.classic.sift.MDCBasedDiscriminator
+         see http://logback.qos.ch/manual/appenders.html#SiftingAppender
+          -->
+    <discriminator>
+      <key>runSuffix</key>
+      <defaultValue>xyz</defaultValue>
+    </discriminator>
+    <sift>
+      <appender name="FILE-${runSuffix}" class="ch.qos.logback.core.FileAppender">
+        <file>logs/TestRNAData${runSuffix}.out</file>
+        <append>true</append>
+        <layout class="ch.qos.logback.classic.PatternLayout">
+          <pattern>%msg%n</pattern>
+        </layout>
+      </appender>
+    </sift>
+  </appender>
+  
+  
+  <root level="warn">
+    <appender-ref ref="stdout" />
+    <appender-ref ref="stderr" />
+  </root>
+
+  <logger name="uk.ac.ox.osscb.inoutside.PPProbabilitiesCalculator" level="debug" additivity="false">
+    <appender-ref ref="seqIterationLog" />
+  </logger>
+  
+  <logger name="uk.ac.ox.osscb.LoggingOutputGenerator" level="debug"/>
+  <logger name="uk.ac.ox.osscb.KineticFold" level="info"/>
+  <logger name="uk.ac.ox.osscb.vienna.ViennaDotPsFileParser" level="info"/>
+  
+  <logger name="OxFold.output" level="info" additivity="false">
+  	<appender-ref ref="console"/>
+  	<appender-ref ref="progOutputFile"/>
+  </logger>
+  <logger name="OxFold.output2" level="info" additivity="false">
+  	<appender-ref ref="console"/>
+  	<appender-ref ref="progOutputFile"/>
+  </logger>
+  
+</configuration>

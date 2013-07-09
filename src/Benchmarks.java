@@ -14,7 +14,7 @@ public class Benchmarks {
 		File dataDir = new File("datasets/");
 		File outputDir = new File("output/");
 		outputDir.mkdir();
-		
+		System.out.println(dataDir.list().length);
 		ArrayList<StructureData> experimentalStructures = new ArrayList<>();
 		for(File experimentalFile : dataDir.listFiles())
 		{
