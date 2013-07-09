@@ -22,6 +22,11 @@ public class BasePairMetrics {
 			}
 		}
 		
+		if(total == 0)
+		{
+			return 0;
+		}
+		
 		return count / total;
 	}
 	
@@ -46,6 +51,11 @@ public class BasePairMetrics {
 					count++;
 				}
 			}
+		}
+		
+		if(total == 0)
+		{
+			return 0;
 		}
 		
 		return count / total;

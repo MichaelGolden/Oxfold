@@ -47,7 +47,7 @@ public class VaryKDelta {
 		outputDir.mkdir();
 		 
 		
-		ArrayList<StructureData> experimentalStructures = new ArrayList<>();
+		ArrayList<StructureData> experimentalStructures = new ArrayList<StructureData>();
 		for(File experimentalFile : dataDir.listFiles()) //to do: add 40 file max 
 		{
 			if(experimentalFile.getName().equals("TestRNAData49.dat")){
@@ -64,7 +64,7 @@ public class VaryKDelta {
 		
 		Collections.sort(experimentalStructures);
 		
-		ArrayList<StructureData> predictedStructures = new ArrayList<>();
+		ArrayList<StructureData> predictedStructures = new ArrayList<StructureData>();
 		
 		int maxIter = 1; 
 		for(int j  = 0; j < maxIter; j++) //go through select # of datasets
@@ -131,7 +131,7 @@ public class VaryKDelta {
 						File outputDir = new File(outputDirString + "K_" + KValue + "_Delta_" + dValue +"/");
 						outputDir.mkdir();
 						
-						ArrayList<StructureData> experimentalStructures = new ArrayList<>();
+						ArrayList<StructureData> experimentalStructures = new ArrayList<StructureData>();
 						for(File experimentalFile : dataDir.listFiles()) //to do: add 40 file max 
 						{
 							if(experimentalFile.getName().equals("TestRNAData49.dat")){
@@ -149,7 +149,7 @@ public class VaryKDelta {
 						Collections.sort(experimentalStructures);
 						
 
-						ArrayList<StructureData> predictedStructures = new ArrayList<>();
+						ArrayList<StructureData> predictedStructures = new ArrayList<StructureData>();
 						
 						int maxIter = 1; 
 						for(int j  = 0; j < maxIter; j++) //go through select # of datasets
