@@ -18,7 +18,7 @@ public class VaryKDelta {
 	{
 		//String outputDirString = "output/";
 		avgMetrics = new ArrayList<String>(); 
-		
+		//hi
 
 		if(args.length != 2){
 			System.err.println("Default: 0 <= K <= 10, 0.1 <= Delta <= 1, with increments of 0.1");
