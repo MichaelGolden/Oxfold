@@ -13,6 +13,8 @@ public class StructureData implements Comparable<StructureData> {
 	ArrayList<String> sequences = new ArrayList<>();
 	ArrayList<String> sequenceNames = new ArrayList<>();
 	
+	double time;
+	
 	public StructureData()
 	{
 		

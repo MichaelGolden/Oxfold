@@ -29,10 +29,18 @@ public class Benchmarks {
 		Collections.sort(experimentalStructures);
 		
 		ArrayList<StructureData> predictedStructures = new ArrayList<>();
+		int datasetno = 0;
 		for(StructureData s : experimentalStructures)
 		{
-			predictedStructures.add(Benchmarks.foldOxfold(outputDir, s.file.getName(), s.sequences, s.sequenceNames, false, 3.0));
-			
+			long startNano = System.nanoTime();
+			StructureData predictedStructure = Benchmarks.foldOxfold(outputDir, s.file.getName(), s.sequences, s.sequenceNames, false, 3.0);
+			long endNano = System.nanoTime();
+			double elapsedNano = (endNano - startNano)/1000000000.0;
+			predictedStructure.time = elapsedNano;
+			predictedStructures.add(predictedStructure);
+
+			datasetno++;
+			System.out.println("dataset "+datasetno+"\t"+elapsedNano);
 			try {
 				Benchmarks.saveBenchmarksCSV(new File("results.csv"), experimentalStructures, predictedStructures);
 			} catch (IOException e) {
