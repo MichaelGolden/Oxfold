@@ -15,7 +15,7 @@ public class Benchmarks {
 		File outputDir = new File("output/");
 		outputDir.mkdir();
 		System.out.println(dataDir.list().length);
-		ArrayList<StructureData> experimentalStructures = new ArrayList<>();
+		ArrayList<StructureData> experimentalStructures = new ArrayList<StructureData>();
 		for(File experimentalFile : dataDir.listFiles())
 		{
 			try {
@@ -28,7 +28,7 @@ public class Benchmarks {
 		
 		Collections.sort(experimentalStructures);
 		
-		ArrayList<StructureData> predictedStructures = new ArrayList<>();
+		ArrayList<StructureData> predictedStructures = new ArrayList<StructureData>();
 		int datasetno = 0;
 		for(StructureData s : experimentalStructures)
 		{
@@ -86,8 +86,8 @@ public class Benchmarks {
 		else
 		{
 			String [] argsArray = {fastaFile.getAbsolutePath(), 
-					"--grammar="+new File("doc/kh_reverse.grammar").getAbsolutePath(),
-					//"--grammar="+new File("doc/kh.grammar").getAbsolutePath(),
+					//"--grammar="+new File("doc/kh_reverse.grammar").getAbsolutePath(),
+					"--grammar="+new File("doc/kh.grammar").getAbsolutePath(),
 					"--grammar-params="+new File("doc/kh.parameters").getAbsolutePath(),
 					"--weight="+weight};			
 	

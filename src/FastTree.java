@@ -10,12 +10,31 @@ public class FastTree {
 	
 	public static void nucleotideGTRFastTree(File fastaFile, File outNewick) throws Exception
 	{
-		  String cmd = "cmd /c " + new File(FAST_TREE_EXECUTABLE).getAbsolutePath() + " -nosupport -nt -gtr " + fastaFile.getAbsolutePath() + " > " + outNewick.getAbsolutePath();
-          Process process = Runtime.getRuntime().exec(cmd);
-          nullOutput(process.getInputStream());
-          nullOutput(process.getErrorStream());
-          int exitCode = process.waitFor();
-          
+		  if (new File(FAST_TREE_EXECUTABLE).exists())
+		  {
+			  String prefix = "cmd /c " + new File(FAST_TREE_EXECUTABLE).getAbsolutePath();
+			  String cmd = prefix + " -nosupport -nt -gtr " + fastaFile.getAbsolutePath() + " > " + outNewick.getAbsolutePath();
+	          Process process = Runtime.getRuntime().exec(cmd);
+	          nullOutput(process.getInputStream());
+	          nullOutput(process.getErrorStream());
+	          int exitCode = process.waitFor();
+		  }
+		  else
+		  {
+			 // System.out.println("Linux");
+			  String prefix = "./FastTree";
+			  //String cmd = prefix + " -nosupport -nt -gtr \"" + fastaFile.getAbsolutePath() + "\" > \"" + outNewick.getAbsolutePath()+"\"";
+			  String cmd = prefix + " -nosupport -nt -gtr -out " + outNewick.getAbsolutePath()+" " +  fastaFile.getAbsolutePath() + "";
+			 // System.out.println("Command:"+cmd);
+	          Process process = Runtime.getRuntime().exec(cmd);
+	          BufferedReader r = new BufferedReader(new InputStreamReader(process.getErrorStream()));
+	          String textline = null;
+	          while((textline = r.readLine()) != null)
+	          {
+	        	 // System.out.println("error: "+textline);
+	          }
+	          int exitCode = process.waitFor();
+		  }
 	}
 	
    public static void nullOutput(final InputStream inputStream) {

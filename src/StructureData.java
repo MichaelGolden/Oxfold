@@ -10,8 +10,8 @@ public class StructureData implements Comparable<StructureData> {
 	
 	int [] pairedSites; // structure
 	
-	ArrayList<String> sequences = new ArrayList<>();
-	ArrayList<String> sequenceNames = new ArrayList<>();
+	ArrayList<String> sequences = new ArrayList<String>();
+	ArrayList<String> sequenceNames = new ArrayList<String>();
 	
 	double time;
 	
