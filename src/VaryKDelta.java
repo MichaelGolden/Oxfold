@@ -25,9 +25,9 @@ public class VaryKDelta {
 		if(args.length != 2 && args.length != 3){
 
 
-			double maxk = 8;
-			double [] ks = new double[40];
-			double mink = 1 / ks.length;
+			double maxk = 5;
+			double [] ks = new double[20];
+			double mink = 1 / (double)ks.length;
 			double inck = (maxk-mink)/(ks.length-1);
 			for(int i = 0 ; i < ks.length ; i++)
 			{
@@ -39,7 +39,7 @@ public class VaryKDelta {
 			double maxdelta = 1;
 			double [] deltas = new double[20];
 			double mindelta = 0;
-			double incdelta = (maxdelta-mindelta)/(deltas.length);
+			double incdelta = (maxdelta-mindelta)/((double)deltas.length);
 			for(int i = 0 ; i < deltas.length ; i++)
 			{
 				deltas[i] = mindelta + incdelta*i;
@@ -54,7 +54,7 @@ public class VaryKDelta {
 			{
 				for(double delta : deltas)
 				{
-					runSpecific(k, delta, 10, runEvol);
+					runSpecific(k, delta, 25, runEvol);
 				}
 			}
 			
