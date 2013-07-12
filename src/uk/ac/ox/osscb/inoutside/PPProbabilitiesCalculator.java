@@ -140,10 +140,10 @@ public class PPProbabilitiesCalculator {
 	public PPOutputHelix calculateCT(InsideOutsideProbabilities insideProbs,
 			InsideOutsideProbabilities outsideProbs,
 			NucleotideProbsPrecise nucleotideProbs,
-			double[][] distances, double weight, int[] structure, boolean[][] canPair){
+			double[][] distances, double alpha, double tau, int[] structure, boolean[][] canPair){
 		
-		PosteriorProbabilitiesCalculator posteriorProbabilitiesCalculator = new PosteriorProbabilitiesCalculator(grammar);
-		PosteriorProbabilities posteriorProbabilities = posteriorProbabilitiesCalculator.calculate(insideProbs, outsideProbs, nucleotideProbs, distances, weight, structure, canPair);
+		CoFoldPosteriorProbabilitiesCalculator posteriorProbabilitiesCalculator = new CoFoldPosteriorProbabilitiesCalculator(grammar);
+		PosteriorProbabilities posteriorProbabilities = posteriorProbabilitiesCalculator.calculate(insideProbs, outsideProbs, nucleotideProbs, distances, alpha, tau, structure, canPair);
 		int leftIdx = posteriorProbabilities.getMaxLeftIdx();
 		int rightIdx = posteriorProbabilities.getMaxRightIdx();
 		BigDecimal[] unpairedProbs = posteriorProbabilities.getUnpairedProbs();

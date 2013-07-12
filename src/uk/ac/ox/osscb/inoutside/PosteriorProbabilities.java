@@ -1,5 +1,9 @@
 package uk.ac.ox.osscb.inoutside;
 
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.math.BigDecimal;
 
 public class PosteriorProbabilities {
@@ -36,5 +40,19 @@ public class PosteriorProbabilities {
 		
 		public int getMaxRightIdx() {
 			return maxRightIdx;
+		}
+		
+		public void savePosteriorProbabilities(File outputFile) throws IOException
+		{
+			BufferedWriter writer = new BufferedWriter(new FileWriter(outputFile));
+			for(int i = 0 ; i < pairedProbs.length ; i++)
+			{
+				for(int j = 0 ; j < pairedProbs[0].length ; j++)
+				{
+					writer.write(pairedProbs[i][j].doubleValue()+", ");
+				}
+				writer.write("\n");
+			}
+			writer.close();
 		}
 }

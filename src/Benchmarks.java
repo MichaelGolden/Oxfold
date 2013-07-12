@@ -6,13 +6,14 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import uk.ac.ox.osscb.CoFoldAnalogue;
 import uk.ac.ox.osscb.Program;
 
 public class Benchmarks {
 	public static void main(String [] args)
 	{
 		File dataDir = new File("datasets/");
-		File outputDir = new File("output/");
+		File outputDir = new File("output2/");
 		outputDir.mkdir();
 		System.out.println(dataDir.list().length);
 		ArrayList<StructureData> experimentalStructures = new ArrayList<StructureData>();
@@ -32,8 +33,15 @@ public class Benchmarks {
 		int datasetno = 0;
 		for(StructureData s : experimentalStructures)
 		{
+			if(datasetno < 37)
+			{
+				datasetno++;
+				predictedStructures.add(null);
+				continue;
+			}
 			long startNano = System.nanoTime();
-			StructureData predictedStructure = Benchmarks.foldOxfold(outputDir, s.file.getName(), s.sequences, s.sequenceNames, false, 3.0);
+			//StructureData predictedStructure = Benchmarks.foldOxfold(outputDir, s.file.getName(), s.sequences, s.sequenceNames, false, 3.0);
+			StructureData predictedStructure = Benchmarks.foldCofold(outputDir, s.file.getName(), s.sequences, s.sequenceNames, true, 0.5,640);
 			long endNano = System.nanoTime();
 			double elapsedNano = (endNano - startNano)/1000000000.0;
 			predictedStructure.time = elapsedNano;
@@ -99,6 +107,56 @@ public class Benchmarks {
 		return structureData;		
 	}
 	
+	public static StructureData foldCofold(File dir, String name, List<String> sequences, List<String> sequenceNames, boolean runEvolutionary, double alpha, double tau)
+	{
+		File fastaFile = new File(dir.getAbsolutePath()+File.separatorChar+name+".fas");
+		IO.saveToFASTAfile(sequences, sequenceNames, fastaFile);
+		File outNewick = new File(dir.getAbsolutePath()+File.separatorChar+name+".nwk");
+
+		int [] pairedSites = null;
+		if(runEvolutionary)
+		{
+			if(!outNewick.exists())
+			{
+				try {
+					FastTree.nucleotideGTRFastTree(fastaFile, outNewick);
+				} catch (Exception e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+		
+			
+			/*String [] argsArray = {fastaFile.getAbsolutePath(), 
+					"--grammar="+new File("doc/ppfold.grammar").getAbsolutePath(),
+					"--grammar-params="+new File("doc/ppfold.parameters").getAbsolutePath(),
+					"--tree="+outNewick.getAbsolutePath(),
+					"--weight="+weight};	*/		
+	
+			//new Program().run(argsArray);
+			CoFoldAnalogue cofold = new CoFoldAnalogue();
+			cofold.foldEvolutionary(fastaFile.getAbsolutePath(), new File("doc/ppfold.grammar").getAbsolutePath(), new File("doc/ppfold.parameters").getAbsolutePath(), outNewick.getAbsolutePath(), alpha, tau);
+			pairedSites = RNAFoldingTools.getPairedSitesFromDotBracketFile(new File(fastaFile.getAbsolutePath()+".evol.dbn"));		
+		}
+		else
+		{
+			String [] argsArray = {fastaFile.getAbsolutePath(), 
+					//"--grammar="+new File("doc/kh_reverse.grammar").getAbsolutePath(),
+					"--grammar="+new File("doc/kh.grammar").getAbsolutePath(),
+					"--grammar-params="+new File("doc/kh.parameters").getAbsolutePath()};
+	
+			//CoFoldAnalogue cofold = new CoFoldAnalogue();
+			//cofold.foldEvolutionary(fastaFile.getAbsolutePath(), new File("doc/kh.grammar").getAbsolutePath(), new File("doc/kh.parameters").getAbsolutePath(), outNewick.getAbsolutePath(), 0.0, 0.0);
+			
+			//new Program().run(argsArray);
+			System.err.println("Not yet implemented");
+			pairedSites = RNAFoldingTools.getPairedSitesFromDotBracketFile(new File(fastaFile.getAbsolutePath()+".noevol.dbn"));		
+		}	
+
+		StructureData structureData = new StructureData(pairedSites);
+		return structureData;		
+	}
+	
 	public static void saveBenchmarksCSV(File csvFile, List<StructureData> experimentalStructures, List<StructureData> predictedStructures) throws IOException
 	{
 		BufferedWriter writer = new BufferedWriter(new FileWriter(csvFile));
@@ -110,12 +168,15 @@ public class Benchmarks {
 			StructureData expStructure = experimentalStructures.get(i);
 			StructureData predictedStructure = predictedStructures.get(i);
 			
-			double senstivity = BasePairMetrics.calculateSensitivity(expStructure.pairedSites, predictedStructure.pairedSites);
-			double ppv = BasePairMetrics.calculatePPV(expStructure.pairedSites, predictedStructure.pairedSites);
-			double fscore = BasePairMetrics.calculateFScore(expStructure.pairedSites, predictedStructure.pairedSites);
-			double mountainSim = MountainMetrics.calculateWeightedMountainSimilarity(expStructure.pairedSites, predictedStructure.pairedSites);
-			
-			writer.write(expStructure.file.getName()+","+expStructure.pairedSites.length+","+senstivity+","+ppv+","+fscore+","+mountainSim+"\n");
+			if(predictedStructure != null)
+			{
+				double senstivity = BasePairMetrics.calculateSensitivity(expStructure.pairedSites, predictedStructure.pairedSites);
+				double ppv = BasePairMetrics.calculatePPV(expStructure.pairedSites, predictedStructure.pairedSites);
+				double fscore = BasePairMetrics.calculateFScore(expStructure.pairedSites, predictedStructure.pairedSites);
+				double mountainSim = MountainMetrics.calculateWeightedMountainSimilarity(expStructure.pairedSites, predictedStructure.pairedSites);
+				
+				writer.write(expStructure.file.getName()+","+expStructure.pairedSites.length+","+senstivity+","+ppv+","+fscore+","+mountainSim+"\n");
+			}
 		}
 		
 		writer.close();

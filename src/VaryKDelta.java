@@ -6,35 +6,58 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 import uk.ac.ox.osscb.Constants;
 import uk.ac.ox.osscb.Program;
 
 public class VaryKDelta {
 	
-	public static ArrayList<String> avgMetrics; 
 	
 	public static void main(String [] args)
 	{		
-		//String outputDirString = "output/";
-		avgMetrics = new ArrayList<String>(); 
-		//hi
-		
 		boolean runEvol = true;
 
+		int numdatasets = 25;
+		if(args.length > 3)
+		{
+			numdatasets = Integer.parseInt(args[0]);
+			double k = Double.parseDouble(args[1]);
+
+			ArrayList<KDeltaJobInput> inputs = new ArrayList<KDeltaJobInput>();
+			for(int i = 2 ; i < args.length ; i++)
+			{
+				double delta = Double.parseDouble(args[i]);
+				inputs.add(new KDeltaJobInput(k, delta, runEvol, numdatasets));
+			}
+			VaryKDelta varyKDelta = new VaryKDelta();
+			 try {
+				List<KDeltaJobOutput> outputs = varyKDelta.processInputs(inputs);
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (ExecutionException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		else
 		if(args.length != 2 && args.length != 3){
-
-
-			double maxk = 5;
-			double [] ks = new double[20];
-			double mink = 1 / (double)ks.length;
-			double inck = (maxk-mink)/(ks.length-1);
+			
+			double [] ks = new double[39];
+			double mink = 1 / (double)(ks.length-1);
 			for(int i = 0 ; i < ks.length ; i++)
 			{
-				ks[i] = mink + inck*i;
+				double alpha = -Math.log10(0.15);
+				ks[i] = Math.pow(10, alpha*(2*(mink*i) - 1));
 				System.out.print(ks[i]+ " ");
 			}
 			System.out.println();
+			System.exit(0);
 			
 			double maxdelta = 1;
 			double [] deltas = new double[20];
@@ -45,17 +68,28 @@ public class VaryKDelta {
 				deltas[i] = mindelta + incdelta*i;
 				System.out.print(deltas[i]+ " ");
 			}
-			System.out.println();
 			
 			//double [] ks = {0.2, 0.4, 0.6, 0.8, 1, 1.2, 1.4, 1.6, 1.8, 2, 2.2, 2.4, 2.6, 2.8, 3};
 			//double [] deltas = {0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1};
 			
+
+			ArrayList<KDeltaJobInput> inputs = new ArrayList<KDeltaJobInput>();
 			for(double k : ks)
 			{
 				for(double delta : deltas)
 				{
-					runSpecific(k, delta, 25, runEvol);
+					inputs.add(new KDeltaJobInput(k, delta, runEvol, numdatasets));
 				}
+			}
+			VaryKDelta varyKDelta = new VaryKDelta();
+			 try {
+				List<KDeltaJobOutput> outputs = varyKDelta.processInputs(inputs);
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (ExecutionException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
 			}
 			
 			/*
@@ -63,24 +97,25 @@ public class VaryKDelta {
 			runAuto(10, 1);*/
 		}
 		else{
+			numdatasets = Integer.parseInt(args[2]);
 			Constants.IterationCutOff = BigDecimal.valueOf(Double.valueOf(args[1])); 
 			double delta_o = Constants.IterationCutOff.doubleValue(); 
 			double kArg = Double.valueOf(args[0]);
 			if(args.length > 2)
 			{
 
-				runSpecific(kArg, delta_o, Integer.parseInt(args[2]), runEvol);
+				runSpecific(kArg, delta_o, numdatasets, runEvol);
 			}
 			else
 			{
-				runSpecific(kArg, delta_o, 10, runEvol);
+				runSpecific(kArg, delta_o, numdatasets, runEvol);
 			}
 		}
 		
 	}
 	
 	private static void runSpecific(double KValue, double dValue, int uptodataset, boolean runEvol){
-		avgMetrics = new ArrayList<String>();
+		ArrayList<String> avgMetrics = new ArrayList<String>();
 		String outputDirString = "output/";
 		Constants.IterationCutOff = BigDecimal.valueOf(Double.valueOf(dValue)); 
 		double delta = Constants.IterationCutOff.doubleValue(); 
@@ -127,7 +162,7 @@ public class VaryKDelta {
 				
 				
 				//VaryKDelta.saveBenchmarksCSV(new File("output/" + "K_" + KValue + "/results_K_" + KValue+ ".csv"), experimentalStructures, predictedStructures);
-				VaryKDelta.saveBenchmarkAvgCSV( experimentalStructures, predictedStructures, KValue, delta, j == maxIter - 1);
+				VaryKDelta.saveBenchmarkAvgCSV(avgMetrics,experimentalStructures, predictedStructures, KValue, delta, j == maxIter - 1);
 				j++;
 				
 			} catch (IOException e) {
@@ -163,12 +198,62 @@ public class VaryKDelta {
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-		}				
+		}			
 			
 			
 	}
 	
+	public static class KDeltaJobInput
+	{
+		double K;
+		double delta;
+		boolean runEvolutionary;
+		int uptodataset;
+		
+		public KDeltaJobInput(double k, double delta, boolean runEvolutionary,	int uptodataset) {
+			this.K = k;
+			this.delta = delta;
+			this.runEvolutionary = runEvolutionary;
+			this.uptodataset = uptodataset;
+		}		
+	}
+	
+	class KDeltaJobOutput
+	{
+		
+	}	
+	
+	
+    public List<KDeltaJobOutput> processInputs(List<KDeltaJobInput> inputs)
+            throws InterruptedException, ExecutionException {
+
+        int threads = 8;
+        ExecutorService service = Executors.newFixedThreadPool(threads);
+
+        List<Future<KDeltaJobOutput>> futures = new ArrayList<Future<KDeltaJobOutput>>();
+        for (final KDeltaJobInput input : inputs) {
+            Callable<KDeltaJobOutput> callable = new Callable<KDeltaJobOutput>() {
+
+                public KDeltaJobOutput call() throws Exception {
+                	KDeltaJobOutput output = new KDeltaJobOutput();
+                	runSpecific(input.K, input.delta, input.uptodataset, input.runEvolutionary);                   
+                    return output;
+                }
+            };
+            futures.add(service.submit(callable));
+        }
+
+        service.shutdown();
+
+        List<KDeltaJobOutput> outputs = new ArrayList<KDeltaJobOutput>();
+        for (Future<KDeltaJobOutput> future : futures) {
+            outputs.add(future.get());
+        }
+        return outputs;
+    }
+	
 	private static  void runAuto(double k, double delta){
+		ArrayList<String> avgMetrics = new ArrayList<String>();
 		String outputDirString = "output/";
 		//variables for K or delta and their ranges. Then move below out to new method. 
 				for(double KValue = 0; KValue <= k; KValue += 0.1){ //change this later
@@ -215,7 +300,7 @@ public class VaryKDelta {
 								
 								
 								//VaryKDelta.saveBenchmarksCSV(new File("output/" + "K_" + KValue + "/results_K_" + KValue+ ".csv"), experimentalStructures, predictedStructures);
-								VaryKDelta.saveBenchmarkAvgCSV( experimentalStructures, predictedStructures, KValue, delta, j == maxIter - 1);
+								VaryKDelta.saveBenchmarkAvgCSV(avgMetrics, experimentalStructures, predictedStructures, KValue, delta, j == maxIter - 1);
 								
 								
 							} catch (IOException e) {
@@ -301,7 +386,7 @@ public class VaryKDelta {
 	}
 	
 	
-	public static void saveBenchmarkAvgCSV( List<StructureData> experimentalStructures, List<StructureData> predictedStructures, double KValue, double delta, boolean isLast) throws IOException
+	public static void saveBenchmarkAvgCSV(ArrayList<String> avgMetrics, List<StructureData> experimentalStructures, List<StructureData> predictedStructures, double KValue, double delta, boolean isLast) throws IOException
 	{
 		//MODIFY TO SAVE AVERAGE OVER ALL ON SAME RUN
 		//BufferedWriter writer = new BufferedWriter(new FileWriter(csvFile));
