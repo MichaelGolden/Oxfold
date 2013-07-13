@@ -1,3 +1,4 @@
+package uk.ac.ox.osscb.analysis;
 /**
  *
  * @author Michael Golden <michaelgolden0@gmail.com>

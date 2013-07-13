@@ -1,3 +1,4 @@
+package uk.ac.ox.osscb.analysis;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
@@ -8,12 +9,15 @@ import java.util.List;
 
 import uk.ac.ox.osscb.CoFoldAnalogue;
 import uk.ac.ox.osscb.Program;
+import uk.ac.ox.osscb.visualisation.DataVisualiser;
+import uk.ac.ox.osscb.visualisation.SVG;
 
 public class Benchmarks {
 	public static void main(String [] args)
 	{
 		File dataDir = new File("datasets/");
-		File outputDir = new File("output2/");
+		File outputDir = new File("output3/");
+		File resultsFile = new File("resultsCofoldWeighted.csv");
 		outputDir.mkdir();
 		System.out.println(dataDir.list().length);
 		ArrayList<StructureData> experimentalStructures = new ArrayList<StructureData>();
@@ -33,15 +37,45 @@ public class Benchmarks {
 		int datasetno = 0;
 		for(StructureData s : experimentalStructures)
 		{
-			if(datasetno < 37)
+			if(datasetno < 0)
 			{
 				datasetno++;
 				predictedStructures.add(null);
 				continue;
 			}
 			long startNano = System.nanoTime();
-			//StructureData predictedStructure = Benchmarks.foldOxfold(outputDir, s.file.getName(), s.sequences, s.sequenceNames, false, 3.0);
-			StructureData predictedStructure = Benchmarks.foldCofold(outputDir, s.file.getName(), s.sequences, s.sequenceNames, true, 0.5,640);
+			
+			
+			//StructureData predictedStructure = Benchmarks.foldOxfold(outputDir, s.file.getName(), s.sequences, s.sequenceNames, true, 0.5);
+			StructureData predictedStructure = Benchmarks.foldCofold(outputDir, s.file.getName(), s.sequences, s.sequenceNames, true, 0,640);
+			StructureData predictedStructure2 = Benchmarks.foldCofold(outputDir, s.file.getName(), s.sequences, s.sequenceNames, true, 0.5,640);
+			
+			StructureData s1 = predictedStructure;
+			StructureData s2 = predictedStructure2;
+			
+			DataVisualiser visualiser = new DataVisualiser();
+			
+			s2.sequences = s.sequences;
+			s2.sequenceNames = s.sequenceNames;
+			s1.sequences = s2.sequences;
+			s1.sequenceNames = s2.sequenceNames;
+			//s1.title = "Predicted";
+			//s2.title = "Experimental";
+			s.title = "Experimental";
+			s1.title = "Cofold (null)";
+			s2.title = "Cofold (alpha=0.5 tau=640)";
+			
+		
+			
+			//SVG full = visualiser.drawComparisonPredictedExperimental(s1, s2);
+			SVG full = visualiser.drawComparisonPredicted(s1, s2, s);
+			try {
+				full.savePNG(new File(outputDir.getAbsolutePath()+File.separatorChar+s.file.getName()+".svg"), new File(outputDir.getAbsolutePath()+File.separatorChar+s.file.getName()+".png"));
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			
 			long endNano = System.nanoTime();
 			double elapsedNano = (endNano - startNano)/1000000000.0;
 			predictedStructure.time = elapsedNano;
@@ -50,7 +84,7 @@ public class Benchmarks {
 			datasetno++;
 			System.out.println("dataset "+datasetno+"\t"+elapsedNano);
 			try {
-				Benchmarks.saveBenchmarksCSV(new File("results.csv"), experimentalStructures, predictedStructures);
+				Benchmarks.saveBenchmarksCSV(resultsFile, experimentalStructures, predictedStructures);
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -67,7 +101,8 @@ public class Benchmarks {
 		File fastaFile = new File(dir.getAbsolutePath()+File.separatorChar+name+".fas");
 		IO.saveToFASTAfile(sequences, sequenceNames, fastaFile);
 		File outNewick = new File(dir.getAbsolutePath()+File.separatorChar+name+".nwk");
-
+		File basePairProbFile = null;
+		
 		int [] pairedSites = null;
 		if(runEvolutionary)
 		{
@@ -89,6 +124,8 @@ public class Benchmarks {
 					"--weight="+weight};			
 	
 			new Program().run(argsArray);
+			
+			basePairProbFile = new File(fastaFile.getAbsolutePath()+".evol.bp");
 			pairedSites = RNAFoldingTools.getPairedSitesFromDotBracketFile(new File(fastaFile.getAbsolutePath()+".evol.dbn"));		
 		}
 		else
@@ -100,10 +137,16 @@ public class Benchmarks {
 					"--weight="+weight};			
 	
 			new Program().run(argsArray);
+		
+			basePairProbFile = new File(fastaFile.getAbsolutePath()+".noevol.bp");
 			pairedSites = RNAFoldingTools.getPairedSitesFromDotBracketFile(new File(fastaFile.getAbsolutePath()+".noevol.dbn"));		
 		}	
 
 		StructureData structureData = new StructureData(pairedSites);
+		if(basePairProbFile.exists())
+		{
+			structureData.basePairProbFile =  basePairProbFile;
+		}
 		return structureData;		
 	}
 	
@@ -112,6 +155,7 @@ public class Benchmarks {
 		File fastaFile = new File(dir.getAbsolutePath()+File.separatorChar+name+".fas");
 		IO.saveToFASTAfile(sequences, sequenceNames, fastaFile);
 		File outNewick = new File(dir.getAbsolutePath()+File.separatorChar+name+".nwk");
+		File basePairProbFile = null;
 
 		int [] pairedSites = null;
 		if(runEvolutionary)
@@ -136,6 +180,8 @@ public class Benchmarks {
 			//new Program().run(argsArray);
 			CoFoldAnalogue cofold = new CoFoldAnalogue();
 			cofold.foldEvolutionary(fastaFile.getAbsolutePath(), new File("doc/ppfold.grammar").getAbsolutePath(), new File("doc/ppfold.parameters").getAbsolutePath(), outNewick.getAbsolutePath(), alpha, tau);
+			
+			basePairProbFile = new File(fastaFile.getAbsolutePath()+".evol.bp");
 			pairedSites = RNAFoldingTools.getPairedSitesFromDotBracketFile(new File(fastaFile.getAbsolutePath()+".evol.dbn"));		
 		}
 		else
@@ -150,10 +196,15 @@ public class Benchmarks {
 			
 			//new Program().run(argsArray);
 			System.err.println("Not yet implemented");
+			basePairProbFile = new File(fastaFile.getAbsolutePath()+".noevol.bp");
 			pairedSites = RNAFoldingTools.getPairedSitesFromDotBracketFile(new File(fastaFile.getAbsolutePath()+".noevol.dbn"));		
 		}	
 
 		StructureData structureData = new StructureData(pairedSites);
+		if(basePairProbFile.exists())
+		{
+			structureData.basePairProbFile =  basePairProbFile;
+		}
 		return structureData;		
 	}
 	

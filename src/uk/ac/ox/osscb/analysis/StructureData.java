@@ -1,17 +1,23 @@
+package uk.ac.ox.osscb.analysis;
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 
 public class StructureData implements Comparable<StructureData> {
 	
-	File file;
+	public File file;
+	public String title="";
 	
-	int [] pairedSites; // structure
+	public int [] pairedSites; // structure
 	
-	ArrayList<String> sequences = new ArrayList<String>();
-	ArrayList<String> sequenceNames = new ArrayList<String>();
+	public File basePairProbFile;
+	public double [][] basePairProb;
+	
+	public ArrayList<String> sequences = new ArrayList<String>();
+	public ArrayList<String> sequenceNames = new ArrayList<String>();
 	
 	double time;
 	
@@ -74,6 +80,58 @@ public class StructureData implements Comparable<StructureData> {
 	@Override
 	public int compareTo(StructureData o) { // sort by paired sites lengths
 		return this.pairedSites.length - o.pairedSites.length;
+	}
+	
+	public static double [] getNucleotidePairedProbs(double [][] basePairProb)
+	{
+		double [] probs = new double[basePairProb.length];
+		for(int i = 0 ; i < basePairProb.length ; i++)
+		{
+			for(int j = 0 ; j < basePairProb.length ; j++)
+			{
+				probs[i] += basePairProb[i][j];
+			}
+		}
+		return probs;
+	}
+	
+	public static double [][] getBasePairProb(File bpFile) throws IOException
+	{
+		double [][] basePairProb = null;
+		
+		BufferedReader buffer = new BufferedReader(new FileReader(bpFile));
+		String textline = null;
+		int i = 0;
+		while((textline = buffer.readLine()) != null)
+		{
+			String [] split = textline.split(",(\\s)*");
+			if(i == 0)
+			{
+				basePairProb = new double[split.length][split.length];
+			}
+			
+			for(int j = 0 ; j < basePairProb.length ; j++)
+			{
+				basePairProb[i][j] = Double.parseDouble(split[j]);
+			}
+			
+			i++;
+		}
+		
+		for(int x = 0 ; x < basePairProb.length ; x++)
+		{
+			for(int y = 0 ; y < basePairProb.length ; y++)
+			{
+				if(basePairProb[x][y] != 0)
+				{
+					basePairProb[y][x] = basePairProb[x][y];
+				}
+			}
+		}
+		
+		buffer.close();
+		
+		return basePairProb;
 	}
 	
 }

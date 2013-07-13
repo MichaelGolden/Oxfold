@@ -5,6 +5,8 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.math.BigDecimal;
+import java.util.Arrays;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,6 +18,7 @@ import uk.ac.ox.osscb.grammar.GrammarParser;
 import uk.ac.ox.osscb.inoutside.IOsideCalculator;
 import uk.ac.ox.osscb.inoutside.InsideOutsideCalculator;
 import uk.ac.ox.osscb.inoutside.PPOutput;
+import uk.ac.ox.osscb.inoutside.PPProbabilitiesCalculator;
 import uk.ac.ox.osscb.inoutside.PosteriorProbabilities;
 import uk.ac.ox.osscb.inoutside.PosteriorProbabilitiesCalculator;
 import uk.ac.ox.osscb.inoutside.ValidatingIOSideCalculator;
@@ -79,6 +82,7 @@ public class KineticFold2 {
 		InsideOutsideProbabilities outsideProbs = ioCalc.outsideE(insideProbs, alignmentProbs, structure, canPair);
 		PosteriorProbabilitiesCalculator ppCalc = new PosteriorProbabilitiesCalculator(grammar);
 		PosteriorProbabilities completePPProbs = ppCalc.calculateE(insideProbs, outsideProbs, alignmentProbs, structure, canPair);
+		PosteriorProbabilities originalProbs = completePPProbs;
 		double[][] distances = new DistancesCalculator2().distCalc(structure, completePPProbs);
 		PosteriorProbabilities currentPostProbs = completePPProbs;
 		
@@ -113,6 +117,28 @@ public class KineticFold2 {
 		OutputGenerator outputGenerator = new LoggingOutputGenerator();
 		outputGenerator.generate(structure);
 		outputGenerator.generateFinal(structure);
+		
+		try {
+			/*
+			boolean [][] canPair2 = new boolean[structure.length][structure.length];
+			for(int i = 0 ; i < structure.length ; i++)
+			{
+				Arrays.fill(canPair2[i], true);
+			}
+			double[][] distances2 = new DistancesCalculator2().distCalc(structure, originalProbs);
+			int [] structure2 = new int[structure.length];
+			InsideOutsideProbabilities insideProbs2 = ioCalc.inside(alignmentProbs, distances2, weight, structure2, canPair2);
+			InsideOutsideProbabilities outsideProbs2 = ioCalc.outside(insideProbs2, alignmentProbs, distances2, weight, structure2, canPair2);
+			PosteriorProbabilitiesCalculator ppCalc2 = new PosteriorProbabilitiesCalculator(grammar);
+			PosteriorProbabilities completePPProbs2 = ppCalc2.calculate(insideProbs2, outsideProbs2, alignmentProbs, distances2, weight, structure2, canPair2);
+			*/
+			PosteriorProbabilities probs = new PosteriorProbabilities(structure);
+			
+			probs.savePosteriorProbabilities(new File(alignmentFile+".noevol.bp"));
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		
 		writeDotBracketFile(new File(alignmentFile+".noevol.dbn"),new File(alignmentFile).getName(), structure);
 	}
@@ -220,6 +246,17 @@ public class KineticFold2 {
 		OutputGenerator outputGenerator = new LoggingOutputGenerator();
 		outputGenerator.generate(structure);
 		outputGenerator.generateFinal(structure);
+		
+		
+		try {
+			PosteriorProbabilities probs = new PosteriorProbabilities(structure);
+			
+			probs.savePosteriorProbabilities(new File(alignmentFile+".evol.bp"));
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
 		
 		writeDotBracketFile(new File(alignmentFile+".evol.dbn"),new File(alignmentFile).getName(), structure);
 	}

@@ -1,12 +1,14 @@
 package uk.ac.ox.osscb;
 
 import java.math.BigDecimal;
+import java.util.Arrays;
 
 import uk.ac.ox.osscb.inoutside.PosteriorProbabilities;
 
 public class MEACalculator {
 	
 		public int[] calculate(PosteriorProbabilities posteriorProbabilities) {
+			System.err.println("WARNING: MEACalculator may be broken, sometimes predicts impossible base-pairs");
 			BigDecimal[][] pairedProbs = posteriorProbabilities.getPairedProbs();
 			BigDecimal[] unpairedProbs = posteriorProbabilities.getUnpairedProbs();
 			int length = unpairedProbs.length;
@@ -47,6 +49,7 @@ public class MEACalculator {
 			 * do the decoding (go through a stack)
 			 */
 			int[] structure = new int[length];
+			Arrays.fill(structure, Constants.UnpairedBaseIdx);
 			decode(structure,dMatrix);		
  			
 			return structure;

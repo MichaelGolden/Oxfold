@@ -1,3 +1,4 @@
+package uk.ac.ox.osscb.analysis;
 public class BasePairMetrics {
 	/**
 	 * Given an array of paired sites corresponding to the real structure 

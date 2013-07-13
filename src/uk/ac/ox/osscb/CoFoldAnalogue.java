@@ -10,6 +10,7 @@ import org.slf4j.LoggerFactory;
 
 import uk.ac.ox.osscb.KineticFoldPppCalculatorBase.PPOutputHelixInternalResult;
 import uk.ac.ox.osscb.KineticFoldPppCalculatorBase.PPOutputInternalResult2;
+import uk.ac.ox.osscb.analysis.RNAFoldingTools;
 import uk.ac.ox.osscb.domain.NucleotideProbsPrecise;
 import uk.ac.ox.osscb.grammar.Grammar;
 import uk.ac.ox.osscb.grammar.GrammarParser;
@@ -87,16 +88,25 @@ public class CoFoldAnalogue {
 		{
 			for(int j = 0 ; j < canPair.length ; j++)
 			{
-				canPair[i][j] = true;
+				if(Math.abs(i-j) >= 3)
+				{
+					canPair[i][j] = true;
+				}
 			}
 		}
 		InsideOutsideProbabilities insideProbs = ioCalc.inside(evol ? alignmentProbs : alignmentProbsEvol, alpha, tau, structure, canPair);
-		InsideOutsideProbabilities outsideProbs = ioCalc.outside(insideProbs, alignmentProbs, alpha, tau, structure, canPair);
+		InsideOutsideProbabilities outsideProbs = ioCalc.outside(insideProbs, evol ? alignmentProbs : alignmentProbsEvol, alpha, tau, structure, canPair);
 		CoFoldPosteriorProbabilitiesCalculator ppCalc = new CoFoldPosteriorProbabilitiesCalculator(grammar);
 		int [][] distances = null;
-		PosteriorProbabilities currentPostProbs = ppCalc.calculate(insideProbs, outsideProbs, alignmentProbs, distances, alpha, tau, structure, canPair);
+		PosteriorProbabilities currentPostProbs = ppCalc.calculate(insideProbs, outsideProbs, evol ? alignmentProbs : alignmentProbsEvol, distances, alpha, tau, structure, canPair);
 		MEACalculator meaCalculator = new MEACalculator();
-		structure = meaCalculator.calculate(currentPostProbs);
+		int [] structure2 = RNAFoldingTools.getPosteriorDecodingConsensusStructure(currentPostProbs.getBasePairProbs());
+		for(int i = 0 ; i < structure.length ; i++)
+		{
+			structure[i] = structure2[i]-1;
+		}
+		
+		//structure = meaCalculator.calculate(currentPostProbs);
 		//System.out.println(RNAFoldingTools.);
 		
 		//boolean[][] canPair = new PossiblePairFinder().canPair(structure);
@@ -140,6 +150,13 @@ public class CoFoldAnalogue {
 		OutputGenerator outputGenerator = new LoggingOutputGenerator();
 		outputGenerator.generate(structure);
 		outputGenerator.generateFinal(structure);
+		
+		try {
+			currentPostProbs.savePosteriorProbabilities(new File(alignmentFile+".evol.bp"));
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		
 		writeDotBracketFile(new File(alignmentFile+".evol.dbn"),new File(alignmentFile).getName(), structure);
 	}
