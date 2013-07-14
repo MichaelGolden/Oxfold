@@ -4,6 +4,8 @@ package uk.ac.ox.osscb;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
+import java.math.MathContext;
+import java.math.RoundingMode;
 
 /**
  * Extended exponent datatype definition
@@ -11,9 +13,9 @@ import java.math.BigDecimal;
  * @author Z.Sukosd
  */
 
-public class PointRes implements Serializable {
+public class PointRes  extends Number implements Serializable {
 	
-	public static final PointRes ZERO = new PointRes(0);
+	public static final PointRes ZERO = new PointRes(0, 0);
 	public static final PointRes ONE = new PointRes(1);
 
 	private static final long serialVersionUID = 6121110456253627605L;
@@ -197,10 +199,13 @@ public class PointRes implements Serializable {
 
 	public boolean equals(PointRes point) {
 		if (this.exponent == point.exponent && this.fraction == point.fraction) {
+			//System.out.println(this.exponent +"\t"+point.exponent+"\t"+this.fraction+"\t"+point.fraction+" >>>1");
 			return true;
 		} else if (this.fraction == 0 && point.fraction == 0) {
+			//System.out.println(point+" >>>2");
 			return true;
 		} else {
+			//System.out.println(point+" >>>3");
 			return false;
 		}
 	}
@@ -253,7 +258,28 @@ public class PointRes implements Serializable {
 		ret.fraction = ret.fraction / point.fraction;
 		ret.exponent = ret.exponent - point.exponent;
 		ret.convert();
+		//System.out.println("divide"+ret);
 		return ret;
+	}
+	
+	public PointRes divide(PointRes point, int roundingMode) {
+		return this.divide(point).round(new MathContext(512, RoundingMode.valueOf(roundingMode)));
+	}
+	
+	public PointRes divide(PointRes point, RoundingMode roundingMode) {
+		return this.divide(point).round(new MathContext(512, roundingMode));
+	}
+	
+	public PointRes round(MathContext mc)
+	{
+		//System.out.println("round"+this.doubleValue());
+		BigDecimal bd = new BigDecimal(2);
+		//System.out.println("A"+bd);
+		//System.out.println("B"+this.exponent);
+		//System.out.println("C"+this.fraction);
+		bd = bd.pow(this.exponent,mc).multiply(BigDecimal.valueOf(this.fraction));
+		bd = bd.round(mc);
+		return new PointRes(bd.doubleValue());
 	}
 
 	public float toFloat() {
@@ -286,7 +312,8 @@ public class PointRes implements Serializable {
 	}
 
 	public String toString() {
-		return "" + this.fraction + " x 2^" +this.exponent;
+		return this.doubleValue()+"";
+		//return "" + this.fraction + " x 2^" +this.exponent;
 	}
 
 	// exponent must be between -126 and 127
@@ -321,6 +348,24 @@ public class PointRes implements Serializable {
 		return new PointRes(value);
 	}
 	
+	public int signum()
+	{
+		if(this.equals(PointRes.ZERO))
+		{
+			return 0;
+		}
+		else
+		if(this.isLessThan(PointRes.ZERO))
+		{
+			return -1;
+		}
+		
+		else
+		{
+			return 1;
+		}
+	}
+	
 	public static void main(String [] args)
 	{
 		PointRes a = new PointRes(10.5);
@@ -329,11 +374,34 @@ public class PointRes implements Serializable {
 		System.out.println(a.toDouble());
 		System.out.println(b.toDouble());
 		
-		BigDecimal x = new BigDecimal(10.5);
-		BigDecimal y = new BigDecimal(4.3);
+		PointRes x = new PointRes(10.5);
+		PointRes y = new PointRes(4.3);
 		System.out.println(x.add(y));
 		System.out.println(x);
 		System.out.println(y);
 		
+	}
+
+	@Override
+	public double doubleValue() {		
+		return this.toDouble();
+	}
+
+	@Override
+	public float floatValue() {
+		// TODO Auto-generated method stub
+		return this.toFloat();
+	}
+
+	@Override
+	public int intValue() {
+		// TODO Auto-generated method stub
+		return (int)this.toDouble();
+	}
+
+	@Override
+	public long longValue() {
+		// TODO Auto-generated method stub
+		return (long)this.toDouble();
 	}
 }

@@ -1,6 +1,6 @@
 package uk.ac.ox.osscb;
 
-import java.math.BigDecimal;
+
 
 import uk.ac.ox.osscb.grammar.RuleType;
 
@@ -27,14 +27,14 @@ public class ProductionRule {
 	char left;
 	char[] right;
 	RuleType ruleclass;
-	BigDecimal probability;
+	PointRes probability;
 	
 	
 	/**
 	 * Constructor
 	 * Input left, right as specified above and the associated probability for the rule.
 	 */
-	public ProductionRule(char left, char[] right, BigDecimal probability)
+	public ProductionRule(char left, char[] right, PointRes probability)
 	{
 		this.left = left;
 		this.right = right;
@@ -51,7 +51,7 @@ public class ProductionRule {
 		return ruleclass;
 	}
 	
-	public BigDecimal getProbability()
+	public PointRes getProbability()
 	{
 		return probability;
 	}

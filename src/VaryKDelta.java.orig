@@ -27,7 +27,7 @@ public class VaryKDelta {
 			runAuto(10, 1);
 		}
 		else{
-			Constants.IterationCutOff = BigDecimal.valueOf(Double.valueOf(args[1])); 
+			Constants.IterationCutOff = PointRes.valueOf(Double.valueOf(args[1])); 
 			double delta_o = Constants.IterationCutOff.doubleValue(); 
 			double kArg = Double.valueOf(args[0]);
 			runSpecific(kArg, delta_o);
@@ -38,7 +38,7 @@ public class VaryKDelta {
 	
 	private static void runSpecific(double KValue, double dValue){
 		String outputDirString = "output/";
-		Constants.IterationCutOff = BigDecimal.valueOf(Double.valueOf(dValue)); 
+		Constants.IterationCutOff = PointRes.valueOf(Double.valueOf(dValue)); 
 >>>>>>> 7b66bf7b980cd6aa46310517c9933430958f1592
 		double delta = Constants.IterationCutOff.doubleValue(); 
 		//variables for K or delta and their ranges. Then move below out to new method. 

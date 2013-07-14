@@ -1,7 +1,5 @@
 package uk.ac.ox.osscb.inoutside;
 
-import java.math.BigDecimal;
-
 import uk.ac.ox.osscb.InsideOutsideProbabilities;
 import uk.ac.ox.osscb.PossiblePairFinder;
 import uk.ac.ox.osscb.domain.NucleotideProbsPrecise;

@@ -4,32 +4,33 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.math.BigDecimal;
+
 import java.util.Arrays;
 
 import uk.ac.ox.osscb.Constants;
+import uk.ac.ox.osscb.PointRes;
 
 public class PosteriorProbabilities {
 
-		private BigDecimal[] unpairedProbs;
-		private BigDecimal[][] pairedProbs;
-		private BigDecimal maxP;
+		private PointRes[] unpairedProbs;
+		private PointRes[][] pairedProbs;
+		private PointRes maxP;
 		private int maxLeftIdx;
 		private int maxRightIdx;
 		
 		public PosteriorProbabilities(int [] structure)
 		{
-			pairedProbs = new BigDecimal[structure.length][structure.length];
+			pairedProbs = new PointRes[structure.length][structure.length];
 			for(int i = 0 ; i < structure.length ; i++)
 			{
 				if(structure[i] != Constants.UnpairedBaseIdx)
 				{
-					pairedProbs[i][structure[i]] = BigDecimal.ONE;
+					pairedProbs[i][structure[i]] = PointRes.ONE;
 				}
 			}
 		}
 		
-		public PosteriorProbabilities(BigDecimal[] unpairedProbs, BigDecimal[][] pairedProbs, BigDecimal maxP, int maxLeftIdx, int maxRightIdx) {
+		public PosteriorProbabilities(PointRes[] unpairedProbs, PointRes[][] pairedProbs, PointRes maxP, int maxLeftIdx, int maxRightIdx) {
 			this.unpairedProbs = unpairedProbs;
 			this.pairedProbs = pairedProbs;
 			this.maxP = maxP;
@@ -37,15 +38,15 @@ public class PosteriorProbabilities {
 			this.maxRightIdx = maxRightIdx;
 		}
 				
-		public BigDecimal getMaxP() {
+		public PointRes getMaxP() {
 			return maxP;
 		}
 		
-		public BigDecimal[] getUnpairedProbs() {
+		public PointRes[] getUnpairedProbs() {
 			return unpairedProbs;
 		}
 		
-		public BigDecimal[][] getPairedProbs() {
+		public PointRes[][] getPairedProbs() {
 			return pairedProbs;
 		}
 		
@@ -79,17 +80,17 @@ public class PosteriorProbabilities {
 			BufferedWriter writer = new BufferedWriter(new FileWriter(outputFile));
 			
 			/*
-			BigDecimal [][] basePairProbs = new BigDecimal[pairedProbs.length][pairedProbs.length];
-			BigDecimal [] totalProbs = new BigDecimal[pairedProbs.length];
+			PointRes [][] basePairProbs = new PointRes[pairedProbs.length][pairedProbs.length];
+			PointRes [] totalProbs = new PointRes[pairedProbs.length];
 			for(int i = 0 ; i < pairedProbs.length ; i++)
 			{
-				totalProbs[i] = new BigDecimal(1);
+				totalProbs[i] = new PointRes(1);
 				for(int j = 0 ; j < pairedProbs.length ; j++)
 				{
 					totalProbs[i]=  totalProbs[i].subtract(pairedProbs[i][j]);
 				}
-				BigDecimal pairProb = BigDecimal.ONE.subtract(unpairedProbs[i]);
-				totalProbs[i] = BigDecimal.ONE.subtract(totalProbs[i]);
+				PointRes pairProb = PointRes.ONE.subtract(unpairedProbs[i]);
+				totalProbs[i] = PointRes.ONE.subtract(totalProbs[i]);
 				System.out.println("MMM "+totalProbs[i].doubleValue()+"\t"+pairProb.doubleValue());
 			}*/
 			

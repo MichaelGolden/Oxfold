@@ -1,6 +1,5 @@
 package uk.ac.ox.osscb.inoutside;
 
-import java.math.BigDecimal;
 import java.util.InputMismatchException;
 import java.util.Locale;
 
@@ -11,6 +10,7 @@ import uk.ac.ox.osscb.Constants;
 import uk.ac.ox.osscb.HelicesMaker;
 import uk.ac.ox.osscb.IncompatiblePairsFinder;
 import uk.ac.ox.osscb.InsideOutsideProbabilities;
+import uk.ac.ox.osscb.PointRes;
 import uk.ac.ox.osscb.Util;
 import uk.ac.ox.osscb.config.Settings;
 import uk.ac.ox.osscb.domain.NucleotideProbsPrecise;
@@ -55,17 +55,17 @@ public class CoFoldProbabilitiesCalculator {
 		PosteriorProbabilities posteriorProbabilities = posteriorProbabilitiesCalculator.calculate(insideProbs, outsideProbs, nucleotideProbs, distances, alpha, tau, structure, canPair);
 		int leftIdx = posteriorProbabilities.getMaxLeftIdx();
 		int rightIdx = posteriorProbabilities.getMaxRightIdx();
-		BigDecimal[] unpairedProbs = posteriorProbabilities.getUnpairedProbs();
-		BigDecimal[][] pairedProbs = posteriorProbabilities.getPairedProbs();
+		PointRes[] unpairedProbs = posteriorProbabilities.getUnpairedProbs();
+		PointRes[][] pairedProbs = posteriorProbabilities.getPairedProbs();
 		PPOutput output = null;
 		
 		if ((leftIdx<0)||(rightIdx<0)) {
-			output = new PPOutput(-1,-1,0,BigDecimal.ZERO,BigDecimal.ZERO);
+			output = new PPOutput(-1,-1,0,PointRes.ZERO,PointRes.ZERO);
 		} else {
 			boolean[][] incomp = new IncompatiblePairsFinder().find(canPair, leftIdx, rightIdx);
-			BigDecimal rprob = new IncompatiblePairsFinder().calculateComp(incomp,leftIdx,rightIdx,pairedProbs);
-			BigDecimal[][] diffs = posteriorProbabilitiesCalculator.getDiffs(pairedProbs, unpairedProbs, canPair);
-			BigDecimal diff = diffs[leftIdx][rightIdx];
+			PointRes rprob = new IncompatiblePairsFinder().calculateComp(incomp,leftIdx,rightIdx,pairedProbs);
+			PointRes[][] diffs = posteriorProbabilitiesCalculator.getDiffs(pairedProbs, unpairedProbs, canPair);
+			PointRes diff = diffs[leftIdx][rightIdx];
 			Helix helix = new HelicesMaker().makeHelix(leftIdx,rightIdx,diffs,canPair);
 			output = new PPOutput(helix.getLeftIdx(), helix.getRightIdx(), helix.getHelixLength(), diff, rprob);
 			
@@ -84,17 +84,17 @@ public class CoFoldProbabilitiesCalculator {
 		PosteriorProbabilities posteriorProbabilities = posteriorProbabilitiesCalculator.calculate(insideProbs, outsideProbs, nucleotideProbs, distances, alpha, tau, structure, canPair);
 		int leftIdx = posteriorProbabilities.getMaxLeftIdx();
 		int rightIdx = posteriorProbabilities.getMaxRightIdx();
-		BigDecimal[] unpairedProbs = posteriorProbabilities.getUnpairedProbs();
-		BigDecimal[][] pairedProbs = posteriorProbabilities.getPairedProbs();
+		PointRes[] unpairedProbs = posteriorProbabilities.getUnpairedProbs();
+		PointRes[][] pairedProbs = posteriorProbabilities.getPairedProbs();
 		PPOutput output = null;
 		
 		if ((leftIdx<0)||(rightIdx<0)) {
-			output = new PPOutput(-1,-1,0,BigDecimal.ZERO,BigDecimal.ZERO);
+			output = new PPOutput(-1,-1,0,PointRes.ZERO,PointRes.ZERO);
 		} else {
 			boolean[][] incomp = new IncompatiblePairsFinder().find(canPair, leftIdx, rightIdx);
-			BigDecimal rprob = new IncompatiblePairsFinder().calculateComp(incomp,leftIdx,rightIdx,pairedProbs);
-			BigDecimal[][] diffs = posteriorProbabilitiesCalculator.getDiffs(pairedProbs, unpairedProbs, canPair);
-			BigDecimal diff = diffs[leftIdx][rightIdx];
+			PointRes rprob = new IncompatiblePairsFinder().calculateComp(incomp,leftIdx,rightIdx,pairedProbs);
+			PointRes[][] diffs = posteriorProbabilitiesCalculator.getDiffs(pairedProbs, unpairedProbs, canPair);
+			PointRes diff = diffs[leftIdx][rightIdx];
 			Helix helix = new HelicesMaker().makeHelix(leftIdx,rightIdx,diffs,canPair);
 			output = new PPOutput(helix.getLeftIdx(), helix.getRightIdx(), helix.getHelixLength(), diff, rprob);
 			
@@ -114,17 +114,17 @@ public class CoFoldProbabilitiesCalculator {
 		PosteriorProbabilities posteriorProbabilities = posteriorProbabilitiesCalculator.calculateE(insideProbs, outsideProbs, nucleotideProbs, structure, canPair);
 		int leftIdx = posteriorProbabilities.getMaxLeftIdx();
 		int rightIdx = posteriorProbabilities.getMaxRightIdx();
-		BigDecimal[] unpairedProbs = posteriorProbabilities.getUnpairedProbs();
-		BigDecimal[][] pairedProbs = posteriorProbabilities.getPairedProbs();
+		PointRes[] unpairedProbs = posteriorProbabilities.getUnpairedProbs();
+		PointRes[][] pairedProbs = posteriorProbabilities.getPairedProbs();
 		PPOutput output = null;
 						
 		if ((leftIdx<0)||(rightIdx<0)) {
-			output = new PPOutput(-1,-1,0,BigDecimal.ZERO,BigDecimal.ZERO);
+			output = new PPOutput(-1,-1,0,PointRes.ZERO,PointRes.ZERO);
 		} else {
 			boolean[][] incomp = new IncompatiblePairsFinder().find(canPair, leftIdx, rightIdx);
-			BigDecimal rprob = new IncompatiblePairsFinder().calculateComp(incomp,leftIdx,rightIdx,pairedProbs);
-			BigDecimal[][] diffs = posteriorProbabilitiesCalculator.getDiffs(pairedProbs, unpairedProbs, canPair);
-			BigDecimal diff = diffs[leftIdx][rightIdx];
+			PointRes rprob = new IncompatiblePairsFinder().calculateComp(incomp,leftIdx,rightIdx,pairedProbs);
+			PointRes[][] diffs = posteriorProbabilitiesCalculator.getDiffs(pairedProbs, unpairedProbs, canPair);
+			PointRes diff = diffs[leftIdx][rightIdx];
 			Helix helix = new HelicesMaker().makeHelix(leftIdx,rightIdx,diffs,canPair);
 			output = new PPOutput(helix.getLeftIdx(), helix.getRightIdx(), helix.getHelixLength(), diff, rprob);
 			
@@ -146,17 +146,17 @@ public class CoFoldProbabilitiesCalculator {
 		PosteriorProbabilities posteriorProbabilities = posteriorProbabilitiesCalculator.calculate(insideProbs, outsideProbs, nucleotideProbs, distances, weight, structure, canPair);
 		int leftIdx = posteriorProbabilities.getMaxLeftIdx();
 		int rightIdx = posteriorProbabilities.getMaxRightIdx();
-		BigDecimal[] unpairedProbs = posteriorProbabilities.getUnpairedProbs();
-		BigDecimal[][] pairedProbs = posteriorProbabilities.getPairedProbs();
+		PointRes[] unpairedProbs = posteriorProbabilities.getUnpairedProbs();
+		PointRes[][] pairedProbs = posteriorProbabilities.getPairedProbs();
 		PPOutputHelix output = null;
 		
 		if ((leftIdx<0)||(rightIdx<0)) {
-			output = new PPOutputHelix(new Helix(),null,BigDecimal.ZERO,BigDecimal.ZERO);
+			output = new PPOutputHelix(new Helix(),null,PointRes.ZERO,PointRes.ZERO);
 		} else {
 			boolean[][] incomp = new IncompatiblePairsFinder().find(canPair, leftIdx, rightIdx);
-			BigDecimal rprob = new IncompatiblePairsFinder().calculateComp(incomp,leftIdx,rightIdx,pairedProbs);
-			BigDecimal[][] diffs = posteriorProbabilitiesCalculator.getDiffs(pairedProbs, unpairedProbs, canPair);
-			BigDecimal diff = diffs[leftIdx][rightIdx];
+			PointRes rprob = new IncompatiblePairsFinder().calculateComp(incomp,leftIdx,rightIdx,pairedProbs);
+			PointRes[][] diffs = posteriorProbabilitiesCalculator.getDiffs(pairedProbs, unpairedProbs, canPair);
+			PointRes diff = diffs[leftIdx][rightIdx];
 			Helix helix = new HelicesMaker().makeHelix(leftIdx,rightIdx,diffs,canPair);
 			output = new PPOutputHelix(helix, diffs, diff, rprob);
 			
@@ -174,17 +174,17 @@ public class CoFoldProbabilitiesCalculator {
 		PosteriorProbabilities posteriorProbabilities = posteriorProbabilitiesCalculator.calculateE(insideProbs, outsideProbs, nucleotideProbs, structure, canPair);
 		int leftIdx = posteriorProbabilities.getMaxLeftIdx();
 		int rightIdx = posteriorProbabilities.getMaxRightIdx();
-		BigDecimal[] unpairedProbs = posteriorProbabilities.getUnpairedProbs();
-		BigDecimal[][] pairedProbs = posteriorProbabilities.getPairedProbs();
+		PointRes[] unpairedProbs = posteriorProbabilities.getUnpairedProbs();
+		PointRes[][] pairedProbs = posteriorProbabilities.getPairedProbs();
 		PPOutputHelix output = null;
 						
 		if ((leftIdx<0)||(rightIdx<0)) {
-			output = new PPOutputHelix(new Helix(),null,BigDecimal.ZERO,BigDecimal.ZERO);
+			output = new PPOutputHelix(new Helix(),null,PointRes.ZERO,PointRes.ZERO);
 		} else {
 			boolean[][] incomp = new IncompatiblePairsFinder().find(canPair, leftIdx, rightIdx);
-			BigDecimal rprob = new IncompatiblePairsFinder().calculateComp(incomp,leftIdx,rightIdx,pairedProbs);
-			BigDecimal[][] diffs = posteriorProbabilitiesCalculator.getDiffs(pairedProbs, unpairedProbs, canPair);
-			BigDecimal diff = diffs[leftIdx][rightIdx];
+			PointRes rprob = new IncompatiblePairsFinder().calculateComp(incomp,leftIdx,rightIdx,pairedProbs);
+			PointRes[][] diffs = posteriorProbabilitiesCalculator.getDiffs(pairedProbs, unpairedProbs, canPair);
+			PointRes diff = diffs[leftIdx][rightIdx];
 			Helix helix = new HelicesMaker().makeHelix(leftIdx,rightIdx,diffs,canPair);
 			output = new PPOutputHelix(helix, diffs, diff, rprob);
 			
@@ -379,7 +379,7 @@ public class CoFoldProbabilitiesCalculator {
 		return diffs;
 	}
 	
-	private void logResults(int leftIdx, int rightIdx, BigDecimal diff, BigDecimal rprob) {
+	private void logResults(int leftIdx, int rightIdx, PointRes diff, PointRes rprob) {
 		if(log.isInfoEnabled()){
 			log.info(String.format(Locale.UK, "lIdx: %3d; rIdx: %3d; diff: %7.4g; rprob: %7.4g",
 					leftIdx, rightIdx, diff, rprob));

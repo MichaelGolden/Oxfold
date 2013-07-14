@@ -1,6 +1,6 @@
 package uk.ac.ox.osscb;
 
-import java.math.BigDecimal;
+
 import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.HashMap;
@@ -19,7 +19,7 @@ import uk.ac.ox.osscb.domain.NucleotideProbsPrecise;
  */
 public class EvolProbabilitiesCalculator {
 		
-	public BigDecimal postOrderStackTraversal(EvolutionaryTree tree, Qmatrix qMatrix,
+	public PointRes postOrderStackTraversal(EvolutionaryTree tree, Qmatrix qMatrix,
 			Alphabet alphabet, double[] prior, String[] leafData, double[][][] transitionMatrices){
 	
 		Stack<DefaultMutableTreeNode> stack = new Stack<DefaultMutableTreeNode>();
@@ -30,11 +30,11 @@ public class EvolProbabilitiesCalculator {
 		
 		int totalNodes = tree.nodesInTreeCount(tree.getRoot());
 		//matrix of likelihoods
-		BigDecimal[][] L = new BigDecimal[totalNodes][standardLetters.length];
+		PointRes[][] L = new PointRes[totalNodes][standardLetters.length];
 		//just zero L
 		for(int i=0; i<totalNodes; i++)
 			for(int j=0; j<standardLetters.length; j++)
-				L[i][j] = BigDecimal.ZERO;
+				L[i][j] = PointRes.ZERO;
 		
 		//count the #leaves we've seen so that we can compare to the array of leafData
 		int leafCount = 0;
@@ -79,7 +79,7 @@ public class EvolProbabilitiesCalculator {
 							}
 							tmp = tmp * tmpp;
 						}
-						L[traversalIdx][ltrIdx1] = BigDecimal.valueOf(Math.abs(tmp));
+						L[traversalIdx][ltrIdx1] = PointRes.valueOf(Math.abs(tmp));
 					}
 					currNode = stack.pop();
 					traversalIdx++;
@@ -93,7 +93,7 @@ public class EvolProbabilitiesCalculator {
 				hitLeaf = true;
 				String observed = leafData[leafCount];
 				for(String obs : synonyms.get(observed))
-					L[traversalIdx][standardLettersList.indexOf(obs)] = BigDecimal.ONE;
+					L[traversalIdx][standardLettersList.indexOf(obs)] = PointRes.ONE;
 				
 				DefaultMutableTreeNode parent = (DefaultMutableTreeNode) currNode.getParent();
 				parent.remove(currNode);
@@ -103,9 +103,9 @@ public class EvolProbabilitiesCalculator {
 			}
 			
 		}
-		BigDecimal likelihood = BigDecimal.ZERO;
+		PointRes likelihood = PointRes.ZERO;
 		for(int ltrIdx=0; ltrIdx<standardLetters.length; ltrIdx++)
-			likelihood = likelihood.add(L[totalNodes-1][ltrIdx].multiply(BigDecimal.valueOf(prior[ltrIdx])));
+			likelihood = likelihood.add(L[totalNodes-1][ltrIdx].multiply(PointRes.valueOf(prior[ltrIdx])));
 		//System.out.println(likelihood.doubleValue());
 		return likelihood;
 		
@@ -124,7 +124,7 @@ public class EvolProbabilitiesCalculator {
 	 * @param prior - prior distribution at the root
 	 * @return likelihood
 	 */
-	public BigDecimal postOrderTraversal(EvolutionaryTree tree, Qmatrix qMatrix,
+	public PointRes postOrderTraversal(EvolutionaryTree tree, Qmatrix qMatrix,
 				Alphabet alphabet, double[] prior, String[] leafData, double[][][] transitionMatrices){
 		
 		String[] standardLetters = alphabet.getStandardNames();
@@ -133,11 +133,11 @@ public class EvolProbabilitiesCalculator {
 		
 		int totalNodes = tree.nodesInTreeCount(tree.getRoot());
 		//matrix of likelihoods
-		BigDecimal[][] L = new BigDecimal[totalNodes][standardLetters.length];
+		PointRes[][] L = new PointRes[totalNodes][standardLetters.length];
 		//just zero L
 		for(int i=0; i<totalNodes; i++)
 			for(int j=0; j<standardLetters.length; j++)
-				L[i][j] = BigDecimal.ZERO;
+				L[i][j] = PointRes.ZERO;
 				
 		//count the #leaves we've seen so that we can compare to the array of leafData
 		int leafCount = 0;
@@ -161,7 +161,7 @@ public class EvolProbabilitiesCalculator {
 			if (nextNode.isLeaf()){
 				String observed = leafData[leafCount];
 				for(String obs : synonyms.get(observed)) {
-					L[traversalIdx][standardLettersList.indexOf(obs)] = BigDecimal.ONE;
+					L[traversalIdx][standardLettersList.indexOf(obs)] = PointRes.ONE;
 				}
 				leafCount++;
 			} else {
@@ -187,7 +187,7 @@ public class EvolProbabilitiesCalculator {
 						}
 						tmp = tmp * tmpp;
 					}
-					L[traversalIdx][ltrIdx1] = BigDecimal.valueOf(Math.abs(tmp));
+					L[traversalIdx][ltrIdx1] = PointRes.valueOf(Math.abs(tmp));
 				}
 			}	
 			traversalIdx++;
@@ -195,9 +195,9 @@ public class EvolProbabilitiesCalculator {
 		//String mtx = Util.print2DArray(L);
 		//System.out.println(mtx);
 		
-		BigDecimal likelihood = BigDecimal.ZERO;
+		PointRes likelihood = PointRes.ZERO;
 		for(int ltrIdx=0; ltrIdx<standardLetters.length; ltrIdx++)
-			likelihood = likelihood.add(L[totalNodes-1][ltrIdx].multiply(BigDecimal.valueOf(prior[ltrIdx])));
+			likelihood = likelihood.add(L[totalNodes-1][ltrIdx].multiply(PointRes.valueOf(prior[ltrIdx])));
 		//System.out.println(likelihood.doubleValue());
 		return likelihood;
 	}
@@ -240,7 +240,7 @@ public class EvolProbabilitiesCalculator {
 		double[][][] sMatrices = getMatrices(tree, sQmatrix);
 		for(int colIdx=0; colIdx<cols.length; colIdx++){
 			String[] leafData = toLeafData(cols[colIdx]);
-			BigDecimal likelihood = postOrderTraversal(tree, sQmatrix, sAlphabet, sPrior, leafData,sMatrices);
+			PointRes likelihood = postOrderTraversal(tree, sQmatrix, sAlphabet, sPrior, leafData,sMatrices);
 			probs.setUnpairingProbability(colIdx, likelihood);
 		}
 		
@@ -263,9 +263,9 @@ public class EvolProbabilitiesCalculator {
 				String jCol = cols[j];
 				String[] colArray = {iCol, jCol};
 				String[] leafData = toLeafData(colArray);
-				BigDecimal likelihood = null;
+				PointRes likelihood = null;
 				if(isNonstandardOverThreshold(leafData, pAlphabet, 0.5)) {
-					likelihood = BigDecimal.ZERO;
+					likelihood = PointRes.ZERO;
 				//} else if ((highlyConservedCols[i])||(highlyConservedCols[j])) {
 				//	likelihood = pproduct(synonyms,pIndices,leafData);
 				} else {
@@ -307,15 +307,15 @@ public class EvolProbabilitiesCalculator {
 		return conserved;
 	}
 	
-	private BigDecimal pproduct(HashMap<String,String[]> synonyms, HashMap<String,Double> pIndices, String[] LeafData) {
-		BigDecimal result = BigDecimal.ONE;
+	private PointRes pproduct(HashMap<String,String[]> synonyms, HashMap<String,Double> pIndices, String[] LeafData) {
+		PointRes result = PointRes.ONE;
 		for (int i = 0; i<LeafData.length; i++) {
 			String[] syns = synonyms.get(LeafData[i]);
 			double tmp = 0;
 			for (String syn : syns){
 				tmp += pIndices.get(syn);
 			}
-			result = result.multiply(BigDecimal.valueOf(tmp));
+			result = result.multiply(PointRes.valueOf(tmp));
 		}
 		return result;
 	}*/
@@ -448,17 +448,17 @@ public class EvolProbabilitiesCalculator {
 
 
 /*
-//Naive matrix multiplication w/ BigDecimals 
-private BigDecimal[][] mult(BigDecimal[][] left, BigDecimal[][] right){
+//Naive matrix multiplication w/ PointRess 
+private PointRes[][] mult(PointRes[][] left, PointRes[][] right){
 	int leftRows = left.length,
 		leftCols = left[0].length,
 		rightCols = right[0].length;
 	
-	BigDecimal[][] result = new BigDecimal[leftRows][rightCols];
+	PointRes[][] result = new PointRes[leftRows][rightCols];
 	
 	  for(int i = 0; i < leftRows; i++) {
 		    for(int j = 0; j < rightCols; j++) { 
-		    	result[i][j] = BigDecimal.valueOf(0);
+		    	result[i][j] = PointRes.valueOf(0);
 		      for(int k = 0; k < leftCols; k++) { 
 		        result[i][j] = result[i][j].add(left[i][k].multiply(right[k][j]));
 		      }
@@ -472,21 +472,21 @@ private BigDecimal[][] mult(BigDecimal[][] left, BigDecimal[][] right){
 //current node is not a leaf, so iterate through the node's children
 //	for(String names1: standardLetters){
 for(int ltrIdx1=0; ltrIdx1<standardLetters.length; ltrIdx1++){
-	//BigDecimal tmp = BigDecimal.ONE;
+	//PointRes tmp = PointRes.ONE;
 	double tmp = 1.0;
 	Enumeration children = nextNode.children();
 	while(children.hasMoreElements()){
 		DefaultMutableTreeNode nextChild = (DefaultMutableTreeNode) children.nextElement();
 		EvolutionaryNodeData childData = (EvolutionaryNodeData) nextChild.getUserObject();
 		int childIdx = childData.getIdx();
-		//BigDecimal tmpp = BigDecimal.ZERO;
+		//PointRes tmpp = PointRes.ZERO;
 		double tmpp = 0.0;
 		
 		double distance = tree.getDistance(nextNode, nextChild);
 		double[][] baseSubMatrix = getTransitionProbsMatrix(qMatrix, distance);
 		
 		for(int ltrIdx2=0; ltrIdx2<standardLetters.length; ltrIdx2++){
-			//BigDecimal tmpTransProb = BigDecimal.valueOf(baseSubMatrix[standardLetters.indexOf(names1)][standardLetters.indexOf(names2)]);
+			//PointRes tmpTransProb = PointRes.valueOf(baseSubMatrix[standardLetters.indexOf(names1)][standardLetters.indexOf(names2)]);
 			double tmpTransProb = baseSubMatrix[ltrIdx1][ltrIdx2];
 			//tmpp = tmpp.add(L[traversal.indexOf(nextChild)][standardLetters.indexOf(names2)].multiply(tmpTransProb));
 			tmpp = tmpp + (L[childIdx][ltrIdx2].doubleValue()* tmpTransProb);
@@ -496,6 +496,6 @@ for(int ltrIdx1=0; ltrIdx1<standardLetters.length; ltrIdx1++){
 	}
 	
 	
-	L[traversalIdx][ltrIdx1] = BigDecimal.valueOf(tmp);
+	L[traversalIdx][ltrIdx1] = PointRes.valueOf(tmp);
 }
 } */

@@ -1,6 +1,5 @@
 package uk.ac.ox.osscb.inoutside;
 
-import java.math.BigDecimal;
 import java.util.LinkedList;
 
 import uk.ac.ox.osscb.Constants;
@@ -9,6 +8,7 @@ import uk.ac.ox.osscb.HelicesMaker;
 import uk.ac.ox.osscb.IncompatiblePairsFinder;
 import uk.ac.ox.osscb.InsideOutsideProbabilities;
 import uk.ac.ox.osscb.LoggingOutputGenerator;
+import uk.ac.ox.osscb.PointRes;
 import uk.ac.ox.osscb.PossiblePairFinder;
 import uk.ac.ox.osscb.StructureUtils;
 import uk.ac.ox.osscb.domain.NucleotideProbsPrecise;
@@ -45,20 +45,20 @@ public class DynamicPPProbabilitiesCalculator {
 		PosteriorProbabilities posteriorProbabilities = posteriorProbabilitiesCalculator.calculate(insideProbs, outsideProbs, nucleotideProbs, distances, weight, structure, canPair);
 		int leftIdx = posteriorProbabilities.getMaxLeftIdx();
 		int rightIdx = posteriorProbabilities.getMaxRightIdx();
-		BigDecimal[] unpairedProbs = posteriorProbabilities.getUnpairedProbs();
-		BigDecimal[][] pairedProbs = posteriorProbabilities.getPairedProbs();
+		PointRes[] unpairedProbs = posteriorProbabilities.getUnpairedProbs();
+		PointRes[][] pairedProbs = posteriorProbabilities.getPairedProbs();
 		PPOutput output = null;
 		if ((leftIdx<0)||(rightIdx<0)) {
-			output = new PPOutput(-1,-1,0,BigDecimal.ZERO,BigDecimal.ZERO);
+			output = new PPOutput(-1,-1,0,PointRes.ZERO,PointRes.ZERO);
 		} else {
-			BigDecimal[][] diffs = posteriorProbabilitiesCalculator.getDiffs(pairedProbs, unpairedProbs, canPair);
-			BigDecimal diff = diffs[leftIdx][rightIdx];
+			PointRes[][] diffs = posteriorProbabilitiesCalculator.getDiffs(pairedProbs, unpairedProbs, canPair);
+			PointRes diff = diffs[leftIdx][rightIdx];
 			Helix mainHelix = new HelicesMaker().makeHelix(leftIdx,rightIdx,diffs,canPair);
 			boolean[][] incomp = new IncompatiblePairsFinder().find(canPair, leftIdx, rightIdx);
-			BigDecimal rprob = new IncompatiblePairsFinder().calculateComp(incomp,leftIdx,rightIdx,pairedProbs);
+			PointRes rprob = new IncompatiblePairsFinder().calculateComp(incomp,leftIdx,rightIdx,pairedProbs);
 			Helix chosenHelix = mainHelix;
 			int mainRight = mainHelix.getRightIdx();
-			BigDecimal mainScore = mainHelix.getScore();
+			PointRes mainScore = mainHelix.getScore();
 			// test whether we should be more careful about our choice of pairing...
 			if (rprob.compareTo(Constants.DynamicCutOff)<0) {
 				incomp = new IncompatiblePairsFinder().findAll(canPair, mainHelix);
@@ -87,7 +87,7 @@ public class DynamicPPProbabilitiesCalculator {
 							SubOutput subOutput = getSubCompHelices(subStruc, nucleotideProbs, weight, compLeft, compRight);
 							Helix subMainHelix = subOutput.getSubMainHelix();
 							LinkedList<Helix> subCompHelices = subOutput.getSubCompHelices();
-							BigDecimal subMainScore = subMainHelix.getScore();
+							PointRes subMainScore = subMainHelix.getScore();
 							boolean found = false;
 							for (Helix subCompHelix: subCompHelices) {
 								if (subCompHelix.getScore().compareTo(subMainScore)>0) {
@@ -110,7 +110,7 @@ public class DynamicPPProbabilitiesCalculator {
 						SubOutput subOutput = getSubCompHelices(subStruc, nucleotideProbs, weight, mainLeft, mainRight);
 						Helix subMainHelix = subOutput.getSubMainHelix();
 						LinkedList<Helix> subCompHelices = subOutput.getSubCompHelices();
-						BigDecimal subMainScore = subMainHelix.getScore();
+						PointRes subMainScore = subMainHelix.getScore();
 						boolean found = false;
 						for (Helix subCompHelix: subCompHelices) {
 							if (subCompHelix.getScore().compareTo(subMainScore)>0) {
@@ -128,7 +128,7 @@ public class DynamicPPProbabilitiesCalculator {
 				}	
 				// if no interesting structures: stick with main structure; otherwise compare interesting competing structures and decide.
 				if (!interestingHelices.isEmpty()) {
-					BigDecimal maxScore = BigDecimal.ZERO;
+					PointRes maxScore = PointRes.ZERO;
 					chosenHelix = mainHelix;
 					for (Helix helix: interestingHelices) {
 						if (maxScore.compareTo(helix.getScore())<0) {
@@ -175,7 +175,7 @@ public class DynamicPPProbabilitiesCalculator {
 		PosteriorProbabilitiesCalculator subPosteriorProbabilitiesCalculator = new PosteriorProbabilitiesCalculator(grammar);
 		PosteriorProbabilities subPosterior = subPosteriorProbabilitiesCalculator.calculate(subInside, subOutside, 
 				nucleotideProbs, subDist, weight, subStruc, subCanPair);
-		BigDecimal[][] subDiffs = subPosteriorProbabilitiesCalculator.getDiffs(subPosterior.getPairedProbs(), subPosterior.getUnpairedProbs(), subCanPair);
+		PointRes[][] subDiffs = subPosteriorProbabilitiesCalculator.getDiffs(subPosterior.getPairedProbs(), subPosterior.getUnpairedProbs(), subCanPair);
 		Helix subMainHelix = new HelicesMaker().makeHelix(compLeft, compRight, subDiffs, subCanPair); 
 		boolean[][] subIncomp = new IncompatiblePairsFinder().findAll(subCanPair, subMainHelix);
 		LinkedList<Helix> subCompHelices = new IncompatiblePairsFinder().getIncompatibleHelices(subCanPair, subIncomp, 
@@ -192,7 +192,7 @@ public class DynamicPPProbabilitiesCalculator {
 		PosteriorProbabilitiesCalculator subPosteriorProbabilitiesCalculator = new PosteriorProbabilitiesCalculator(grammar);
 		PosteriorProbabilities subPosterior = subPosteriorProbabilitiesCalculator.calculateE(subInside, subOutside, 
 				nucleotideProbs, subStruc, subCanPair);
-		BigDecimal[][] subDiffs = subPosteriorProbabilitiesCalculator.getDiffs(subPosterior.getPairedProbs(), subPosterior.getUnpairedProbs(), subCanPair);
+		PointRes[][] subDiffs = subPosteriorProbabilitiesCalculator.getDiffs(subPosterior.getPairedProbs(), subPosterior.getUnpairedProbs(), subCanPair);
 		Helix subMainHelix = new HelicesMaker().makeHelix(compLeft, compRight, subDiffs, subCanPair); 
 		boolean[][] subIncomp = new IncompatiblePairsFinder().findAll(subCanPair, subMainHelix);
 		LinkedList<Helix> subCompHelices = new IncompatiblePairsFinder().getIncompatibleHelices(subCanPair, subIncomp, 
@@ -209,20 +209,20 @@ public class DynamicPPProbabilitiesCalculator {
 		PosteriorProbabilities posteriorProbabilities = posteriorProbabilitiesCalculator.calculateE(insideProbs, outsideProbs, nucleotideProbs, structure, canPair);
 		int leftIdx = posteriorProbabilities.getMaxLeftIdx();
 		int rightIdx = posteriorProbabilities.getMaxRightIdx();
-		BigDecimal[] unpairedProbs = posteriorProbabilities.getUnpairedProbs();
-		BigDecimal[][] pairedProbs = posteriorProbabilities.getPairedProbs();
+		PointRes[] unpairedProbs = posteriorProbabilities.getUnpairedProbs();
+		PointRes[][] pairedProbs = posteriorProbabilities.getPairedProbs();
 		PPOutput output = null;		
 		Helix chosenHelix = null;
 		if ((leftIdx<0)||(rightIdx<0)) {
-			output = new PPOutput(-1,-1,0,BigDecimal.ZERO,BigDecimal.ZERO);
+			output = new PPOutput(-1,-1,0,PointRes.ZERO,PointRes.ZERO);
 		} else {
-			BigDecimal[][] diffs = posteriorProbabilitiesCalculator.getDiffs(pairedProbs, unpairedProbs, canPair);
-			BigDecimal diff = diffs[leftIdx][rightIdx];
+			PointRes[][] diffs = posteriorProbabilitiesCalculator.getDiffs(pairedProbs, unpairedProbs, canPair);
+			PointRes diff = diffs[leftIdx][rightIdx];
 			Helix mainHelix = new HelicesMaker().makeHelix(leftIdx,rightIdx,diffs,canPair);
 			boolean[][] incomp = new IncompatiblePairsFinder().find(canPair, leftIdx, rightIdx);
-			BigDecimal rprob = new IncompatiblePairsFinder().calculateComp(incomp,leftIdx,rightIdx,pairedProbs);
+			PointRes rprob = new IncompatiblePairsFinder().calculateComp(incomp,leftIdx,rightIdx,pairedProbs);
 			int mainRight = mainHelix.getRightIdx();
-			BigDecimal mainScore = mainHelix.getScore();
+			PointRes mainScore = mainHelix.getScore();
 			// test whether we should be more careful about our choice of pairing...
 			if (rprob.compareTo(Constants.DynamicCutOff)<0) {
 				incomp = new IncompatiblePairsFinder().findAll(canPair, mainHelix);
@@ -251,7 +251,7 @@ public class DynamicPPProbabilitiesCalculator {
 							SubOutput subOutput = getSubCompHelicesE(subStruc, nucleotideProbs, compLeft, compRight);
 							Helix subMainHelix = subOutput.getSubMainHelix();
 							LinkedList<Helix> subCompHelices = subOutput.getSubCompHelices();
-							BigDecimal subMainScore = subMainHelix.getScore();
+							PointRes subMainScore = subMainHelix.getScore();
 							boolean found = false;
 							for (Helix subCompHelix: subCompHelices) {
 								if (subCompHelix.getScore().compareTo(subMainScore)>0) {
@@ -274,7 +274,7 @@ public class DynamicPPProbabilitiesCalculator {
 						SubOutput subOutput = getSubCompHelicesE(subStruc, nucleotideProbs, mainLeft, mainRight);
 						Helix subMainHelix = subOutput.getSubMainHelix();
 						LinkedList<Helix> subCompHelices = subOutput.getSubCompHelices();
-						BigDecimal subMainScore = subMainHelix.getScore();
+						PointRes subMainScore = subMainHelix.getScore();
 						boolean found = false;
 						for (Helix subCompHelix: subCompHelices) {
 							if (subCompHelix.getScore().compareTo(subMainScore)>0) {
@@ -292,7 +292,7 @@ public class DynamicPPProbabilitiesCalculator {
 				}
 				// if no interesting structures: stick with main structure; otherwise compare interesting competing structures and decide.
 				if (!interestingHelices.isEmpty()) {
-					BigDecimal maxScore = BigDecimal.ZERO;
+					PointRes maxScore = PointRes.ZERO;
 					chosenHelix = mainHelix;
 					for (Helix helix: interestingHelices) {
 						if (maxScore.compareTo(helix.getScore())<0) {

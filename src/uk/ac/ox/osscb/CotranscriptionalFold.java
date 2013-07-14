@@ -1,6 +1,6 @@
 package uk.ac.ox.osscb;
 
-import java.math.BigDecimal;
+
 import java.math.RoundingMode;
 import java.util.LinkedList;
 
@@ -120,28 +120,28 @@ public class CotranscriptionalFold {
 		int helixLength = helix.getHelixLength();
 		int left = helix.getLeftIdx(); int right = helix.getRightIdx();
 		double scale = (double) length*length/helixLength;
-		BigDecimal priorWeight = BigDecimal.valueOf(18*scale);
-		BigDecimal priorWeightMinusOne = priorWeight.subtract(BigDecimal.ONE);
+		PointRes priorWeight = PointRes.valueOf(18*scale);
+		PointRes priorWeightMinusOne = priorWeight.subtract(PointRes.ONE);
 		for (int j = 0; j<helixLength; j++) {
 			for (int k = 0; k<left+j; k++) {
-				BigDecimal prob1 = priorWeightMinusOne.multiply(alignmentProbs.getPairingProbability(k,left+j)).divide(priorWeight,RoundingMode.HALF_UP);
+				PointRes prob1 = priorWeightMinusOne.multiply(alignmentProbs.getPairingProbability(k,left+j)).divide(priorWeight,RoundingMode.HALF_UP);
 				alignmentProbs.setPairingProbability(k, left+j, prob1);
-				BigDecimal prob2 = priorWeightMinusOne.multiply(alignmentProbs.getPairingProbability(k,right-j)).divide(priorWeight,RoundingMode.HALF_UP);
+				PointRes prob2 = priorWeightMinusOne.multiply(alignmentProbs.getPairingProbability(k,right-j)).divide(priorWeight,RoundingMode.HALF_UP);
 				alignmentProbs.setPairingProbability(k, right-j, prob2);
 			}
 			for (int k = left+j+1; k<right-j; k++) {
-				BigDecimal prob1 = priorWeightMinusOne.multiply(alignmentProbs.getPairingProbability(left+j,k)).divide(priorWeight,RoundingMode.HALF_UP);
+				PointRes prob1 = priorWeightMinusOne.multiply(alignmentProbs.getPairingProbability(left+j,k)).divide(priorWeight,RoundingMode.HALF_UP);
 				alignmentProbs.setPairingProbability(left+j, k, prob1);
-				BigDecimal prob2 = priorWeightMinusOne.multiply(alignmentProbs.getPairingProbability(k,right-j)).divide(priorWeight,RoundingMode.HALF_UP);
+				PointRes prob2 = priorWeightMinusOne.multiply(alignmentProbs.getPairingProbability(k,right-j)).divide(priorWeight,RoundingMode.HALF_UP);
 				alignmentProbs.setPairingProbability(k,right-j, prob2);
 			}
 			for (int k = right-j+1;k<length; k++) {
-				BigDecimal prob1 = priorWeightMinusOne.multiply(alignmentProbs.getPairingProbability(left+j,k)).divide(priorWeight,RoundingMode.HALF_UP);
+				PointRes prob1 = priorWeightMinusOne.multiply(alignmentProbs.getPairingProbability(left+j,k)).divide(priorWeight,RoundingMode.HALF_UP);
 				alignmentProbs.setPairingProbability(left+j, k, prob1);
-				BigDecimal prob2 = priorWeightMinusOne.multiply(alignmentProbs.getPairingProbability(right-j,k)).divide(priorWeight,RoundingMode.HALF_UP);
+				PointRes prob2 = priorWeightMinusOne.multiply(alignmentProbs.getPairingProbability(right-j,k)).divide(priorWeight,RoundingMode.HALF_UP);
 				alignmentProbs.setPairingProbability(right-j, k, prob2);
 			}
-			BigDecimal prob = (priorWeightMinusOne.multiply(alignmentProbs.getPairingProbability(left+j,right-j)).add(BigDecimal.ONE)).divide(priorWeight,RoundingMode.HALF_UP);
+			PointRes prob = (priorWeightMinusOne.multiply(alignmentProbs.getPairingProbability(left+j,right-j)).add(PointRes.ONE)).divide(priorWeight,RoundingMode.HALF_UP);
 			alignmentProbs.setPairingProbability(left+j, right-j, prob);
 		}
 	}
@@ -207,7 +207,7 @@ public class CotranscriptionalFold {
 				if ((ppProbs.getDiff().compareTo(Constants.IterationCutOff)>0)&&(ppProbs.getHelix().getHelixLength()>=Constants.TranscriptionMinimumHelixLength)) {
 					Helix propHelix = ppProbs.getHelix();
 					if (!helixList.contains(propHelix)) {
-						BigDecimal oppScore = BigDecimal.ZERO;
+						PointRes oppScore = PointRes.ZERO;
 						LinkedList<Helix> oppHelices = new LinkedList<Helix>();
 						for (Helix oldHelix: helixList) {
 							if (interfere(propHelix,oldHelix)) {
@@ -294,9 +294,9 @@ public class CotranscriptionalFold {
 		}		
 	}
 	
-	private void updateScores(LinkedList<Helix> helixList, BigDecimal[][] diffs) {
+	private void updateScores(LinkedList<Helix> helixList, PointRes[][] diffs) {
 		for (Helix helix: helixList) {
-			BigDecimal scoretmp = BigDecimal.ZERO;
+			PointRes scoretmp = PointRes.ZERO;
 			int left = helix.getLeftIdx(); int right = helix.getRightIdx();
 			for (int j = 0; j<helix.getHelixLength(); j++) {
 				scoretmp = scoretmp.add(diffs[left+j][right-j]);

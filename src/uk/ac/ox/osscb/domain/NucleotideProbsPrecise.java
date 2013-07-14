@@ -1,26 +1,26 @@
 package uk.ac.ox.osscb.domain;
 
-import java.math.BigDecimal;
 import java.math.MathContext;
 
+import uk.ac.ox.osscb.PointRes;
 import uk.ac.ox.osscb.util.ProbabilityValueValidator;
 
-public class NucleotideProbsPrecise extends SquareMatrixPlusVector<BigDecimal> {
+public class NucleotideProbsPrecise extends SquareMatrixPlusVector<PointRes> {
 	
 	private MathContext mathCtx = null;//new MathContext(5);
 
 
 	public NucleotideProbsPrecise(int dim) {
-		super(dim, BigDecimal.ZERO);
+		super(dim, PointRes.ZERO);
 	}
 
 	@Override
-	protected BigDecimal getInitialNumber() {
-		return BigDecimal.ZERO;
+	protected PointRes getInitialNumber() {
+		return PointRes.ZERO;
 	}
 
 	@Override
-	public BigDecimal setUnpairingProbability(int i, BigDecimal prob) {
+	public PointRes setUnpairingProbability(int i, PointRes prob) {
 		ProbabilityValueValidator.validateP(prob);
 		if(null != this.mathCtx){
 			prob = prob.round(this.mathCtx);
@@ -29,7 +29,7 @@ public class NucleotideProbsPrecise extends SquareMatrixPlusVector<BigDecimal> {
 	}
 
 	@Override
-	public BigDecimal setPairingProbability(int i, int j, BigDecimal prob) {
+	public PointRes setPairingProbability(int i, int j, PointRes prob) {
 		ProbabilityValueValidator.validateP(prob);
 		if(null != this.mathCtx){
 			prob = prob.round(this.mathCtx);
@@ -40,19 +40,19 @@ public class NucleotideProbsPrecise extends SquareMatrixPlusVector<BigDecimal> {
 	
 	
 	/* 
-	public BigDecimal getUnpairedColumnProduct(int j){
+	public PointRes getUnpairedColumnProduct(int j){
 	checkDimensions(j, -1);
 
-	BigDecimal product = this.probs[0][j];
+	PointRes product = this.probs[0][j];
 	for(int rowIdx = 1; rowIdx < this.dim; rowIdx++){
 		product = product.multiply(this.probs[rowIdx][j]);
 	}
 	return product;
 }
 
-public BigDecimal getPairedColumnProduct(int j, int k){
+public PointRes getPairedColumnProduct(int j, int k){
 	checkDimensions(j, k);
-	BigDecimal product = this.probs[0][j];
+	PointRes product = this.probs[0][j];
 	for(int rowIdx = 1; rowIdx < this.dim; rowIdx++){
 		product = product.multiply(this.probs[rowIdx][j]);
 	}

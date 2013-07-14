@@ -1,11 +1,11 @@
 package uk.ac.ox.osscb.inoutside;
 
-import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.HashMap;
 
 import uk.ac.ox.osscb.Constants;
 import uk.ac.ox.osscb.InsideOutsideProbabilities;
+import uk.ac.ox.osscb.PointRes;
 import uk.ac.ox.osscb.ProductionRule;
 import uk.ac.ox.osscb.domain.NucleotideProbsPrecise;
 import uk.ac.ox.osscb.grammar.Grammar;
@@ -23,20 +23,20 @@ public class CoFoldPosteriorProbabilitiesCalculator {
 				InsideOutsideProbabilities outsideProbs, NucleotideProbsPrecise nucleotideProbs,
 				int[][] distances, double alpha, double tau, int[] structure, boolean[][] canPair) {
 			int length = structure.length;
-			BigDecimal maxp = BigDecimal.ZERO; 
-			BigDecimal[][] pairedProbs = new BigDecimal[length][length];
-			BigDecimal[] unpairedProbs = new BigDecimal[length];
+			PointRes maxp = PointRes.ZERO; 
+			PointRes[][] pairedProbs = new PointRes[length][length];
+			PointRes[] unpairedProbs = new PointRes[length];
 			//just zeroing the arrays
 			for (int i=0; i<length; i++) {
-				unpairedProbs[i] = BigDecimal.ZERO;
+				unpairedProbs[i] = PointRes.ZERO;
 				for (int j=0; j<length; j++) {
-				pairedProbs[i][j] = BigDecimal.ZERO;	
+				pairedProbs[i][j] = PointRes.ZERO;	
 				}
 			}
 			//unpaired probabilities	
 			for (int j=0; j<length; j++) {
 				if (Constants.UnpairedBaseIdx == structure[j]) {
-					BigDecimal tmp = BigDecimal.ZERO;
+					PointRes tmp = PointRes.ZERO;
 					for(ProductionRule pr : this.grammar.getRules(RuleType.RULE1)){
 						tmp = tmp.add(outsideProbs.getProb(new Character(pr.getLeft()), j, j).multiply(pr.getProbability()));
 					}
@@ -51,17 +51,17 @@ public class CoFoldPosteriorProbabilitiesCalculator {
 				if (Constants.UnpairedBaseIdx == structure[j]) {
 					for(int k=j+4; k<length; k++){
 						if (canPair[j][k]) {
-							BigDecimal tmp = BigDecimal.ZERO;
+							PointRes tmp = PointRes.ZERO;
 							for(ProductionRule pr : this.grammar.getRules(RuleType.RULE2)){
-								BigDecimal inside = insideProbs.getProb(new Character(pr.getRight()[1]), j+1, k-1);
-								BigDecimal outside = outsideProbs.getProb(new Character(pr.getLeft()), j, k);
-								BigDecimal addition = outside.multiply(pr.getProbability()).multiply(inside);
+								PointRes inside = insideProbs.getProb(new Character(pr.getRight()[1]), j+1, k-1);
+								PointRes outside = outsideProbs.getProb(new Character(pr.getLeft()), j, k);
+								PointRes addition = outside.multiply(pr.getProbability()).multiply(inside);
 								tmp = tmp.add(addition);
 							}
 							double distance = Math.abs(j-k);
 							double exp = alpha*(Math.exp(-distance/tau) - 1) + 1;
-							BigDecimal tmpExp = BigDecimal.valueOf(exp);
-							//BigDecimal tmpExp = BigDecimal.valueOf(Math.exp(-distances[j][k]/weight));
+							PointRes tmpExp = PointRes.valueOf(exp);
+							//PointRes tmpExp = PointRes.valueOf(Math.exp(-distances[j][k]/weight));
 							pairedProbs[j][k] = tmp.multiply(tmpExp).multiply(nucleotideProbs.getPairingProbability(j, k))
 									.divide(insideProbs.getProb(this.grammar.getNonterminals()[0], 0, length-1), RoundingMode.HALF_UP);
 
@@ -89,11 +89,11 @@ public class CoFoldPosteriorProbabilitiesCalculator {
 			//unpaired probabilities	
 			for (int j=0; j<length; j++) {
 				if (Constants.UnpairedBaseIdx == structure[j]) {
-					BigDecimal tmp = BigDecimal.ZERO;
+					PointRes tmp = PointRes.ZERO;
 					for(ProductionRule pr : this.grammar.getRules(RuleType.RULE1)){
 						tmp = tmp.add(outsideProbs.getProb(new Character(pr.getLeft()), j, j).multiply(pr.getProbability()));
 					}
-					BigDecimal prob = tmp.multiply(nucleotideProbs.getUnpairingProbability(j))
+					PointRes prob = tmp.multiply(nucleotideProbs.getUnpairingProbability(j))
 							.divide(insideProbs.getProb(this.grammar.getNonterminals()[0], 0, length-1), RoundingMode.HALF_UP);
 					unpairedProbs[j] = prob.doubleValue();
 				}
@@ -103,15 +103,15 @@ public class CoFoldPosteriorProbabilitiesCalculator {
 				if (Constants.UnpairedBaseIdx == structure[j]) {
 					for(int k=j+4; k<length; k++){
 						if (canPair[j][k]) {
-							BigDecimal tmp = BigDecimal.ZERO;
+							PointRes tmp = PointRes.ZERO;
 							for(ProductionRule pr : this.grammar.getRules(RuleType.RULE2)){
-								BigDecimal inside = insideProbs.getProb(new Character(pr.getRight()[1]), j+1, k-1);
-								BigDecimal outside = outsideProbs.getProb(new Character(pr.getLeft()), j, k);
-								BigDecimal addition = outside.multiply(pr.getProbability()).multiply(inside);
+								PointRes inside = insideProbs.getProb(new Character(pr.getRight()[1]), j+1, k-1);
+								PointRes outside = outsideProbs.getProb(new Character(pr.getLeft()), j, k);
+								PointRes addition = outside.multiply(pr.getProbability()).multiply(inside);
 								tmp = tmp.add(addition);
 							}
-							BigDecimal tmpExp = BigDecimal.valueOf(Math.exp(-distances[j][k]/weight));
-							BigDecimal prob = tmp.multiply(tmpExp).multiply(nucleotideProbs.getPairingProbability(j, k))
+							PointRes tmpExp = PointRes.valueOf(Math.exp(-distances[j][k]/weight));
+							PointRes prob = tmp.multiply(tmpExp).multiply(nucleotideProbs.getPairingProbability(j, k))
 									.divide(insideProbs.getProb(this.grammar.getNonterminals()[0], 0, length-1), RoundingMode.HALF_UP);
 							pairedProbs[j][k] = prob.doubleValue();
 						}
@@ -125,20 +125,20 @@ public class CoFoldPosteriorProbabilitiesCalculator {
 		public PosteriorProbabilities calculateE(InsideOutsideProbabilities insideProbs,
 				InsideOutsideProbabilities outsideProbs, NucleotideProbsPrecise nucleotideProbs, int[] structure, boolean[][] canPair) {
 			int length = structure.length;
-			BigDecimal maxp = BigDecimal.ZERO; 
-			BigDecimal[][] pairedProbs = new BigDecimal[length][length];
-			BigDecimal[] unpairedProbs = new BigDecimal[length];
+			PointRes maxp = PointRes.ZERO; 
+			PointRes[][] pairedProbs = new PointRes[length][length];
+			PointRes[] unpairedProbs = new PointRes[length];
 			//just zeroing the arrays
 			for (int i=0; i<length; i++) {
-				unpairedProbs[i] = BigDecimal.ZERO;
+				unpairedProbs[i] = PointRes.ZERO;
 				for (int j=0; j<length; j++) {
-				pairedProbs[i][j] = BigDecimal.ZERO;	
+				pairedProbs[i][j] = PointRes.ZERO;	
 				}
 			}
 			//unpaired probabilities	
 			for (int j=0; j<length; j++) {
 				if (Constants.UnpairedBaseIdx == structure[j]) {
-					BigDecimal tmp = BigDecimal.ZERO;
+					PointRes tmp = PointRes.ZERO;
 					for(ProductionRule pr : this.grammar.getRules(RuleType.RULE1)){
 						tmp = tmp.add(outsideProbs.getProb(new Character(pr.getLeft()), j, j).multiply(pr.getProbability()));
 					}
@@ -153,11 +153,11 @@ public class CoFoldPosteriorProbabilitiesCalculator {
 				if (Constants.UnpairedBaseIdx == structure[j]) {
 					for(int k=j+4; k<length; k++){
 						if (canPair[j][k]) {
-							BigDecimal tmp = BigDecimal.ZERO;
+							PointRes tmp = PointRes.ZERO;
 							for(ProductionRule pr : this.grammar.getRules(RuleType.RULE2)){
-								BigDecimal inside = insideProbs.getProb(new Character(pr.getRight()[1]), j+1, k-1);
-								BigDecimal outside = outsideProbs.getProb(new Character(pr.getLeft()), j, k);
-								BigDecimal addition = outside.multiply(pr.getProbability()).multiply(inside);
+								PointRes inside = insideProbs.getProb(new Character(pr.getRight()[1]), j+1, k-1);
+								PointRes outside = outsideProbs.getProb(new Character(pr.getLeft()), j, k);
+								PointRes addition = outside.multiply(pr.getProbability()).multiply(inside);
 								tmp = tmp.add(addition);
 							}
 							pairedProbs[j][k] = tmp.multiply(nucleotideProbs.getPairingProbability(j, k))
@@ -181,20 +181,20 @@ public class CoFoldPosteriorProbabilitiesCalculator {
 				InsideOutsideProbabilities outsideProbs, NucleotideProbsPrecise nucleotideProbs,
 				double[][] distances, double alpha, double tau, int[] structure, boolean[][] canPair) {
 			int length = structure.length;
-			BigDecimal maxp = BigDecimal.ZERO; 
-			BigDecimal[][] pairedProbs = new BigDecimal[length][length];
-			BigDecimal[] unpairedProbs = new BigDecimal[length];
+			PointRes maxp = PointRes.ZERO; 
+			PointRes[][] pairedProbs = new PointRes[length][length];
+			PointRes[] unpairedProbs = new PointRes[length];
 			//just zeroing the arrays
 			for (int i=0; i<length; i++) {
-				unpairedProbs[i] = BigDecimal.ZERO;
+				unpairedProbs[i] = PointRes.ZERO;
 				for (int j=0; j<length; j++) {
-				pairedProbs[i][j] = BigDecimal.ZERO;	
+				pairedProbs[i][j] = PointRes.ZERO;	
 				}
 			}
 			//unpaired probabilities	
 			for (int j=0; j<length; j++) {
 				if (Constants.UnpairedBaseIdx == structure[j]) {
-					BigDecimal tmp = BigDecimal.ZERO;
+					PointRes tmp = PointRes.ZERO;
 					for(ProductionRule pr : this.grammar.getRules(RuleType.RULE1)){
 						tmp = tmp.add(outsideProbs.getProb(new Character(pr.getLeft()), j, j).multiply(pr.getProbability()));
 					}
@@ -209,17 +209,17 @@ public class CoFoldPosteriorProbabilitiesCalculator {
 				if (Constants.UnpairedBaseIdx == structure[j]) {
 					for(int k=j+4; k<length; k++){
 						if (canPair[j][k]) {
-							BigDecimal tmp = BigDecimal.ZERO;
+							PointRes tmp = PointRes.ZERO;
 							for(ProductionRule pr : this.grammar.getRules(RuleType.RULE2)){
-								BigDecimal inside = insideProbs.getProb(new Character(pr.getRight()[1]), j+1, k-1);
-								BigDecimal outside = outsideProbs.getProb(new Character(pr.getLeft()), j, k);
-								BigDecimal addition = outside.multiply(pr.getProbability()).multiply(inside);
+								PointRes inside = insideProbs.getProb(new Character(pr.getRight()[1]), j+1, k-1);
+								PointRes outside = outsideProbs.getProb(new Character(pr.getLeft()), j, k);
+								PointRes addition = outside.multiply(pr.getProbability()).multiply(inside);
 								tmp = tmp.add(addition);
 							}
 							double distance = Math.abs(j-k);
 							double exp = alpha*(Math.exp(-distance/tau) - 1) + 1;
-							BigDecimal tmpExp = BigDecimal.valueOf(exp);
-							//BigDecimal tmpExp = BigDecimal.valueOf(Math.exp(-distances[j][k]/weight));
+							PointRes tmpExp = PointRes.valueOf(exp);
+							//PointRes tmpExp = PointRes.valueOf(Math.exp(-distances[j][k]/weight));
 							pairedProbs[j][k] = tmp.multiply(tmpExp).multiply(nucleotideProbs.getPairingProbability(j, k))
 									.divide(insideProbs.getProb(this.grammar.getNonterminals()[0], 0, length-1), RoundingMode.HALF_UP);
 
@@ -245,11 +245,11 @@ public class CoFoldPosteriorProbabilitiesCalculator {
 			//unpaired probabilities	
 			for (int j=0; j<length; j++) {
 				if (Constants.UnpairedBaseIdx == structure[j]) {
-					BigDecimal tmp = BigDecimal.ZERO;
+					PointRes tmp = PointRes.ZERO;
 					for(ProductionRule pr : this.grammar.getRules(RuleType.RULE1)){
 						tmp = tmp.add(outsideProbs.getProb(new Character(pr.getLeft()), j, j).multiply(pr.getProbability()));
 					}
-					BigDecimal prob = tmp.multiply(nucleotideProbs.getUnpairingProbability(j))
+					PointRes prob = tmp.multiply(nucleotideProbs.getUnpairingProbability(j))
 							.divide(insideProbs.getProb(this.grammar.getNonterminals()[0], 0, length-1), RoundingMode.HALF_UP);
 					unpairedProbs[j] = prob.doubleValue();
 				}
@@ -259,14 +259,14 @@ public class CoFoldPosteriorProbabilitiesCalculator {
 				if (Constants.UnpairedBaseIdx == structure[j]) {
 					for(int k=j+4; k<length; k++){
 						if (canPair[j][k]) {
-							BigDecimal tmp = BigDecimal.ZERO;
+							PointRes tmp = PointRes.ZERO;
 							for(ProductionRule pr : this.grammar.getRules(RuleType.RULE2)){
-								BigDecimal inside = insideProbs.getProb(new Character(pr.getRight()[1]), j+1, k-1);
-								BigDecimal outside = outsideProbs.getProb(new Character(pr.getLeft()), j, k);
-								BigDecimal addition = outside.multiply(pr.getProbability()).multiply(inside);
+								PointRes inside = insideProbs.getProb(new Character(pr.getRight()[1]), j+1, k-1);
+								PointRes outside = outsideProbs.getProb(new Character(pr.getLeft()), j, k);
+								PointRes addition = outside.multiply(pr.getProbability()).multiply(inside);
 								tmp = tmp.add(addition);
 							}
-							BigDecimal prob = tmp.multiply(nucleotideProbs.getPairingProbability(j, k))
+							PointRes prob = tmp.multiply(nucleotideProbs.getPairingProbability(j, k))
 									.divide(insideProbs.getProb(this.grammar.getNonterminals()[0], 0, length-1), RoundingMode.HALF_UP);
 							pairedProbs[j][k] = prob.doubleValue();
 						}
@@ -277,9 +277,9 @@ public class CoFoldPosteriorProbabilitiesCalculator {
 			return posteriorProbabilities;
 		}
 		
-		public BigDecimal calculateCompE(boolean[][] incomp, Helix helix, InsideOutsideProbabilities insideProbs, InsideOutsideProbabilities outsideProbs,
-				NucleotideProbsPrecise nucleotideProbs, BigDecimal[][] pairedProbs) {
-			BigDecimal rprob = BigDecimal.ZERO;
+		public PointRes calculateCompE(boolean[][] incomp, Helix helix, InsideOutsideProbabilities insideProbs, InsideOutsideProbabilities outsideProbs,
+				NucleotideProbsPrecise nucleotideProbs, PointRes[][] pairedProbs) {
+			PointRes rprob = PointRes.ZERO;
 			for (int j=0; j<incomp.length; j++) {
 				for (int k = j+1; k<incomp.length; k++) {
 					if (incomp[j][k]) {
@@ -287,7 +287,7 @@ public class CoFoldPosteriorProbabilitiesCalculator {
 					}
 				}
 			}
-			BigDecimal hprob = findHelixProbabilityE(insideProbs, outsideProbs, nucleotideProbs, helix);
+			PointRes hprob = findHelixProbabilityE(insideProbs, outsideProbs, nucleotideProbs, helix);
 			if (rprob.signum()>0) {
 				rprob = hprob.divide(rprob.add(hprob), RoundingMode.HALF_UP);
 			}
@@ -297,15 +297,15 @@ public class CoFoldPosteriorProbabilitiesCalculator {
 		/**
 		 * calculate accuracy scores
 		 */
-		public BigDecimal[][] getDiffs(BigDecimal[][] pairedProbs, BigDecimal[] unpairedProbs, boolean[][] canPair) {
+		public PointRes[][] getDiffs(PointRes[][] pairedProbs, PointRes[] unpairedProbs, boolean[][] canPair) {
 			int length = unpairedProbs.length;
-			BigDecimal[][] diffs = new BigDecimal[length][length];
+			PointRes[][] diffs = new PointRes[length][length];
 			for (int j = 0; j<length; j++) {
 				for (int k = 0; k<length; k++) {
 					if (canPair[j][k]) {
-						diffs[j][k] = pairedProbs[j][k].subtract((unpairedProbs[j].add(unpairedProbs[k])).divide(BigDecimal.valueOf(2)));
+						diffs[j][k] = pairedProbs[j][k].subtract((unpairedProbs[j].add(unpairedProbs[k])).divide(PointRes.valueOf(2)));
 					} else {
-						diffs[j][k] = BigDecimal.valueOf(-1);
+						diffs[j][k] = PointRes.valueOf(-1);
 					}	
 				}
 			}
@@ -317,32 +317,32 @@ public class CoFoldPosteriorProbabilitiesCalculator {
 		 * calculate probability of helix forming
 		 */
 		
-		private BigDecimal findHelixProbabilityE(InsideOutsideProbabilities insideProbs,
+		private PointRes findHelixProbabilityE(InsideOutsideProbabilities insideProbs,
 				InsideOutsideProbabilities outsideProbs, NucleotideProbsPrecise nucleotideProbs, Helix helix) {
 			int left = helix.getLeftIdx(); int right = helix.getRightIdx();
 			int length = helix.getHelixLength();
-			BigDecimal nprob = BigDecimal.ONE;
+			PointRes nprob = PointRes.ONE;
 			for (int j = 0; j<length; j++) {
 				nprob = nprob.multiply(nucleotideProbs.getPairingProbability(left+j, right-j));
 			}
 			nprob = nprob.divide(insideProbs.getProb(this.grammar.getNonterminals()[0], 0, insideProbs.getDimension()-1), RoundingMode.HALF_UP);
-			HashMap<Character,BigDecimal> Probs = new HashMap<Character,BigDecimal>();
+			HashMap<Character,PointRes> Probs = new HashMap<Character,PointRes>();
 			//initialise Hashmap with inside probabilities
 			for (ProductionRule pr : this.grammar.getRules(RuleType.RULE2)) {
 				Probs.put(pr.getLeft(), insideProbs.getProb(pr.getRight()[1], left+length, right-length).multiply(pr.getProbability())); 
 			}
 			for (int j = length-2; j>=0; j--) {
-				HashMap<Character,BigDecimal> tmpProbs = new HashMap<Character,BigDecimal>();
+				HashMap<Character,PointRes> tmpProbs = new HashMap<Character,PointRes>();
 				for (char nt: this.grammar.getNonterminals()) {
-					tmpProbs.put(nt, BigDecimal.ZERO);
+					tmpProbs.put(nt, PointRes.ZERO);
 				}
 				for (ProductionRule pr: this.grammar.getRules(RuleType.RULE2)) {
-					BigDecimal newtmp = pr.getProbability().multiply(Probs.get(pr.getRight()[1]));
+					PointRes newtmp = pr.getProbability().multiply(Probs.get(pr.getRight()[1]));
 					tmpProbs.put(pr.getLeft(), newtmp);
 				}
 				Probs = tmpProbs;
 			}
-			BigDecimal prob = BigDecimal.ZERO;
+			PointRes prob = PointRes.ZERO;
 			for (char nt : this.grammar.getNonterminals()) {
 				prob = prob.add(outsideProbs.getProb(nt, left, right).multiply(Probs.get(nt)));
 			}

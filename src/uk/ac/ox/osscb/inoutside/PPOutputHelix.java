@@ -1,15 +1,17 @@
 package uk.ac.ox.osscb.inoutside;
 
-import java.math.BigDecimal;
+import uk.ac.ox.osscb.PointRes;
+
+
 
 public class PPOutputHelix {
 	
 		private Helix helix;
-		private BigDecimal diff;
-		private BigDecimal[][] diffs;
-		private BigDecimal comp;
+		private PointRes diff;
+		private PointRes[][] diffs;
+		private PointRes comp;
 		
-		public PPOutputHelix(Helix helix, BigDecimal[][] diffs, BigDecimal diff, BigDecimal comp) {
+		public PPOutputHelix(Helix helix, PointRes[][] diffs, PointRes diff, PointRes comp) {
 			this.helix = helix;
 			this.diffs = diffs;
 			this.diff = diff;
@@ -20,15 +22,15 @@ public class PPOutputHelix {
 			return this.helix;
 		}
 		
-		public BigDecimal getDiff() {
+		public PointRes getDiff() {
 			return this.diff;
 		}
 		
-		public BigDecimal[][] getDiffs() {
+		public PointRes[][] getDiffs() {
 			return this.diffs;
 		}
 		
-		public BigDecimal getComp() {
+		public PointRes getComp() {
 			return this.comp;
 		}
 		

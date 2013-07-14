@@ -1,11 +1,11 @@
 package uk.ac.ox.osscb.inoutside;
 
-import java.math.BigDecimal;
 
 //import org.slf4j.Logger;
 //import org.slf4j.LoggerFactory;
 
 import uk.ac.ox.osscb.InsideOutsideProbabilities;
+import uk.ac.ox.osscb.PointRes;
 import uk.ac.ox.osscb.domain.NucleotideProbsPrecise;
 import uk.ac.ox.osscb.grammar.Grammar;
 
@@ -58,9 +58,9 @@ public class ValidatingIOSideCalculator implements IOsideCalculator{
 	
 	private InsideOutsideProbabilities validateInside(InsideOutsideProbabilities inside) {
 		
-		BigDecimal divisor = inside.getProb(this.grammar.getNonterminals()[0], 0, inside.getDimension()-1);
+		PointRes divisor = inside.getProb(this.grammar.getNonterminals()[0], 0, inside.getDimension()-1);
 		
-		if(0 == divisor.compareTo(BigDecimal.ZERO) ){
+		if(0 == divisor.compareTo(PointRes.ZERO) ){
 			throw new UnsupportedOperationException(String.format("About to return zero divisor: %.30g", divisor));			
 		}
 

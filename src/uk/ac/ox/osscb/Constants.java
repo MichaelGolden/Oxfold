@@ -1,6 +1,6 @@
 package uk.ac.ox.osscb;
 
-import java.math.BigDecimal;
+
 
 import org.slf4j.MDC;
 
@@ -24,10 +24,10 @@ public class Constants {
 	 * Set it to zero to get more iterations
 	 */
 	public static  Double IterationCutOffDouble = 0.5;
-	public  static BigDecimal IterationCutOff = BigDecimal.valueOf(IterationCutOffDouble);
+	public  static PointRes IterationCutOff = PointRes.valueOf(IterationCutOffDouble);
 	
 	//public static  Double IterationCutOffDouble;
-	//public  static BigDecimal IterationCutOff;
+	//public  static PointRes IterationCutOff;
 	
 	/*public Double getIterationCutOffDouble(){
 		IterationCutOffDouble = Delta.IterationCutOffDouble;
@@ -36,7 +36,7 @@ public class Constants {
 	*/
 	/*public void setIterationCutOffDouble(double d){
 		IterationCutOffDouble = d;
-		IterationCutOff = BigDecimal.valueOf(IterationCutOffDouble);
+		IterationCutOff = PointRes.valueOf(IterationCutOffDouble);
 	}*/
 	
 	/**
@@ -44,12 +44,12 @@ public class Constants {
 	 */
 	public final static double EndNonEvolutionaryFoldDouble = 0.99;
 	
-	public final static BigDecimal EndNonEvolutionaryFold = BigDecimal.valueOf(EndNonEvolutionaryFoldDouble);
+	public final static PointRes EndNonEvolutionaryFold = PointRes.valueOf(EndNonEvolutionaryFoldDouble);
 	
 	/**
 	 * cutoff for switch to full dynamic tests
 	 */
-	public final static BigDecimal DynamicCutOff = BigDecimal.valueOf(0.99);
+	public final static PointRes DynamicCutOff = PointRes.valueOf(0.99);
 	
 	public final static int TranscriptionOffset = 4;
 	
@@ -57,14 +57,14 @@ public class Constants {
 	
 	public final static int TranscriptionMinimumHelixLength = 3;
 	
-	public final static BigDecimal BreakingCutOff = BigDecimal.valueOf(0.2);
+	public final static PointRes BreakingCutOff = PointRes.valueOf(0.2);
 	
-	/*public final static BigDecimal priorWeight = BigDecimal.valueOf(3);
+	/*public final static PointRes priorWeight = PointRes.valueOf(3);
 	
-	public final static BigDecimal priorWeightMinusOne = priorWeight.subtract(BigDecimal.ONE);
+	public final static PointRes priorWeightMinusOne = priorWeight.subtract(PointRes.ONE);
 	*/
 	
-	public final static BigDecimal MEApenalty = BigDecimal.valueOf(0.4);
+	public final static PointRes MEApenalty = PointRes.valueOf(0.4);
 	
 	/**
 	 * Name of the logger to be used to output main program info. 

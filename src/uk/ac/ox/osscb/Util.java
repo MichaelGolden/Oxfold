@@ -1,7 +1,6 @@
 package uk.ac.ox.osscb;
 
 import java.io.File;
-import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.Locale;
@@ -20,30 +19,30 @@ public class Util {
 	 */
 	private static final String NEWLINE = String.format("%n");
 
-	public static BigDecimal[][] makeSquareZerosMatrix(int dim){
+	public static PointRes[][] makeSquareZerosMatrix(int dim){
 		
-		BigDecimal[][] bigDecAr = new BigDecimal[dim][dim];
+		PointRes[][] bigDecAr = new PointRes[dim][dim];
 		
 		for(int i = 0; i < dim; i++){
 			for(int j = 0; j < dim; j++){
-				bigDecAr[i][j] = BigDecimal.ZERO;
+				bigDecAr[i][j] = PointRes.ZERO;
 			}
 		}
 		return bigDecAr;
 	}
 	
-	public static String dump1DArray(BigDecimal[] numAr){
+	public static String dump1DArray(PointRes[] numAr){
 		return dump1DArray(numAr, 3, 5);
 	}
 	
-	public static String dump1DArray(BigDecimal[] numAr, int precision, int width){
+	public static String dump1DArray(PointRes[] numAr, int precision, int width){
 		StringBuilder sb = new StringBuilder();
 		sb.append("[");
 		String formatStr = createFormatStringG(precision, width);
 		for(int i = 0; i < numAr.length; i++){
 			if(i > 0)
 				sb.append(", ");
-			BigDecimal val = numAr[i];
+			PointRes val = numAr[i];
 			String valStr;
 			if(null != val){
 				valStr = String.format(Locale.UK, formatStr, val);
@@ -84,7 +83,7 @@ public class Util {
 		return String.format(Locale.UK, "%%%d.%d%c", width, precision, convertion);
 	}
 	
-	public  static String print2DArray(BigDecimal[][] numAr) {
+	public  static String print2DArray(PointRes[][] numAr) {
 		return print2DArray(numAr, 5, 2);
 	}
 
@@ -96,12 +95,12 @@ public class Util {
 	 * @param precision
 	 * @return
 	 */
-	public  static String print2DArray(BigDecimal[][] numAr, int width, int precision) {
+	public  static String print2DArray(PointRes[][] numAr, int width, int precision) {
 		StringBuilder sb = new StringBuilder();
 		for(int i = 0; i < numAr.length; i++){
 			sb.append("[");
 			for(int j = 0; j < numAr[i].length;j++){
-				BigDecimal val = numAr[i][j];
+				PointRes val = numAr[i][j];
 				String format;
 				if(null != val){
 					double doubleValue = val.doubleValue();
@@ -146,7 +145,7 @@ public class Util {
 	}
 	
 	
-	public  static void print2DArray(StringBuilder sb, BigDecimal[][] numAr) {
+	public  static void print2DArray(StringBuilder sb, PointRes[][] numAr) {
 		for(int i = 0; i < numAr.length; i++){
 			sb.append(Arrays.toString(numAr[i]));
 			sb.append(nL());

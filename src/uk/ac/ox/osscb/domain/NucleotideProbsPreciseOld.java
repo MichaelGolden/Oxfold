@@ -1,7 +1,8 @@
 package uk.ac.ox.osscb.domain;
 
-import java.math.BigDecimal;
 
+
+import uk.ac.ox.osscb.PointRes;
 import uk.ac.ox.osscb.Util;
 
 /**
@@ -14,8 +15,8 @@ public class NucleotideProbsPreciseOld {
 	
 	private int dim;
 	
-	private BigDecimal[][] probs;
-	private BigDecimal[] unpairedProb;
+	private PointRes[][] probs;
+	private PointRes[] unpairedProb;
 	
 	public NucleotideProbsPreciseOld(int dim) {
 		super();
@@ -26,17 +27,17 @@ public class NucleotideProbsPreciseOld {
 		this.dim = dim;
 		this.probs = Util.makeSquareZerosMatrix(dim);
 		
-		this.unpairedProb = new BigDecimal[dim];
+		this.unpairedProb = new PointRes[dim];
 		for(int dimIdx = 0; dimIdx < dim; dimIdx++){
-			this.unpairedProb[dimIdx] = BigDecimal.valueOf(0);
+			this.unpairedProb[dimIdx] = PointRes.valueOf(0);
 		}
 	}
 
-	public BigDecimal setPairingProbability(int i, int j, double prob){
-		return setPairingProbability(i, j, BigDecimal.valueOf(prob));
+	public PointRes setPairingProbability(int i, int j, double prob){
+		return setPairingProbability(i, j, PointRes.valueOf(prob));
 	}
 
-	public BigDecimal setPairingProbability(int i, int j, BigDecimal prob){
+	public PointRes setPairingProbability(int i, int j, PointRes prob){
 		checkDimensions(i, j);
 		
 		// TODO: make the mtx be triangular for memory efficiency 
@@ -47,21 +48,21 @@ public class NucleotideProbsPreciseOld {
 		return prob;
 	}
 
-	public BigDecimal getPairingProbability(int i, int j){
+	public PointRes getPairingProbability(int i, int j){
 		checkDimensions(i, j);
 		return this.probs[i][j];
 	}
 	
-	public BigDecimal getUnpairingProbability(int i){
+	public PointRes getUnpairingProbability(int i){
 		checkDimensions(i);
 		return this.unpairedProb[i];
 	}
 	
-	public BigDecimal setUnpairingProbability(int i, double prob){
-		return setUnpairingProbability(i, BigDecimal.valueOf(prob));
+	public PointRes setUnpairingProbability(int i, double prob){
+		return setUnpairingProbability(i, PointRes.valueOf(prob));
 	}
 	
-	public BigDecimal setUnpairingProbability(int i, BigDecimal prob){
+	public PointRes setUnpairingProbability(int i, PointRes prob){
 		checkDimensions(i);
 		this.unpairedProb[i] = prob;
 		return prob;

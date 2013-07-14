@@ -1,6 +1,8 @@
 package uk.ac.ox.osscb.domain;
 
-import java.math.BigDecimal;
+import uk.ac.ox.osscb.PointRes;
+
+
 
 public class NucleotideProbsConverter {
 	
@@ -16,11 +18,11 @@ public class NucleotideProbsConverter {
 						
 			for(int j = 0; j < dim; j++){
 				Double pairingProbDbl = probsDouble.getPairingProbability(i, j);
-				probsPrecise.setPairingProbability(i, j, BigDecimal.valueOf(pairingProbDbl));
+				probsPrecise.setPairingProbability(i, j, PointRes.valueOf(pairingProbDbl));
 			}
 			
 			Double unPairingProbDbl = probsDouble.getUnpairingProbability(i); 
-			probsPrecise.setUnpairingProbability(i, BigDecimal.valueOf(unPairingProbDbl));
+			probsPrecise.setUnpairingProbability(i, PointRes.valueOf(unPairingProbDbl));
 			
 		}
 		

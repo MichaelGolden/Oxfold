@@ -1,7 +1,6 @@
 package uk.ac.ox.osscb.domain;
 
 import java.lang.reflect.Array;
-import java.math.BigDecimal;
 
 
 /**
@@ -10,7 +9,7 @@ import java.math.BigDecimal;
  * 
  * @author Vladimir
  *
- * @param <NT> type of number we are using. E.g. are {@link BigDecimal},
+ * @param <NT> type of number we are using. E.g. are {@link PointRes},
  * {@link Double}
  */
 public abstract class SquareMatrixPlusVector<NT extends Number> {

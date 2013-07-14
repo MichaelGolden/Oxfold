@@ -3,7 +3,6 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -14,6 +13,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
 import uk.ac.ox.osscb.Constants;
+import uk.ac.ox.osscb.PointRes;
 import uk.ac.ox.osscb.Program;
 
 public class VaryKDelta {
@@ -99,7 +99,7 @@ public class VaryKDelta {
 		}
 		else{
 			numdatasets = Integer.parseInt(args[2]);
-			Constants.IterationCutOff = BigDecimal.valueOf(Double.valueOf(args[1])); 
+			Constants.IterationCutOff = PointRes.valueOf(Double.valueOf(args[1])); 
 			double delta_o = Constants.IterationCutOff.doubleValue(); 
 			double kArg = Double.valueOf(args[0]);
 			if(args.length > 2)
@@ -118,7 +118,7 @@ public class VaryKDelta {
 	private static void runSpecific(double KValue, double dValue, int uptodataset, boolean runEvol){
 		ArrayList<String> avgMetrics = new ArrayList<String>();
 		String outputDirString = "output/";
-		Constants.IterationCutOff = BigDecimal.valueOf(Double.valueOf(dValue)); 
+		Constants.IterationCutOff = PointRes.valueOf(Double.valueOf(dValue)); 
 		double delta = Constants.IterationCutOff.doubleValue(); 
 		if(KValue == 0){
 			System.err.println("Cannot use K = 0, use K > 0 instead");
@@ -259,7 +259,7 @@ public class VaryKDelta {
 		//variables for K or delta and their ranges. Then move below out to new method. 
 				for(double KValue = 0; KValue <= k; KValue += 0.1){ //change this later
 					for(double dValue = 0; dValue <= delta; dValue += 0.1){
-						Constants.IterationCutOff = BigDecimal.valueOf(Double.valueOf(dValue)); 
+						Constants.IterationCutOff = PointRes.valueOf(Double.valueOf(dValue)); 
 						delta = Constants.IterationCutOff.doubleValue(); 
 						if(KValue == 0){
 							KValue = 0.1; 

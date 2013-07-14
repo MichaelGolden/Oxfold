@@ -1,6 +1,5 @@
 package uk.ac.ox.osscb;
 
-import java.math.BigDecimal;
 
 import uk.ac.ox.osscb.domain.NucleotideProbsPrecise;
 import uk.ac.ox.osscb.grammar.Grammar;

@@ -46,14 +46,20 @@ public class Benchmarks {
 			long startNano = System.nanoTime();
 			
 			
-			//StructureData predictedStructure = Benchmarks.foldOxfold(outputDir, s.file.getName(), s.sequences, s.sequenceNames, true, 0.5);
-			StructureData predictedStructure = Benchmarks.foldCofold(outputDir, s.file.getName(), s.sequences, s.sequenceNames, true, 0,640);
+			StructureData predictedStructure = Benchmarks.foldOxfold(outputDir, s.file.getName(), s.sequences, s.sequenceNames, true, 0.5);
+			StructureData s1 = predictedStructure;
+			s1.sequences = s.sequences;
+			s1.sequenceNames = s.sequenceNames;
+			StructureData s2 = s;
+
+			DataVisualiser visualiser = new DataVisualiser();
+			
+			/*StructureData predictedStructure = Benchmarks.foldCofold(outputDir, s.file.getName(), s.sequences, s.sequenceNames, true, 0,640);
 			StructureData predictedStructure2 = Benchmarks.foldCofold(outputDir, s.file.getName(), s.sequences, s.sequenceNames, true, 0.5,640);
 			
 			StructureData s1 = predictedStructure;
 			StructureData s2 = predictedStructure2;
 			
-			DataVisualiser visualiser = new DataVisualiser();
 			
 			s2.sequences = s.sequences;
 			s2.sequenceNames = s.sequenceNames;
@@ -64,11 +70,12 @@ public class Benchmarks {
 			s.title = "Experimental";
 			s1.title = "Cofold (null)";
 			s2.title = "Cofold (alpha=0.5 tau=640)";
+
+			SVG full = visualiser.drawComparisonPredicted(s1, s2, s);*/
 			
 		
 			
-			//SVG full = visualiser.drawComparisonPredictedExperimental(s1, s2);
-			SVG full = visualiser.drawComparisonPredicted(s1, s2, s);
+			SVG full = visualiser.drawComparisonPredictedExperimental(s1, s2);
 			try {
 				full.savePNG(new File(outputDir.getAbsolutePath()+File.separatorChar+s.file.getName()+".svg"), new File(outputDir.getAbsolutePath()+File.separatorChar+s.file.getName()+".png"));
 			} catch (IOException e) {
@@ -234,3 +241,4 @@ public class Benchmarks {
 		System.out.println("Save benchmarks to "+csvFile.getAbsolutePath());
 	}
 }
+

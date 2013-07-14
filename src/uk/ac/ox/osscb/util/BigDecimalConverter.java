@@ -3,6 +3,8 @@ package uk.ac.ox.osscb.util;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 
+import uk.ac.ox.osscb.PointRes;
+
 public class BigDecimalConverter {
 	
 	public static BigDecimal valueOf(double dbl, int digits){

@@ -1,6 +1,6 @@
 package uk.ac.ox.osscb;
 
-import java.math.BigDecimal;
+
 import java.math.MathContext;
 import java.util.HashMap;
 import java.util.Map;
@@ -15,21 +15,21 @@ public class InsideOutsideProbabilities {
 
 	private final Logger log = LoggerFactory.getLogger(InsideOutsideProbabilities.class);
 
-	private Map<Character, BigDecimal[][]> nonTerminalIndices;
+	private Map<Character, PointRes[][]> nonTerminalIndices;
 	private final int dimension;
 	
 	private MathContext mathCtx = MathContext.DECIMAL32; //null;// new MathContext(5);
 	
 	public String testToStr(){
-		BigDecimal[][] bigDecimals = this.nonTerminalIndices.get('S');
+		PointRes[][] bigDecimals = this.nonTerminalIndices.get('S');
 		return bigDecimals[0][bigDecimals[0].length-1].toString();
 	}
 	
 	public String printAllTables(){
 		StringBuilder sb = new StringBuilder();
-		for(Map.Entry<Character, BigDecimal[][]> entry : nonTerminalIndices.entrySet()){
+		for(Map.Entry<Character, PointRes[][]> entry : nonTerminalIndices.entrySet()){
 			sb.append(Util.nL()).append( entry.getKey()).append(":");
-			BigDecimal[][] numAr = entry.getValue();
+			PointRes[][] numAr = entry.getValue();
 			sb.append(Util.print2DArray(numAr));
 		}
 		return sb.toString();
@@ -44,7 +44,7 @@ public class InsideOutsideProbabilities {
 			throw new RuntimeException("TODO-2");
 		}
 		
-		this.nonTerminalIndices = new HashMap<Character, BigDecimal[][]>();
+		this.nonTerminalIndices = new HashMap<Character, PointRes[][]>();
 		for(char c : nonTerminals){
 			if(this.nonTerminalIndices.containsKey(c)){
 				throw new RuntimeException("TODO-3");
@@ -57,32 +57,32 @@ public class InsideOutsideProbabilities {
 	}
 
 	public void setProb(char nonTerminal, int i, int j, double prob){
-		setProb(nonTerminal, i, j, BigDecimal.valueOf(prob));
+		setProb(nonTerminal, i, j, PointRes.valueOf(prob));
 	}
 	
-	public void setProb(char nonTerminal, int i, int j, BigDecimal prob){
+	public void setProb(char nonTerminal, int i, int j, PointRes prob){
 		ProbabilityValueValidator.validateP(prob);
 		//log.debug("'%c'[%d, %d]->%.5f", new Object[]{nonTerminal, i, j, prob});
 		log.debug("'{}'[{}, {}]->{}", new Object[]{nonTerminal, i, j, prob});
 		assertNonTerminalExists(nonTerminal, i, j);
 		
-		BigDecimal[][] probs = this.nonTerminalIndices.get(nonTerminal);
+		PointRes[][] probs = this.nonTerminalIndices.get(nonTerminal);
 		probs[i][j] = null != this.mathCtx ? prob.round(this.mathCtx) : prob;
 	}
 	
-	public BigDecimal getProb(char nonTerminal, int i, int j){
+	public PointRes getProb(char nonTerminal, int i, int j){
 		assertNonTerminalExists(nonTerminal, i,j );
 		
-		BigDecimal p = this.nonTerminalIndices.get(nonTerminal)[i][j];
+		PointRes p = this.nonTerminalIndices.get(nonTerminal)[i][j];
 		// ProbabilityValueValidator.validateP(p);
 		return p;
 	}
 	
-	public void increment(char nonTerminal, int i, int j, BigDecimal incrementVal){
+	public void increment(char nonTerminal, int i, int j, PointRes incrementVal){
 		assertNonTerminalExists(nonTerminal, i,j );
 		
-		BigDecimal initialProb = getProb(nonTerminal, i, j);
-		BigDecimal newProb = initialProb.add(incrementVal);
+		PointRes initialProb = getProb(nonTerminal, i, j);
+		PointRes newProb = initialProb.add(incrementVal);
 		setProb(nonTerminal, i, j, newProb);
 	}
 	

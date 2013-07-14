@@ -1,6 +1,8 @@
 package uk.ac.ox.osscb.inoutside;
 
-import java.math.BigDecimal;
+import uk.ac.ox.osscb.PointRes;
+
+
 
 /**
  * Sketch. To be changed later
@@ -22,18 +24,18 @@ public class PPOutput {
 	/**
 	 * Expected gain in predictive accuracy
 	 */
-	private BigDecimal diff;
+	private PointRes diff;
 	/**
 	 * Compatibility score 
 	 */
-	private BigDecimal comp;
+	private PointRes comp;
 	
 	/**
 	 * Helix length
 	 */
 	private int helixLength;
 	
-	public PPOutput(int leftIdx, int rightIdx, int helixLength, BigDecimal diff, BigDecimal comp) {
+	public PPOutput(int leftIdx, int rightIdx, int helixLength, PointRes diff, PointRes comp) {
 		super();
 		this.leftIdx = leftIdx;
 		this.rightIdx = rightIdx;
@@ -50,11 +52,11 @@ public class PPOutput {
 		return rightIdx;
 	}
 
-	public BigDecimal getDiff() {
+	public PointRes getDiff() {
 		return diff;
 	}
 	
-	public BigDecimal getComp() {
+	public PointRes getComp() {
 		return comp;
 	}
 	

@@ -5,7 +5,6 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.math.BigDecimal;
 import java.util.Arrays;
 
 import org.slf4j.Logger;
@@ -272,7 +271,7 @@ public class KineticFold2 {
 				, ppProbs.getRightIdx()
 				, ppProbs.gethelixLength()
 				, ppProbs.getDiff().doubleValue()
-				, ppProbs.getComp()
+				, ppProbs.getComp().doubleValue()
 				);
 		ProgramOutput.outMsg(msg);
 	}
