@@ -35,9 +35,13 @@ public class Benchmarks {
 		
 		ArrayList<StructureData> predictedStructures = new ArrayList<StructureData>();
 		int datasetno = 0;
-		for(StructureData s : experimentalStructures)
+		long startNanoTime = System.nanoTime();
+		int start = 40;
+		int end = 500;
+		for(int i = 0 ; i < Math.min(end, experimentalStructures.size()) ; i++)
 		{
-			if(datasetno < 0)
+			StructureData s = experimentalStructures.get(i);
+			if(datasetno < start)
 			{
 				datasetno++;
 				predictedStructures.add(null);
@@ -47,54 +51,63 @@ public class Benchmarks {
 			
 			
 			StructureData predictedStructure = Benchmarks.foldOxfold(outputDir, s.file.getName(), s.sequences, s.sequenceNames, true, 0.5);
-			StructureData s1 = predictedStructure;
-			s1.sequences = s.sequences;
-			s1.sequenceNames = s.sequenceNames;
-			StructureData s2 = s;
 
-			DataVisualiser visualiser = new DataVisualiser();
+			long endNanoTime = System.nanoTime();
+			double elapsed = (endNanoTime-startNanoTime)/1e9;
+			System.out.println("Elapsed\t"+i+"\t"+elapsed+"s");
 			
-			/*StructureData predictedStructure = Benchmarks.foldCofold(outputDir, s.file.getName(), s.sequences, s.sequenceNames, true, 0,640);
-			StructureData predictedStructure2 = Benchmarks.foldCofold(outputDir, s.file.getName(), s.sequences, s.sequenceNames, true, 0.5,640);
-			
-			StructureData s1 = predictedStructure;
-			StructureData s2 = predictedStructure2;
-			
-			
-			s2.sequences = s.sequences;
-			s2.sequenceNames = s.sequenceNames;
-			s1.sequences = s2.sequences;
-			s1.sequenceNames = s2.sequenceNames;
-			//s1.title = "Predicted";
-			//s2.title = "Experimental";
-			s.title = "Experimental";
-			s1.title = "Cofold (null)";
-			s2.title = "Cofold (alpha=0.5 tau=640)";
-
-			SVG full = visualiser.drawComparisonPredicted(s1, s2, s);*/
-			
-		
-			
-			SVG full = visualiser.drawComparisonPredictedExperimental(s1, s2);
-			try {
-				full.savePNG(new File(outputDir.getAbsolutePath()+File.separatorChar+s.file.getName()+".svg"), new File(outputDir.getAbsolutePath()+File.separatorChar+s.file.getName()+".png"));
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-			
-			long endNano = System.nanoTime();
-			double elapsedNano = (endNano - startNano)/1000000000.0;
-			predictedStructure.time = elapsedNano;
-			predictedStructures.add(predictedStructure);
-
-			datasetno++;
-			System.out.println("dataset "+datasetno+"\t"+elapsedNano);
-			try {
-				Benchmarks.saveBenchmarksCSV(resultsFile, experimentalStructures, predictedStructures);
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+			boolean print = false;
+			if(print)
+			{
+				StructureData s1 = predictedStructure;
+				s1.sequences = s.sequences;
+				s1.sequenceNames = s.sequenceNames;
+				StructureData s2 = s;
+	
+				DataVisualiser visualiser = new DataVisualiser();
+	
+				/*StructureData predictedStructure = Benchmarks.foldCofold(outputDir, s.file.getName(), s.sequences, s.sequenceNames, true, 0,640);
+				StructureData predictedStructure2 = Benchmarks.foldCofold(outputDir, s.file.getName(), s.sequences, s.sequenceNames, true, 0.5,640);
+				
+				StructureData s1 = predictedStructure;
+				StructureData s2 = predictedStructure2;
+				
+				
+				s2.sequences = s.sequences;
+				s2.sequenceNames = s.sequenceNames;
+				s1.sequences = s2.sequences;
+				s1.sequenceNames = s2.sequenceNames;
+				//s1.title = "Predicted";
+				//s2.title = "Experimental";
+				s.title = "Experimental";
+				s1.title = "Cofold (null)";
+				s2.title = "Cofold (alpha=0.5 tau=640)";
+	
+				SVG full = visualiser.drawComparisonPredicted(s1, s2, s);*/
+	
+	
+	
+				SVG full = visualiser.drawComparisonPredictedExperimental(s1, s2);
+				try {
+					full.savePNG(new File(outputDir.getAbsolutePath()+File.separatorChar+s.file.getName()+".svg"), new File(outputDir.getAbsolutePath()+File.separatorChar+s.file.getName()+".png"));
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+				
+				long endNano = System.nanoTime();
+				double elapsedNano = (endNano - startNano)/1000000000.0;
+				predictedStructure.time = elapsedNano;
+				predictedStructures.add(predictedStructure);
+	
+				datasetno++;
+				System.out.println("dataset "+datasetno+"\t"+elapsedNano);
+				try {
+					Benchmarks.saveBenchmarksCSV(resultsFile, experimentalStructures, predictedStructures);
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
 			}
 		}
 		
@@ -241,4 +254,3 @@ public class Benchmarks {
 		System.out.println("Save benchmarks to "+csvFile.getAbsolutePath());
 	}
 }
-

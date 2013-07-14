@@ -273,13 +273,14 @@ public class PointRes  extends Number implements Serializable {
 	public PointRes round(MathContext mc)
 	{
 		//System.out.println("round"+this.doubleValue());
-		BigDecimal bd = new BigDecimal(2);
+		//BigDecimal bd = new BigDecimal(2);
 		//System.out.println("A"+bd);
 		//System.out.println("B"+this.exponent);
 		//System.out.println("C"+this.fraction);
-		bd = bd.pow(this.exponent,mc).multiply(BigDecimal.valueOf(this.fraction));
-		bd = bd.round(mc);
-		return new PointRes(bd.doubleValue());
+		//bd = bd.pow(this.exponent,mc).multiply(BigDecimal.valueOf(this.fraction));
+		//bd = bd.round(mc);
+		//return new PointRes(bd.doubleValue());
+		return this.clone();
 	}
 
 	public float toFloat() {
