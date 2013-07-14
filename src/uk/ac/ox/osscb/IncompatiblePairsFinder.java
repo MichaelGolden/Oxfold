@@ -1,6 +1,6 @@
 package uk.ac.ox.osscb;
 
-import java.math.BigDecimal;
+
 import java.math.RoundingMode;
 import java.util.LinkedList;
 
@@ -22,8 +22,8 @@ public class IncompatiblePairsFinder {
 		 * @param pairedProbs
 		 * @return lower bound on compatibility
 		 */
-		public BigDecimal calculateComp(boolean[][] incomp, int left, int right, BigDecimal[][] pairedProbs) {
-			BigDecimal rprob = BigDecimal.ZERO;
+		public PointRes calculateComp(boolean[][] incomp, int left, int right, PointRes[][] pairedProbs) {
+			PointRes rprob = PointRes.ZERO;
 			for (int j=0; j<incomp.length; j++) {
 				for (int k = j+1; k<incomp.length; k++) {
 					if (incomp[j][k]) {
@@ -102,7 +102,7 @@ public class IncompatiblePairsFinder {
 			return incomp;
 		}
 		
-		public LinkedList<Helix> getIncompatibleHelices(boolean[][] canPair, boolean[][] incomp, BigDecimal[][] diffs, 
+		public LinkedList<Helix> getIncompatibleHelices(boolean[][] canPair, boolean[][] incomp, PointRes[][] diffs, 
 				int leftIdx, int rightIdx) {
 			LinkedList<Helix> Helices = new LinkedList<Helix>();
 			boolean[][] tmpincomp = new boolean[incomp.length][incomp.length];

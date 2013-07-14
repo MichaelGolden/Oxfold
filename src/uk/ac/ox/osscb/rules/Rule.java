@@ -1,10 +1,11 @@
 package uk.ac.ox.osscb.rules;
 
-import java.math.BigDecimal;
+import uk.ac.ox.osscb.PointRes;
+
 
 public interface Rule {
 
-	BigDecimal getRuleProbability();
+	PointRes getRuleProbability();
 	
 	Character left();
 	

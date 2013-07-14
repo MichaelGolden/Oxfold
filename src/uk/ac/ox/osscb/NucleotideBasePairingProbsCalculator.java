@@ -1,6 +1,6 @@
 package uk.ac.ox.osscb;
 
-import java.math.BigDecimal;
+
 import java.util.HashMap;
 
 import uk.ac.ox.osscb.domain.NucleotideProbsConverter;
@@ -18,7 +18,7 @@ public class NucleotideBasePairingProbsCalculator {
 
 	public NucleotideProbsPrecise calculate(int[][] alignment, NucleotideProbsDouble baseProbabilities){
 	
-		// we are converting to BigDecimal once in order to avoid convertion done iteratively in a cycle.
+		// we are converting to PointRes once in order to avoid convertion done iteratively in a cycle.
 		NucleotideProbsPrecise baseProbsPrecise = new NucleotideProbsConverter().toPrecise(baseProbabilities);
 		baseProbabilities = null;// to ensure we're not using it in this method.
 
@@ -27,9 +27,9 @@ public class NucleotideBasePairingProbsCalculator {
 		NucleotideProbsPrecise alignmentProbs = new NucleotideProbsPrecise(dim);
 		for (int j = 0; j < dim; j++){
 			//n[j,0] = product(sbp(a[:,j])); 
-			BigDecimal tmp = BigDecimal.ONE;
+			PointRes tmp = PointRes.ONE;
 			for (int k=0; k<seqnum; k++) {
-				// tmp = tmp.multiply(BigDecimal.valueOf(baseProbabilities.getUnpairingProbability(alignment[k][j])));
+				// tmp = tmp.multiply(PointRes.valueOf(baseProbabilities.getUnpairingProbability(alignment[k][j])));
 				tmp = tmp.multiply(baseProbsPrecise.getUnpairingProbability(alignment[k][j]));
 			}
 			alignmentProbs.setUnpairingProbability(j,tmp);
@@ -37,9 +37,9 @@ public class NucleotideBasePairingProbsCalculator {
 		for(int j = 0; j<dim; j++){
 			for(int k = j + 1; k < dim; k++){
 				//n[j,k] = product(pbp(a[:,j],a[:,k]));
-				BigDecimal tmp = BigDecimal.ONE;
+				PointRes tmp = PointRes.ONE;
 				for (int l=0; l<seqnum; l++) {
-					//tmp = tmp.multiply(BigDecimal.valueOf(baseProbabilities.getPairingProbability(alignment[l][j], alignment[l][k])));
+					//tmp = tmp.multiply(PointRes.valueOf(baseProbabilities.getPairingProbability(alignment[l][j], alignment[l][k])));
 					tmp = tmp.multiply(baseProbsPrecise.getPairingProbability(alignment[l][j], alignment[l][k]));
 				}
 				alignmentProbs.setPairingProbability(j, k, tmp);
@@ -73,7 +73,7 @@ public class NucleotideBasePairingProbsCalculator {
 		// unpairing:		
 		for(int colIdx = 0; colIdx < align[0].length(); colIdx++){
 			
-			BigDecimal unpairingProb = BigDecimal.valueOf(1);
+			PointRes unpairingProb = PointRes.valueOf(1);
 			
 			for(int rowIdx = 0; rowIdx < align.length; rowIdx++){
 				String row = align[rowIdx];
@@ -86,7 +86,7 @@ public class NucleotideBasePairingProbsCalculator {
 					elementPrior += sIndices.get(syn);
 				}
 								
-				unpairingProb = unpairingProb.multiply(BigDecimal.valueOf(elementPrior));
+				unpairingProb = unpairingProb.multiply(PointRes.valueOf(elementPrior));
 			}
 			
 			res.setUnpairingProbability(colIdx, unpairingProb);
@@ -109,7 +109,7 @@ public class NucleotideBasePairingProbsCalculator {
 		for(int lColIdx = 0; lColIdx < align[0].length()-1; lColIdx++){
 			
 			for(int rColIdx = lColIdx+1; rColIdx < align[0].length(); rColIdx++){
-				BigDecimal pairingProb = BigDecimal.valueOf(1);
+				PointRes pairingProb = PointRes.valueOf(1);
 				int unsure = 0;
 				for(int rowIdx = 0; rowIdx < align.length; rowIdx++){
 					String row = align[rowIdx];
@@ -126,10 +126,10 @@ public class NucleotideBasePairingProbsCalculator {
 						elementPrior += pIndices.get(syn);
 					}
 					
-					pairingProb = pairingProb.multiply(BigDecimal.valueOf(elementPrior));
+					pairingProb = pairingProb.multiply(PointRes.valueOf(elementPrior));
 				}
 				if (unsure>0.5*seqnum) {
-					res.setPairingProbability(lColIdx, rColIdx, BigDecimal.ZERO);
+					res.setPairingProbability(lColIdx, rColIdx, PointRes.ZERO);
 				} else {
 					res.setPairingProbability(lColIdx, rColIdx, pairingProb);
 				}

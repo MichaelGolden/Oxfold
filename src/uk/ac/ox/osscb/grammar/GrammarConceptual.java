@@ -1,8 +1,9 @@
 package uk.ac.ox.osscb.grammar;
 
-import java.math.BigDecimal;
+
 
 import uk.ac.ox.osscb.InsideOutsideProbabilities;
+import uk.ac.ox.osscb.PointRes;
 import uk.ac.ox.osscb.domain.NucleotideProbsPrecise;
 
 /**
@@ -24,8 +25,8 @@ public interface GrammarConceptual {
 	 * @param weight
 	 */
 	GrammarOutput calculateMaxBasingProbabilities(InsideOutsideProbabilities insideProbs, InsideOutsideProbabilities outsideProbs,
-			NucleotideProbsPrecise pairingProbs, BigDecimal[][] distances, double weight);
+			NucleotideProbsPrecise pairingProbs, PointRes[][] distances, double weight);
 	
 	
-	GrammarOutput  doGrammar(NucleotideProbsPrecise pairingProbs, BigDecimal[][] distances, double weight);
+	GrammarOutput  doGrammar(NucleotideProbsPrecise pairingProbs, PointRes[][] distances, double weight);
 }

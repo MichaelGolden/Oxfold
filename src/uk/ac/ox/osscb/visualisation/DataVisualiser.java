@@ -551,12 +551,12 @@ public class DataVisualiser {
 		Collections.sort(experimentalStructures);
 		
 		//SVG full = visualiser.drawComparison(experimentalStructures.get(0), experimentalStructures.get(1));
-		try {
+		/*try {
 			full.savePNG(new File("test.svg"), new File("test.png"));
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-		}
+		}*/
 		//System.out.println(full.getSVGString());
 		/*
 		for(int i = 0 ; i < experimentalStructures.size() ; i++)

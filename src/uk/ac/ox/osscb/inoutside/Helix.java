@@ -1,18 +1,20 @@
 package uk.ac.ox.osscb.inoutside;
 
-import java.math.BigDecimal;
+import uk.ac.ox.osscb.PointRes;
+
+
 
 public class Helix {
 		private int leftIdx;
 		private int rightIdx;
 		private int helixLength;
-		private BigDecimal score;
+		private PointRes score;
 		
-		public Helix(int leftIdx, int rightIdx, int helixLength, BigDecimal[][] diffs) {
+		public Helix(int leftIdx, int rightIdx, int helixLength, PointRes[][] diffs) {
 			this.leftIdx = leftIdx;
 			this.rightIdx = rightIdx;
 			this.helixLength = helixLength;
-			BigDecimal score = BigDecimal.ZERO;
+			PointRes score = PointRes.ZERO;
 			for (int j = 0; j<helixLength; j++) {
 				score = score.add(diffs[leftIdx+j][rightIdx-j]);
 			}
@@ -27,15 +29,15 @@ public class Helix {
 			for (int j = 0; j<helixLength; j++) {
 				score = score+diffs[leftIdx+j][rightIdx-j];
 			}
-			this.score = BigDecimal.valueOf(score);
+			this.score = PointRes.valueOf(score);
 		}
 		
 		public Helix() {
 			this.leftIdx = -1; this.rightIdx = -1;
-			this.helixLength = 0; this.score = BigDecimal.ZERO;
+			this.helixLength = 0; this.score = PointRes.ZERO;
 		}
 		
-		public void setScore(BigDecimal score) {
+		public void setScore(PointRes score) {
 			this.score = score;
 		}
 		
@@ -51,7 +53,7 @@ public class Helix {
 			return helixLength;
 		}
 		
-		public BigDecimal getScore() {
+		public PointRes getScore() {
 			return score;
 		}
 

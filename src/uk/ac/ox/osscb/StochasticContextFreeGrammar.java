@@ -1,6 +1,6 @@
 package uk.ac.ox.osscb;
 
-import java.math.BigDecimal;
+
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
@@ -114,10 +114,10 @@ public class StochasticContextFreeGrammar implements Grammar {
 	 * @param ruleclass -- class of rules 1, 2, 3 as defined in ProductionRule.java
 	 * @return an array of probabilities for the specified ruleclass
 	 */
-	public BigDecimal[] getProbabilities(RuleType ruleclass)
+	public PointRes[] getProbabilities(RuleType ruleclass)
 	{
 		List<ProductionRule> rulesforRuleclass = getRules(ruleclass);
-		BigDecimal[] probs = new BigDecimal[rulesforRuleclass.size()];
+		PointRes[] probs = new PointRes[rulesforRuleclass.size()];
 		
 		for(int i=0; i<rulesforRuleclass.size(); i++)
 			probs[i] = rulesforRuleclass.get(i).getProbability();

@@ -2,12 +2,12 @@ package uk.ac.ox.osscb.grammar;
 
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.math.BigDecimal;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Scanner;
 import java.util.regex.Pattern;
 
+import uk.ac.ox.osscb.PointRes;
 import uk.ac.ox.osscb.ProductionRule;
 import uk.ac.ox.osscb.StochasticContextFreeGrammar;
 import static java.util.regex.Pattern.CASE_INSENSITIVE;;
@@ -73,7 +73,7 @@ public class GrammarParser {
 								char[] tmp = rtmp[0].toCharArray(); char tmp2 = tmp[0];
 								char[] tmpr = rtmpr[j].toCharArray();
 								String deleteme = rtmpprob[j];
-								ProductionRule r = new ProductionRule(tmp2,tmpr,BigDecimal.valueOf(Double.valueOf(deleteme)));
+								ProductionRule r = new ProductionRule(tmp2,tmpr,PointRes.valueOf(Double.valueOf(deleteme)));
 								rules.add(r);
 							}	
 						} else {

@@ -1,9 +1,9 @@
 package uk.ac.ox.osscb.inoutside;
 
-import java.math.BigDecimal;
 
 import uk.ac.ox.osscb.Constants;
 import uk.ac.ox.osscb.InsideOutsideProbabilities;
+import uk.ac.ox.osscb.PointRes;
 import uk.ac.ox.osscb.ProductionRule;
 import uk.ac.ox.osscb.domain.NucleotideProbsPrecise;
 import uk.ac.ox.osscb.grammar.Grammar;
@@ -41,7 +41,7 @@ public class InsideOutsideCalculator implements IOsideCalculator {
 		for (ProductionRule rule1 : grammar.getRules(RuleType.RULE1)) {
 			for (int charIdx = 0; charIdx<seqLen; charIdx++) {
 				if(Constants.UnpairedBaseIdx == structure[charIdx]) {
-					BigDecimal prob = pairingProbs.getUnpairingProbability(charIdx).multiply(rule1.getProbability());
+					PointRes prob = pairingProbs.getUnpairingProbability(charIdx).multiply(rule1.getProbability());
 					iProbs.setProb(rule1.getLeft(), charIdx, charIdx, prob);
 				}
 			}
@@ -52,21 +52,21 @@ public class InsideOutsideCalculator implements IOsideCalculator {
 			for (int j = 0; j < seqLen-b; j++) {
 				// deal with contribution of rules of type U->VW
 				for (ProductionRule rule3: grammar.getRules(RuleType.RULE3)) {
-					BigDecimal tmp = BigDecimal.ZERO;
+					PointRes tmp = PointRes.ZERO;
 					for (int h = j; h < j+b; h++) {
-						BigDecimal prob1 = iProbs.getProb(rule3.getRight()[0], j, h);
-						BigDecimal prob2 = iProbs.getProb(rule3.getRight()[1], h+1, j+b);
+						PointRes prob1 = iProbs.getProb(rule3.getRight()[0], j, h);
+						PointRes prob2 = iProbs.getProb(rule3.getRight()[1], h+1, j+b);
 						tmp = tmp.add(prob1.multiply(prob2));
 					}
-					BigDecimal probIncrement = rule3.getProbability().multiply(tmp);
+					PointRes probIncrement = rule3.getProbability().multiply(tmp);
 					iProbs.increment(rule3.getLeft(), j, j+b, probIncrement);						
 				}
 				// deal with production rules of type U->(V)				
 				if (canPair[j][j+b]) {
 					for (ProductionRule rule2: grammar.getRules(RuleType.RULE2)) {
 						double exp = Math.exp(-distances[j][j+b] / weight);
-						BigDecimal probIncrement = BigDecimal.ZERO;
-						probIncrement = rule2.getProbability().multiply(BigDecimal.valueOf(exp))
+						PointRes probIncrement = PointRes.ZERO;
+						probIncrement = rule2.getProbability().multiply(PointRes.valueOf(exp))
 								.multiply(pairingProbs.getPairingProbability(j, j+b))
 								.multiply(iProbs.getProb(rule2.getRight()[1],j+1,j+b-1));
 						iProbs.increment(rule2.getLeft(), j, j+b, probIncrement);
@@ -90,7 +90,7 @@ public class InsideOutsideCalculator implements IOsideCalculator {
 		for (ProductionRule rule1 : grammar.getRules(RuleType.RULE1)) {
 			for (int charIdx = 0; charIdx<seqLen; charIdx++) {
 				if(Constants.UnpairedBaseIdx == structure[charIdx]) {
-					BigDecimal prob = pairingProbs.getUnpairingProbability(charIdx).multiply(rule1.getProbability());
+					PointRes prob = pairingProbs.getUnpairingProbability(charIdx).multiply(rule1.getProbability());
 					iProbs.setProb(rule1.getLeft(), charIdx, charIdx, prob);
 				}
 			}
@@ -101,19 +101,19 @@ public class InsideOutsideCalculator implements IOsideCalculator {
 			for (int j = 0; j < seqLen-b; j++) {
 				// deal with contribution of rules of type U->VW
 				for (ProductionRule rule3: grammar.getRules(RuleType.RULE3)) {
-					BigDecimal tmp = BigDecimal.ZERO;
+					PointRes tmp = PointRes.ZERO;
 					for (int h = j; h < j+b; h++) {
-						BigDecimal prob1 = iProbs.getProb(rule3.getRight()[0], j, h);
-						BigDecimal prob2 = iProbs.getProb(rule3.getRight()[1], h+1, j+b);
+						PointRes prob1 = iProbs.getProb(rule3.getRight()[0], j, h);
+						PointRes prob2 = iProbs.getProb(rule3.getRight()[1], h+1, j+b);
 						tmp = tmp.add(prob1.multiply(prob2));
 					}
-					BigDecimal probIncrement = rule3.getProbability().multiply(tmp);
+					PointRes probIncrement = rule3.getProbability().multiply(tmp);
 					iProbs.increment(rule3.getLeft(), j, j+b, probIncrement);						
 				}
 				// deal with production rules of type U->(V)				
 				if (canPair[j][j+b]) {
 					for (ProductionRule rule2: grammar.getRules(RuleType.RULE2)) {
-						BigDecimal probIncrement = BigDecimal.ZERO;
+						PointRes probIncrement = PointRes.ZERO;
 						probIncrement = rule2.getProbability().multiply(pairingProbs.getPairingProbability(j, j+b))
 								.multiply(iProbs.getProb(rule2.getRight()[1],j+1,j+b-1));
 						iProbs.increment(rule2.getLeft(), j, j+b, probIncrement);
@@ -138,24 +138,24 @@ public class InsideOutsideCalculator implements IOsideCalculator {
 		InsideOutsideProbabilities oProbs = new InsideOutsideProbabilities(grammar.getNonterminals(), seqLen);
 		
 		// initialise outside probabilities
-		oProbs.setProb(this.grammar.getNonterminals()[0], 0, seqLen - 1, BigDecimal.ONE);
+		oProbs.setProb(this.grammar.getNonterminals()[0], 0, seqLen - 1, PointRes.ONE);
 		
 		// iterate over (decreasing) length of inside interval
 		for (int b = seqLen-2; b >= 0; b--) {
 			for (int j = 0; j < seqLen - b; j++) {
 				for (ProductionRule rule3 : this.grammar.getRules(RuleType.RULE3)) {
-					BigDecimal tmp = BigDecimal.ZERO;
+					PointRes tmp = PointRes.ZERO;
 					for (int k = j + b + 1; k < seqLen; k++) {
-						BigDecimal oProb = oProbs.getProb(rule3.getLeft(), j, k);
-						BigDecimal iProb = insideProbs.getProb(rule3.getRight()[1], j+b+1, k);
+						PointRes oProb = oProbs.getProb(rule3.getLeft(), j, k);
+						PointRes iProb = insideProbs.getProb(rule3.getRight()[1], j+b+1, k);
 						tmp = tmp.add(oProb.multiply( iProb));
 					}
-					BigDecimal probIncrement = tmp.multiply(rule3.getProbability());
+					PointRes probIncrement = tmp.multiply(rule3.getProbability());
 					oProbs.increment(rule3.getRight()[0], j, j+b, probIncrement);
-					tmp = BigDecimal.ZERO;
+					tmp = PointRes.ZERO;
 					for(int k = 0; k<j;k++) {
-						BigDecimal oProb = oProbs.getProb(rule3.getLeft(), k, j+b);
-						BigDecimal iProb = insideProbs.getProb(rule3.getRight()[0], k, j-1);
+						PointRes oProb = oProbs.getProb(rule3.getLeft(), k, j+b);
+						PointRes iProb = insideProbs.getProb(rule3.getRight()[0], k, j-1);
 						tmp = tmp.add(oProb.multiply(iProb));						
 					}
 					probIncrement = tmp.multiply(rule3.getProbability());					
@@ -164,8 +164,8 @@ public class InsideOutsideCalculator implements IOsideCalculator {
 				// get contributions of rules of type U->(V)
 				if ((j>=1)&&(j+b+1<seqLen)&&(canPair[j-1][j+b+1])) {
 					for (ProductionRule rule2: this.grammar.getRules(RuleType.RULE2)) {
-						BigDecimal probIncrement = BigDecimal.ZERO;
-						BigDecimal exp = BigDecimal.valueOf(Math.exp(-distances[j-1][j+b+1]/weight));
+						PointRes probIncrement = PointRes.ZERO;
+						PointRes exp = PointRes.valueOf(Math.exp(-distances[j-1][j+b+1]/weight));
 						probIncrement = rule2.getProbability().multiply(exp)
 								.multiply(pairingProbs.getPairingProbability(j-1, j+b+1))
 								.multiply(oProbs.getProb(rule2.getLeft(), j-1, j+b+1));
@@ -186,24 +186,24 @@ public class InsideOutsideCalculator implements IOsideCalculator {
 		InsideOutsideProbabilities oProbs = new InsideOutsideProbabilities(grammar.getNonterminals(), seqLen);
 		
 		// initialise outside probabilities
-		oProbs.setProb(this.grammar.getNonterminals()[0], 0, seqLen - 1, BigDecimal.ONE);
+		oProbs.setProb(this.grammar.getNonterminals()[0], 0, seqLen - 1, PointRes.ONE);
 		
 		// iterate over (decreasing) length of inside interval
 		for (int b = seqLen-2; b >= 0; b--) {
 			for (int j = 0; j < seqLen - b; j++) {
 				for (ProductionRule rule3 : this.grammar.getRules(RuleType.RULE3)) {
-					BigDecimal tmp = BigDecimal.ZERO;
+					PointRes tmp = PointRes.ZERO;
 					for (int k = j + b + 1; k < seqLen; k++) {
-						BigDecimal oProb = oProbs.getProb(rule3.getLeft(), j, k);
-						BigDecimal iProb = insideProbs.getProb(rule3.getRight()[1], j+b+1, k);
+						PointRes oProb = oProbs.getProb(rule3.getLeft(), j, k);
+						PointRes iProb = insideProbs.getProb(rule3.getRight()[1], j+b+1, k);
 						tmp = tmp.add(oProb.multiply( iProb));
 					}
-					BigDecimal probIncrement = tmp.multiply(rule3.getProbability());
+					PointRes probIncrement = tmp.multiply(rule3.getProbability());
 					oProbs.increment(rule3.getRight()[0], j, j+b, probIncrement);
-					tmp = BigDecimal.ZERO;
+					tmp = PointRes.ZERO;
 					for(int k = 0; k<j;k++) {
-						BigDecimal oProb = oProbs.getProb(rule3.getLeft(), k, j+b);
-						BigDecimal iProb = insideProbs.getProb(rule3.getRight()[0], k, j-1);
+						PointRes oProb = oProbs.getProb(rule3.getLeft(), k, j+b);
+						PointRes iProb = insideProbs.getProb(rule3.getRight()[0], k, j-1);
 						tmp = tmp.add(oProb.multiply(iProb));						
 					}
 					probIncrement = tmp.multiply(rule3.getProbability());					
@@ -212,7 +212,7 @@ public class InsideOutsideCalculator implements IOsideCalculator {
 				// get contributions of rules of type U->(V)
 				if ((j>=1)&&(j+b+1<seqLen)&&(canPair[j-1][j+b+1])) {
 					for (ProductionRule rule2: this.grammar.getRules(RuleType.RULE2)) {
-						BigDecimal probIncrement = BigDecimal.ZERO;
+						PointRes probIncrement = PointRes.ZERO;
 						probIncrement = rule2.getProbability().multiply(pairingProbs.getPairingProbability(j-1, j+b+1))
 								.multiply(oProbs.getProb(rule2.getLeft(), j-1, j+b+1));
 						oProbs.increment(rule2.getRight()[1], j, j+b, probIncrement);
@@ -237,7 +237,7 @@ public class InsideOutsideCalculator implements IOsideCalculator {
 		for (ProductionRule rule1 : grammar.getRules(RuleType.RULE1)) {
 			for (int charIdx = 0; charIdx<seqLen; charIdx++) {
 				if(Constants.UnpairedBaseIdx == structure[charIdx]) {
-					BigDecimal prob = pairingProbs.getUnpairingProbability(charIdx).multiply(rule1.getProbability());
+					PointRes prob = pairingProbs.getUnpairingProbability(charIdx).multiply(rule1.getProbability());
 					iProbs.setProb(rule1.getLeft(), charIdx, charIdx, prob);
 				}
 			}
@@ -248,21 +248,21 @@ public class InsideOutsideCalculator implements IOsideCalculator {
 			for (int j = 0; j < seqLen-b; j++) {
 				// deal with contribution of rules of type U->VW
 				for (ProductionRule rule3: grammar.getRules(RuleType.RULE3)) {
-					BigDecimal tmp = BigDecimal.ZERO;
+					PointRes tmp = PointRes.ZERO;
 					for (int h = j; h < j+b; h++) {
-						BigDecimal prob1 = iProbs.getProb(rule3.getRight()[0], j, h);
-						BigDecimal prob2 = iProbs.getProb(rule3.getRight()[1], h+1, j+b);
+						PointRes prob1 = iProbs.getProb(rule3.getRight()[0], j, h);
+						PointRes prob2 = iProbs.getProb(rule3.getRight()[1], h+1, j+b);
 						tmp = tmp.add(prob1.multiply(prob2));
 					}
-					BigDecimal probIncrement = rule3.getProbability().multiply(tmp);
+					PointRes probIncrement = rule3.getProbability().multiply(tmp);
 					iProbs.increment(rule3.getLeft(), j, j+b, probIncrement);						
 				}
 				// deal with production rules of type U->(V)				
 				if (canPair[j][j+b]) {
 					for (ProductionRule rule2: grammar.getRules(RuleType.RULE2)) {
 						double exp = Math.exp(-distances[j][j+b]/ weight);
-						BigDecimal probIncrement = BigDecimal.ZERO;
-						probIncrement = rule2.getProbability().multiply(BigDecimal.valueOf(exp))
+						PointRes probIncrement = PointRes.ZERO;
+						probIncrement = rule2.getProbability().multiply(PointRes.valueOf(exp))
 								.multiply(pairingProbs.getPairingProbability(j, j+b))
 								.multiply(iProbs.getProb(rule2.getRight()[1],j+1,j+b-1));
 						iProbs.increment(rule2.getLeft(), j, j+b, probIncrement);
@@ -287,24 +287,24 @@ public class InsideOutsideCalculator implements IOsideCalculator {
 		InsideOutsideProbabilities oProbs = new InsideOutsideProbabilities(grammar.getNonterminals(), seqLen);
 		
 		// initialise outside probabilities
-		oProbs.setProb(this.grammar.getNonterminals()[0], 0, seqLen - 1, BigDecimal.ONE);
+		oProbs.setProb(this.grammar.getNonterminals()[0], 0, seqLen - 1, PointRes.ONE);
 		
 		// iterate over (decreasing) length of inside interval
 		for (int b = seqLen-2; b >= 0; b--) {
 			for (int j = 0; j < seqLen - b; j++) {
 				for (ProductionRule rule3 : this.grammar.getRules(RuleType.RULE3)) {
-					BigDecimal tmp = BigDecimal.ZERO;
+					PointRes tmp = PointRes.ZERO;
 					for (int k = j + b + 1; k < seqLen; k++) {
-						BigDecimal oProb = oProbs.getProb(rule3.getLeft(), j, k);
-						BigDecimal iProb = insideProbs.getProb(rule3.getRight()[1], j+b+1, k);
+						PointRes oProb = oProbs.getProb(rule3.getLeft(), j, k);
+						PointRes iProb = insideProbs.getProb(rule3.getRight()[1], j+b+1, k);
 						tmp = tmp.add(oProb.multiply( iProb));
 					}
-					BigDecimal probIncrement = tmp.multiply(rule3.getProbability());
+					PointRes probIncrement = tmp.multiply(rule3.getProbability());
 					oProbs.increment(rule3.getRight()[0], j, j+b, probIncrement);
-					tmp = BigDecimal.ZERO;
+					tmp = PointRes.ZERO;
 					for(int k = 0; k<j;k++) {
-						BigDecimal oProb = oProbs.getProb(rule3.getLeft(), k, j+b);
-						BigDecimal iProb = insideProbs.getProb(rule3.getRight()[0], k, j-1);
+						PointRes oProb = oProbs.getProb(rule3.getLeft(), k, j+b);
+						PointRes iProb = insideProbs.getProb(rule3.getRight()[0], k, j-1);
 						tmp = tmp.add(oProb.multiply(iProb));						
 					}
 					probIncrement = tmp.multiply(rule3.getProbability());					
@@ -313,8 +313,8 @@ public class InsideOutsideCalculator implements IOsideCalculator {
 				// get contributions of rules of type U->(V)
 				if ((j>=1)&&(j+b+1<seqLen)&&(canPair[j-1][j+b+1])) {
 					for (ProductionRule rule2: this.grammar.getRules(RuleType.RULE2)) {
-						BigDecimal probIncrement = BigDecimal.ZERO;
-						BigDecimal exp = BigDecimal.valueOf(Math.exp(-distances[j-1][j+b+1]/weight));
+						PointRes probIncrement = PointRes.ZERO;
+						PointRes exp = PointRes.valueOf(Math.exp(-distances[j-1][j+b+1]/weight));
 						probIncrement = rule2.getProbability().multiply(exp)
 								.multiply(pairingProbs.getPairingProbability(j-1, j+b+1))
 								.multiply(oProbs.getProb(rule2.getLeft(), j-1, j+b+1));
