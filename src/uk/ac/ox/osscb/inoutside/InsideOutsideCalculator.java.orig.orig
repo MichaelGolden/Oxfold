@@ -1,0 +1,177 @@
+package uk.ac.ox.osscb.inoutside;
+
+import java.math.BigDecimal;
+import java.util.List;
+
+import uk.ac.ox.osscb.InsideOutsideProbabilities;
+import uk.ac.ox.osscb.NucleotideProbabilities;
+import uk.ac.ox.osscb.PossiblePairFinder;
+import uk.ac.ox.osscb.ProductionRule;
+import uk.ac.ox.osscb.StochasticContextFreeGrammar;
+import uk.ac.ox.osscb.grammar.RuleType;
+
+/**
+ * Inside outside implementation
+ * 
+ * @author Vladimir
+ */
+public class InsideOutsideCalculator {
+	
+	private StochasticContextFreeGrammar grammar;
+
+	public InsideOutsideCalculator(StochasticContextFreeGrammar grammar) {
+		super();
+
+		if(null == grammar)
+			throw new NullPointerException("grammar cannot be null");
+
+		this.grammar = grammar;
+	}
+
+	/**
+	 * 
+	 * @param pairingProbs
+	 * @param distances
+	 * @param weight
+	 * @param structure - the pairing structure to be calculated
+	 * @param canPair output of {@link PossiblePairFinder#canPair(int[])
+	 * @return
+	 */
+	public InsideOutsideProbabilities inside(NucleotideProbabilities pairingProbs, 
+			int[][] distances, double weight, int[] structure, boolean[][] canPair) {
+
+		final int seqLen = distances.length;
+		
+		InsideOutsideProbabilities iProbs = new InsideOutsideProbabilities(grammar.getNonterminals(), seqLen);
+		
+		for(int charIdx = 0; charIdx < seqLen; charIdx++){
+			List<ProductionRule> rules1 = grammar.getRules(RuleType.RULE1);
+			for(int ruleIdx = 0; ruleIdx < rules1.size(); ruleIdx++){
+				if(-1 == structure[charIdx]){
+					// i[U,j,j] = p(rule)*n[j,0]
+					BigDecimal prob = pairingProbs.
+							getUnpairingProbability(charIdx).
+							multiply( 
+									rules1.get(ruleIdx).
+									getProbability());
+					iProbs.setProb(rules1.get(ruleIdx).getLeft(), charIdx, charIdx, prob);
+				}
+			}
+		}
+		
+		for (int b = 1; b < seqLen; b++){
+			for (int j = 0; j < seqLen-b; j++){
+				List<ProductionRule> rules3 = this.grammar.getRules(RuleType.RULE3);
+				for(int ruleIdx = 0; ruleIdx < rules3.size(); ruleIdx++){
+					ProductionRule rule3 = rules3.get(ruleIdx);// cache your current rule
+					BigDecimal tmp = BigDecimal.valueOf(0);// init with zero
+					for(int h = j; h <= j+b-1; h++){
+						BigDecimal prob1 = iProbs.getProb(rule3.getRight()[0], j, h);
+						BigDecimal prob2 = iProbs.getProb(rule3.getRight()[1], h+1, j+b);
+						
+						tmp = tmp.add(prob1.multiply(prob2));
+					}
+						
+					BigDecimal prob = iProbs.getProb(rule3.getLeft(), j, j+b);
+					BigDecimal finalProb = prob.add(rule3.getProbability().multiply(tmp));
+					iProbs.setProb(rule3.getLeft(), j, j+b, finalProb);						
+				}
+				
+				if(canPair[j][j+b]){
+					List<ProductionRule> rules2 = this.grammar.getRules(RuleType.RULE2);
+					for(int ruleIdx = 0; ruleIdx < rules2.size(); ruleIdx++){
+						// pairingProbs - 'n' in pseudocode
+						// distances - 'd'
+						ProductionRule rule2 = rules2.get(ruleIdx);
+						BigDecimal oldProb = iProbs.getProb(rule2.getLeft(), j, j+b);					
+						BigDecimal ruleProb = rule2.getProbability();
+						double exp = Math.exp(-distances[j][j+b] / weight);
+						BigDecimal n = pairingProbs.getPairingProbability(j, j+b);					
+						BigDecimal i2 = iProbs.getProb(rule2.getRight()[1], j+1, j+b-1);
+
+						BigDecimal res = oldProb.add(
+								ruleProb.multiply(BigDecimal.valueOf(exp)).
+								multiply(n).multiply(i2));
+	 					
+						iProbs.setProb(rule2.getLeft(), j, j+b, res);
+					}
+				}
+			}			
+		}
+		
+		return iProbs;
+	}
+
+	/**
+	 * 
+	 * @param insideProbs - output of the {@link InsideOutsideCalculator#inside(PairingProbabilities, int[][], double)}
+	 * function
+	 * @param pairingProbs - 'n' in pseudocode
+	 * @param distances - 'd'
+	 * @param weight
+	 * @return
+	 */
+	public InsideOutsideProbabilities outside(InsideOutsideProbabilities insideProbs, 
+			NucleotideProbabilities pairingProbs, int[][] distances, double weight, boolean[][] canPair) {
+		
+		final int seqLen = distances.length;
+		// TODO
+		final int l = seqLen;
+		
+		InsideOutsideProbabilities oProbs = new InsideOutsideProbabilities(grammar.getNonterminals(), seqLen);
+		
+		oProbs.setProb(this.grammar.getNonterminals()[0], 0, l - 1, BigDecimal.valueOf(1));
+				
+		for (int b = l-1; b >= 0; b--){
+			for (int j = 0; j < l-b;j++){
+				List<ProductionRule> rules3 = this.grammar.getRules(RuleType.RULE3);
+				for(int ruleIdx = 0; ruleIdx < rules3.size(); ruleIdx++){
+					ProductionRule rule3 = rules3.get(ruleIdx);
+					
+					BigDecimal tmp = BigDecimal.valueOf(0);
+					for (int k = j + b + 1; k< l; k++){
+						BigDecimal oProb = oProbs.getProb(rule3.getLeft(), j, k);
+						BigDecimal iProb = insideProbs.getProb(rule3.getRight()[1], j+b+1, k);
+						tmp = tmp.add(oProb.multiply( iProb));
+					}
+					
+					BigDecimal probIncrement = tmp.multiply(rule3.getProbability());
+					oProbs.increment(rule3.getRight()[0], j, j+b, probIncrement);
+					
+					for(int k = 0; k< j + b;k++){
+						BigDecimal oProb = oProbs.getProb(rule3.getRight()[0], k, j+b);
+						BigDecimal iProb = insideProbs.getProb(rule3.getRight()[0], k, j-1);
+						
+						//tmp = tmp + o[U,k,j + b]*i[V,];
+						tmp = tmp.add(oProb.multiply(iProb));						
+					}
+					//o[W,j,j + b] = o[W,j,j + b] + tmp * p(rule);					
+					oProbs.increment(rule3.getRight()[1], j, j+b, tmp.multiply(rule3.getProbability()));
+				}
+				
+				List<ProductionRule> rules2 = this.grammar.getRules(RuleType.RULE2);
+
+				for (int ruleIdx = 0; ruleIdx < rules2.size(); ruleIdx++){
+					if(canPair[j][j+b]){
+						ProductionRule rule2 = rules2.get(ruleIdx);
+						
+						// o[U,j – 1,j + b + 1]
+						BigDecimal oU = oProbs.getProb(rule2.getLeft(), j-1, j+b+1);
+						// n[j,j + b] *
+						BigDecimal n = pairingProbs.getPairingProbability(j, j+b);
+						// exp(-d[j,j + b]/weight)
+						BigDecimal exp = BigDecimal.valueOf(Math.exp(-distances[j][j+b]/weight));
+						
+						// p(rule) * exp(-d[j,j + b]/weight) * n[j,j + b] * o[U,j – 1,j + b + 1];
+						BigDecimal probIncrement = 
+								rule2.getProbability().multiply(exp).multiply(n).multiply(oU);
+						
+						oProbs.increment(rule2.getRight()[0], j, j+b, probIncrement);
+					}
+				}				
+			}
+		}
+		
+		return oProbs;
+	}	
+}

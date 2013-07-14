@@ -1,0 +1,164 @@
+package uk.ac.ox.osscb;
+
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.util.Scanner;
+import java.util.regex.Pattern;
+
+import uk.ac.ox.osscb.domain.NucleotideProbsDouble;
+
+/**
+ * Parses parameter file
+ * 
+ * @author lepuslapis, Vladimir
+ *
+ */
+public class ParameterParser {
+
+	private static final Pattern alph = Pattern.compile("^!alphabet ");
+	private static final Pattern unpaired = Pattern.compile("^!unpaired ");
+	private static final Pattern paired = Pattern.compile("^!paired ");
+	private static final Pattern special = Pattern.compile("^!special ");
+
+	public NucleotideProbsDouble parse(String pPath) {
+		
+		boolean alphaFound = false;
+		boolean unpairedProbsFound = false;
+		boolean pairedProbsFound = false;
+		boolean specialAlphaFound = false;
+		
+		
+		char[] alphabet = new char[1];
+		double[][] pairedProbs = new double[1][1];
+		double[] unpairedProbs = new double[1];
+		double[][] pairedProbsSpecial = new double[1][1];
+		double[] unpairedProbsSpecial = new double[1];
+		
+		String alphstring = "";
+		try {
+			Scanner sc = new Scanner(new File(pPath));
+			while (sc.hasNextLine()) {
+				String line = sc.nextLine().replaceAll("\n", "");
+				if (alph.matcher(line).find()) {
+					line = line.replaceFirst("!alphabet ","");
+					if (line.matches("^([^,]\\,)*[^,]$")) {
+						String[] tmp = line.split("\\,");
+						alphabet = new char[tmp.length];
+						for (int j = 0; j<tmp.length; j++) {
+							alphabet[j] = tmp[j].charAt(0);
+						}
+						alphstring = new String(alphabet);
+					} else {
+						throw new IllegalArgumentException("Alphabet string has wrong format.");
+					}
+					alphaFound = true;
+				} else if (unpaired.matcher(line).find()) {
+					line = line.replaceFirst("!unpaired ", "");
+					if (line.matches("^([01](\\.\\d+)?\\,)*[01](\\.\\d+)?$")) {
+						String[] tmp = line.split("\\,");
+						unpairedProbs = new double[tmp.length];
+						for (int j = 0; j<tmp.length; j++) {
+							unpairedProbs[j] = Double.valueOf(tmp[j]);
+						}
+					} else  {
+						throw new IllegalArgumentException("Wrong formatting of Unpaired Probabilities string.");
+					}
+					unpairedProbsFound = true;
+				} else if (paired.matcher(line).find()) {
+					line = line.replaceFirst("!paired ","");
+					if (line.matches("^(([01](\\.\\d+)?\\,)*[01](\\.\\d+)?\\;)*([01](\\.\\d+)?\\,)*[01](\\.\\d+)?$")) {
+						String[] tmp = line.split("\\;");
+						String[] ttmp = tmp[0].split("\\,");
+						int l = ttmp.length;
+						pairedProbs = new double[tmp.length][l];
+						for (int k=0;k<l;k++) {
+							pairedProbs[0][k] = Double.valueOf(ttmp[k]);
+						}
+						for (int j=1;j<tmp.length; j++) {
+							ttmp = tmp[j].split("\\,");
+							if (l == ttmp.length) {
+								for (int k=0;k<l;k++) {
+									pairedProbs[j][k] = Double.valueOf(ttmp[k]);
+								}
+							} else {
+								throw new IllegalArgumentException("Badly formed Paired Probabilities string: missed some probabilities?");
+							}
+						}
+					} else {
+						throw new IllegalArgumentException("Wrong formatting of Paired Probabilities string.");
+					}
+					pairedProbsFound = true;
+
+				} else if (special.matcher(line).find()) {
+
+					assertMainPartsParsed(alphaFound, unpairedProbsFound, pairedProbsFound, "Need to specify everything else first.");
+
+					line = line.replaceFirst("!special ", "");
+					String[] tmp = line.split("\\;");
+					pairedProbsSpecial = new double[alphabet.length][alphabet.length];
+					unpairedProbsSpecial = new double[alphabet.length];
+					
+					for (int j = 0; j<unpairedProbs.length; j++) {
+						unpairedProbsSpecial[j] = unpairedProbs[j];
+						for (int k = 0; k<unpairedProbs.length; k++) {
+							pairedProbsSpecial[j][k]=pairedProbs[j][k];
+						}
+					}
+					
+					for (int j = 0; j<tmp.length; j++) {
+						String[] tmpp = tmp[j].split(" ");
+						double sumup = 0; 							
+						for (int k = 1; k<tmpp.length; k++) {
+							sumup = sumup + unpairedProbs[alphstring.indexOf(tmpp[k])];
+						}
+						unpairedProbsSpecial[alphstring.indexOf(tmpp[0])] = sumup/(tmpp.length - 1);
+						for (int k = 0; k<unpairedProbs.length; k++) {
+							double sumpl = 0,sumpr = 0;
+							for (int l = 1; l<tmpp.length; l++) {
+								sumpl = sumpl + pairedProbs[alphstring.indexOf(tmpp[l])][k];
+								sumpr = sumpr + pairedProbs[k][alphstring.indexOf(tmpp[l])];
+							}
+							pairedProbsSpecial[k][alphstring.indexOf(tmpp[0])] = sumpr/(tmpp.length-1);
+							pairedProbsSpecial[alphstring.indexOf(tmpp[0])][k] = sumpl/(tmpp.length-1);
+						}
+					}
+					for (int j = 0; j<tmp.length; j++) {
+						String[] tmpp = tmp[j].split(" ");
+						for (int k = pairedProbs.length; k<alphabet.length; k++) {
+							double sumpl = 0, sumpr = 0;
+							for (int l = 1; l<tmpp.length; l++) {
+								sumpl = sumpl + pairedProbsSpecial[alphstring.indexOf(tmpp[l])][k];
+								sumpr = sumpr + pairedProbsSpecial[k][alphstring.indexOf(tmpp[l])];
+							}
+							pairedProbsSpecial[alphstring.indexOf(tmpp[0])][k] = sumpl/(tmpp.length-1);
+							pairedProbsSpecial[k][alphstring.indexOf(tmpp[0])] = sumpr/(tmpp.length-1);
+						}
+					}
+					specialAlphaFound = true;
+				}
+			}
+			
+			assertMainPartsParsed(alphaFound, unpairedProbsFound, pairedProbsFound, "Need to specify alphabet, unpaired probabilities and paired probabilities.");
+
+			if ((alphabet.length != unpairedProbsSpecial.length)||(alphabet.length != pairedProbsSpecial.length)) {
+				throw new IllegalArgumentException("Length of alphabet must match dimensions of unpaired and paired probabilities.");
+			}
+			
+			if (!specialAlphaFound) {
+				pairedProbsSpecial = pairedProbs; 
+				unpairedProbsSpecial=unpairedProbs;
+			}
+			
+			return new NucleotideProbsDouble(pairedProbsSpecial,unpairedProbsSpecial,alphabet);
+		} catch (FileNotFoundException e) {
+			throw new IllegalArgumentException(String.format("File %s not found.",pPath));
+		}	
+	}
+
+	private void assertMainPartsParsed(boolean alphaFound,
+			boolean unpairedProbsFound, boolean pairedProbsFound, String ctxMsg) {
+		if (!(pairedProbsFound && unpairedProbsFound && alphaFound)) {
+			throw new IllegalArgumentException(ctxMsg);						
+		}
+	}
+}

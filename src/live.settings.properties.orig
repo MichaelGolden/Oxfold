@@ -1,0 +1,3 @@
+# path to Vienna Executable
+path.vienna=../vienna/bin/RNAalifold
+# constants.IterationCutOffDouble=
