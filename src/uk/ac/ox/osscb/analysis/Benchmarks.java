@@ -16,7 +16,7 @@ public class Benchmarks {
 	public static void main(String [] args)
 	{
 		File dataDir = new File("datasets/");
-		File outputDir = new File("output4/");
+		File outputDir = new File("output5/");
 		File resultsFile = new File("results_oxfold_reverse_noevol.csv");
 
 		boolean startFile = true;
@@ -39,8 +39,8 @@ public class Benchmarks {
 		ArrayList<StructureData> predictedStructures = new ArrayList<StructureData>();
 		int datasetno = 0;
 		long startNanoTime = System.nanoTime();
-		int start = 0;
-		int end = 40;
+		int start = 41;
+		int end = 42;
 		for(int i = 0 ; i < Math.min(end, experimentalStructures.size()) ; i++)
 		{
 			StructureData s = experimentalStructures.get(i);
@@ -54,11 +54,7 @@ public class Benchmarks {
 			
 			StructureData predictedStructure = Benchmarks.foldCofold(outputDir, s.file.getName(), s.sequences, s.sequenceNames, true, 0,640, false);
 			StructureData predictedStructure2 = Benchmarks.foldCofold(outputDir, s.file.getName()+"_reverse", s.sequences, s.sequenceNames, true, 0,640, true);
-			//StructureData predictedStructure2 = Benchmarks.foldOxfold(outputDir, s.file.getName(), s.sequences, s.sequenceNames, false, 0.5, false);
-			//System.exit(0);
-			//StructureData predictedStructure2 = Benchmarks.foldOxfold(outputDir, s.file.getName(), s.sequences, s.sequenceNames, false, 0.5, true);
-
-			
+		
 			long endNanoTime = System.nanoTime();
 			double elapsed = (endNanoTime-startNanoTime)/1e9;
 			System.out.println("Elapsed\t"+i+"\t"+elapsed+"s");

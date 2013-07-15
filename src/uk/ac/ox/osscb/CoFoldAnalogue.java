@@ -14,6 +14,7 @@ import uk.ac.ox.osscb.analysis.RNAFoldingTools;
 import uk.ac.ox.osscb.domain.NucleotideProbsPrecise;
 import uk.ac.ox.osscb.grammar.Grammar;
 import uk.ac.ox.osscb.grammar.GrammarParser;
+import uk.ac.ox.osscb.grammar.RuleType;
 import uk.ac.ox.osscb.inoutside.CoFoldInsideOutsideCalculator;
 import uk.ac.ox.osscb.inoutside.CoFoldPosteriorProbabilitiesCalculator;
 import uk.ac.ox.osscb.inoutside.IOsideCalculator;
@@ -28,6 +29,8 @@ import uk.ac.ox.osscb.parser.DefaultAlignmentParser;
 
 public class CoFoldAnalogue {
 	private final Logger log = LoggerFactory.getLogger(CoFoldAnalogue.class);
+	
+	static int dummy = 0;
 	
 	public void foldEvolutionary(String alignmentFile, String grammarFile, String paramsFile, String treeFile, double alpha, double tau){
 		Util.assertCanReadFile(alignmentFile);
@@ -73,7 +76,7 @@ public class CoFoldAnalogue {
 		//IOsideCalculator ioCalc = new ValidatingIOSideCalculator(new CoFoldInsideOutsideCalculator(grammar), grammar);
 		//alpha = 0.5;
 		//tau = 640;
-		CoFoldPppCalculator cofoldCalc = new CoFoldPppCalculator(alpha, tau,grammar,ioCalc);
+		//CoFoldPppCalculator cofoldCalc = new CoFoldPppCalculator(alpha, tau,grammar,ioCalc);
 		/*KineticFoldPppCalculator kFPppCalc = weight > 0 ? new KineticFoldPppCalculatorWithWeight(weight, grammar, ioCalc)
 			// 0 == weight, negative was rejected at the very beginning
 			:new KineticFoldPppCalculatorWeightLess(grammar, ioCalc);*/
@@ -105,6 +108,35 @@ public class CoFoldAnalogue {
 		{
 			structure[i] = structure2[i]-1;
 		}
+		
+		for (ProductionRule rule1: grammar.getRules(RuleType.RULE1)) {
+			try {
+				outsideProbs.writeTable(new File("oprobs_"+rule1.getLeft()+"_"+dummy+".txt"), rule1.getLeft());
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		
+		
+		for (ProductionRule rule2: grammar.getRules(RuleType.RULE2)) {
+			try {
+				outsideProbs.writeTable(new File("oprobs_"+rule2.getLeft()+"_"+dummy+".txt"), rule2.getLeft());
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		
+		for (ProductionRule rule3: grammar.getRules(RuleType.RULE3)) {
+			try {
+				outsideProbs.writeTable(new File("oprobs_"+rule3.getLeft()+"_"+dummy+".txt"), rule3.getLeft());
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		dummy++;
 		
 		//structure = meaCalculator.calculate(currentPostProbs);
 		//System.out.println(RNAFoldingTools.);

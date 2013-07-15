@@ -97,24 +97,7 @@ public class CoFoldInsideOutsideCalculator {
 				}
 			}	
 			
-			/*
-			for (ProductionRule rule2: grammar.getRules(RuleType.RULE2)) {
-				try {
-					iProbs.writeTable(new File("iprobs_"+rule2.getLeft()+"_"+b+".txt"), rule2.getLeft());
-				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-			}
-			
-			for (ProductionRule rule3: grammar.getRules(RuleType.RULE3)) {
-				try {
-					iProbs.writeTable(new File("iprobs_"+rule3.getLeft()+"_"+b+".txt"), rule3.getLeft());
-				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-			}*/
+		
 		}
 		
 		// System.out.println(iProbs.printAllTables());

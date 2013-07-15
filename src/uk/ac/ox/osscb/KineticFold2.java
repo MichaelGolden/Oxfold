@@ -118,19 +118,6 @@ public class KineticFold2 {
 		outputGenerator.generateFinal(structure);
 		
 		try {
-			/*
-			boolean [][] canPair2 = new boolean[structure.length][structure.length];
-			for(int i = 0 ; i < structure.length ; i++)
-			{
-				Arrays.fill(canPair2[i], true);
-			}
-			double[][] distances2 = new DistancesCalculator2().distCalc(structure, originalProbs);
-			int [] structure2 = new int[structure.length];
-			InsideOutsideProbabilities insideProbs2 = ioCalc.inside(alignmentProbs, distances2, weight, structure2, canPair2);
-			InsideOutsideProbabilities outsideProbs2 = ioCalc.outside(insideProbs2, alignmentProbs, distances2, weight, structure2, canPair2);
-			PosteriorProbabilitiesCalculator ppCalc2 = new PosteriorProbabilitiesCalculator(grammar);
-			PosteriorProbabilities completePPProbs2 = ppCalc2.calculate(insideProbs2, outsideProbs2, alignmentProbs, distances2, weight, structure2, canPair2);
-			*/
 			PosteriorProbabilities probs = new PosteriorProbabilities(structure);
 			
 			probs.savePosteriorProbabilities(new File(alignmentFile+".noevol.bp"));
