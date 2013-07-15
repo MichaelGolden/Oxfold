@@ -151,7 +151,7 @@ public class SVG {
 	
 		PNGTranscoder t = new PNGTranscoder();
 		//t.addTranscodingHint(PNGTranscoder.KEY_PIXEL_UNIT_TO_MILLIMETER, new Float(0.1));	
-		//t.addTranscodingHint(PNGTranscoder.KEY_WIDTH, new Float(2048));
+		t.addTranscodingHint(PNGTranscoder.KEY_WIDTH, new Float(Math.min(this.width, 10000)));
 
         // Create the transcoder input.
         String svgURI = svgFile.toURL().toString();

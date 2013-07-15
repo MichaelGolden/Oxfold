@@ -1,0 +1,9 @@
+# Knudsen-Hein Grammar
+
+!nonterminals S,L,F
+!terminals s,d
+
+# production rules
+!rule S>SL|s|dFd>0.869|0.117|0.014
+!rule F>dFd|SL>0.788|0.212
+!rule L>s|dFd>0.895|0.105

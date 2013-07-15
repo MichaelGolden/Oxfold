@@ -16,8 +16,11 @@ public class Benchmarks {
 	public static void main(String [] args)
 	{
 		File dataDir = new File("datasets/");
-		File outputDir = new File("output3/");
-		File resultsFile = new File("resultsCofoldWeighted.csv");
+		File outputDir = new File("output4/");
+		File resultsFile = new File("results_oxfold_reverse_noevol.csv");
+
+		boolean startFile = true;
+		
 		outputDir.mkdir();
 		System.out.println(dataDir.list().length);
 		ArrayList<StructureData> experimentalStructures = new ArrayList<StructureData>();
@@ -36,8 +39,8 @@ public class Benchmarks {
 		ArrayList<StructureData> predictedStructures = new ArrayList<StructureData>();
 		int datasetno = 0;
 		long startNanoTime = System.nanoTime();
-		int start = 40;
-		int end = 500;
+		int start = 0;
+		int end = 40;
 		for(int i = 0 ; i < Math.min(end, experimentalStructures.size()) ; i++)
 		{
 			StructureData s = experimentalStructures.get(i);
@@ -49,25 +52,29 @@ public class Benchmarks {
 			}
 			long startNano = System.nanoTime();
 			
-			
-			StructureData predictedStructure = Benchmarks.foldOxfold(outputDir, s.file.getName(), s.sequences, s.sequenceNames, true, 0.5);
+			StructureData predictedStructure = Benchmarks.foldCofold(outputDir, s.file.getName(), s.sequences, s.sequenceNames, true, 0,640, false);
+			StructureData predictedStructure2 = Benchmarks.foldCofold(outputDir, s.file.getName()+"_reverse", s.sequences, s.sequenceNames, true, 0,640, true);
+			//StructureData predictedStructure2 = Benchmarks.foldOxfold(outputDir, s.file.getName(), s.sequences, s.sequenceNames, false, 0.5, false);
+			//System.exit(0);
+			//StructureData predictedStructure2 = Benchmarks.foldOxfold(outputDir, s.file.getName(), s.sequences, s.sequenceNames, false, 0.5, true);
 
+			
 			long endNanoTime = System.nanoTime();
 			double elapsed = (endNanoTime-startNanoTime)/1e9;
 			System.out.println("Elapsed\t"+i+"\t"+elapsed+"s");
 			
-			boolean print = false;
+			boolean print = true;
 			if(print)
 			{
-				StructureData s1 = predictedStructure;
+				/*StructureData s1 = predictedStructure;
 				s1.sequences = s.sequences;
 				s1.sequenceNames = s.sequenceNames;
-				StructureData s2 = s;
+				StructureData s2 = s;*/
 	
 				DataVisualiser visualiser = new DataVisualiser();
 	
-				/*StructureData predictedStructure = Benchmarks.foldCofold(outputDir, s.file.getName(), s.sequences, s.sequenceNames, true, 0,640);
-				StructureData predictedStructure2 = Benchmarks.foldCofold(outputDir, s.file.getName(), s.sequences, s.sequenceNames, true, 0.5,640);
+				//StructureData predictedStructure = Benchmarks.foldCofold(outputDir, s.file.getName(), s.sequences, s.sequenceNames, true, 0,640);
+				//StructureData predictedStructure2 = Benchmarks.foldCofold(outputDir, s.file.getName(), s.sequences, s.sequenceNames, true, 0.5,640);
 				
 				StructureData s1 = predictedStructure;
 				StructureData s2 = predictedStructure2;
@@ -80,20 +87,22 @@ public class Benchmarks {
 				//s1.title = "Predicted";
 				//s2.title = "Experimental";
 				s.title = "Experimental";
-				s1.title = "Cofold (null)";
-				s2.title = "Cofold (alpha=0.5 tau=640)";
+				//s1.title = "Cofold (null)";
+				//s2.title = "Cofold (alpha=0.5 tau=640)";
+				s1.title = "Oxfold (normal)";
+				s2.title = "Oxfold (reverse)";
 	
-				SVG full = visualiser.drawComparisonPredicted(s1, s2, s);*/
+				SVG full = visualiser.drawComparisonPredicted(s1, s2, s);
 	
 	
 	
-				SVG full = visualiser.drawComparisonPredictedExperimental(s1, s2);
-				try {
-					full.savePNG(new File(outputDir.getAbsolutePath()+File.separatorChar+s.file.getName()+".svg"), new File(outputDir.getAbsolutePath()+File.separatorChar+s.file.getName()+".png"));
+				//SVG full = visualiser.drawComparisonPredictedExperimental(s1, s2);
+				/*try {
+					//full.savePNG(new File(outputDir.getAbsolutePath()+File.separatorChar+s.file.getName()+".svg"), new File(outputDir.getAbsolutePath()+File.separatorChar+s.file.getName()+".png"));
 				} catch (IOException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
-				}
+				}*/
 				
 				long endNano = System.nanoTime();
 				double elapsedNano = (endNano - startNano)/1000000000.0;
@@ -103,7 +112,14 @@ public class Benchmarks {
 				datasetno++;
 				System.out.println("dataset "+datasetno+"\t"+elapsedNano);
 				try {
-					Benchmarks.saveBenchmarksCSV(resultsFile, experimentalStructures, predictedStructures);
+					if(startFile)
+					{
+						IO.clearFile(resultsFile);
+						IO.writeLine(resultsFile, "Name,Length,Sensitivity,PPV,FScore,MountainSim,Name,Length,Sensitivity,PPV,FScore,MountainSim", true, true);
+						startFile = false;
+					}
+					IO.writeLine(resultsFile, getBenchmarkString(s, s1)+","+getBenchmarkString(s, s2), true, true);
+					//Benchmarks.saveBenchmarksCSV(resultsFile, experimentalStructures, predictedStructures);
 				} catch (IOException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
@@ -116,7 +132,7 @@ public class Benchmarks {
 		//System.out.println(dataDir.listFiles().length);
 	}
 	
-	public static StructureData foldOxfold(File dir, String name, List<String> sequences, List<String> sequenceNames, boolean runEvolutionary, double weight)
+	public static StructureData foldOxfold(File dir, String name, List<String> sequences, List<String> sequenceNames, boolean runEvolutionary, double weight, boolean reverseGrammar)
 	{
 		File fastaFile = new File(dir.getAbsolutePath()+File.separatorChar+name+".fas");
 		IO.saveToFASTAfile(sequences, sequenceNames, fastaFile);
@@ -135,10 +151,10 @@ public class Benchmarks {
 					e.printStackTrace();
 				}
 			}
-		
+			String grammarPath = reverseGrammar ? "doc/ppfold_reverse.grammar" : "doc/ppfold.grammar";
 			
 			String [] argsArray = {fastaFile.getAbsolutePath(), 
-					"--grammar="+new File("doc/ppfold.grammar").getAbsolutePath(),
+					"--grammar="+new File(grammarPath).getAbsolutePath(),
 					"--grammar-params="+new File("doc/ppfold.parameters").getAbsolutePath(),
 					"--tree="+outNewick.getAbsolutePath(),
 					"--weight="+weight};			
@@ -150,9 +166,11 @@ public class Benchmarks {
 		}
 		else
 		{
+			String grammarPath = reverseGrammar ? "doc/kh_reverse.grammar" : "doc/kh.grammar";
+			
 			String [] argsArray = {fastaFile.getAbsolutePath(), 
 					//"--grammar="+new File("doc/kh_reverse.grammar").getAbsolutePath(),
-					"--grammar="+new File("doc/kh.grammar").getAbsolutePath(),
+					"--grammar="+new File(grammarPath).getAbsolutePath(),
 					"--grammar-params="+new File("doc/kh.parameters").getAbsolutePath(),
 					"--weight="+weight};			
 	
@@ -170,7 +188,7 @@ public class Benchmarks {
 		return structureData;		
 	}
 	
-	public static StructureData foldCofold(File dir, String name, List<String> sequences, List<String> sequenceNames, boolean runEvolutionary, double alpha, double tau)
+	public static StructureData foldCofold(File dir, String name, List<String> sequences, List<String> sequenceNames, boolean runEvolutionary, double alpha, double tau, boolean reverseGrammar)
 	{
 		File fastaFile = new File(dir.getAbsolutePath()+File.separatorChar+name+".fas");
 		IO.saveToFASTAfile(sequences, sequenceNames, fastaFile);
@@ -199,7 +217,7 @@ public class Benchmarks {
 	
 			//new Program().run(argsArray);
 			CoFoldAnalogue cofold = new CoFoldAnalogue();
-			cofold.foldEvolutionary(fastaFile.getAbsolutePath(), new File("doc/ppfold.grammar").getAbsolutePath(), new File("doc/ppfold.parameters").getAbsolutePath(), outNewick.getAbsolutePath(), alpha, tau);
+			cofold.foldEvolutionary(fastaFile.getAbsolutePath(), new File(reverseGrammar ? "doc/ppfold_reverse.grammar" : "doc/ppfold.grammar").getAbsolutePath(), new File("doc/ppfold.parameters").getAbsolutePath(), outNewick.getAbsolutePath(), alpha, tau);
 			
 			basePairProbFile = new File(fastaFile.getAbsolutePath()+".evol.bp");
 			pairedSites = RNAFoldingTools.getPairedSitesFromDotBracketFile(new File(fastaFile.getAbsolutePath()+".evol.dbn"));		
@@ -208,7 +226,7 @@ public class Benchmarks {
 		{
 			String [] argsArray = {fastaFile.getAbsolutePath(), 
 					//"--grammar="+new File("doc/kh_reverse.grammar").getAbsolutePath(),
-					"--grammar="+new File("doc/kh.grammar").getAbsolutePath(),
+					"--grammar="+new File(reverseGrammar ? "doc/kh_reverse.grammar" : "doc/kh.grammar").getAbsolutePath(),
 					"--grammar-params="+new File("doc/kh.parameters").getAbsolutePath()};
 	
 			//CoFoldAnalogue cofold = new CoFoldAnalogue();
@@ -226,6 +244,17 @@ public class Benchmarks {
 			structureData.basePairProbFile =  basePairProbFile;
 		}
 		return structureData;		
+	}
+	
+	
+	public static String getBenchmarkString(StructureData expStructure, StructureData predictedStructure)
+	{
+		double senstivity = BasePairMetrics.calculateSensitivity(expStructure.pairedSites, predictedStructure.pairedSites);
+		double ppv = BasePairMetrics.calculatePPV(expStructure.pairedSites, predictedStructure.pairedSites);
+		double fscore = BasePairMetrics.calculateFScore(expStructure.pairedSites, predictedStructure.pairedSites);
+		double mountainSim = MountainMetrics.calculateWeightedMountainSimilarity(expStructure.pairedSites, predictedStructure.pairedSites);
+		
+		return expStructure.file.getName()+","+expStructure.pairedSites.length+","+senstivity+","+ppv+","+fscore+","+mountainSim;
 	}
 	
 	public static void saveBenchmarksCSV(File csvFile, List<StructureData> experimentalStructures, List<StructureData> predictedStructures) throws IOException

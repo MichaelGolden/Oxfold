@@ -29,6 +29,25 @@ public class IO {
     public static void loadFastaSequences(File file, List<String> sequences, List<String> sequenceNames) {
         loadFastaSequences(file, sequences, sequenceNames, Integer.MAX_VALUE);
     }
+    
+
+	
+	public static void writeLine(File outFile, String line, boolean newLine, boolean append) throws IOException
+	{
+		BufferedWriter writer = new BufferedWriter(new FileWriter(outFile, append));
+		writer.write(line);
+		if(newLine)
+		{
+			writer.newLine();
+		}
+		writer.close();
+	}
+	
+	public static void clearFile(File outFile) throws IOException
+	{
+		BufferedWriter writer = new BufferedWriter(new FileWriter(outFile));
+		writer.close();
+	}
 
     public static void loadFastaSequences(File file, List<String> sequences, List<String> sequenceNames, int max) {
         try {
