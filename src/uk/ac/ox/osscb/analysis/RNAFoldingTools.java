@@ -103,7 +103,8 @@ public class RNAFoldingTools {
      * then (i+1) is unpaired.
      */
     public static int[] getPosteriorDecodingConsensusStructure(double[][] basePairProb, double[] singleBaseProb) {
-        System.out.println("MxM"+basePairProb.length+"\t"+basePairProb[0].length);
+
+
         double[][] eMatrix = new double[basePairProb.length][basePairProb[0].length];
         for (int i = 0; i < eMatrix.length; i++) {
             for (int j = 0; j < eMatrix.length; j++) {
@@ -118,8 +119,8 @@ public class RNAFoldingTools {
         //printMatrix(eMatrix);
         //System.out.println();
         //printMatrix(S);
-        writeMatrix(S, new File("e.matrix"));
-        writeMatrix(S, new File("s.matrix"));
+       // writeMatrix(S, new File("e.matrix"));
+        //writeMatrix(S, new File("s.matrix"));
         traceBack(S, 0, eMatrix.length - 1, pairedWith);
 
         return pairedWith;

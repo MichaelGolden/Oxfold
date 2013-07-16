@@ -179,7 +179,7 @@ public class DataVisualiser {
 
                         double value = basePairProb[k][l];
                        // double value = substructureModel.data2D.get(i, j, substructureModel.mapping2D);
-                        if (value == 0) {
+                        if (value < 1e-4) {
                             c = null;
                         } else if (value > 0) {
                            c = alphaRedGradient.getColor((float)value);

@@ -177,7 +177,8 @@ public class CoFoldInsideOutsideCalculator {
 			if(start < end)
 			{
 			System.out.println(b+"\t"+start+"\t"+end+"\t"+structure.length);
-				jobs.add(j);
+				runJob(j);       
+				//jobs.add(j);
 			}
 		}
 		
@@ -232,13 +233,19 @@ public class CoFoldInsideOutsideCalculator {
 		//int [] structure = job.structure;
 		boolean [][] canPair = job.canPair;
 
-
+		int seqLen = job.structure.length;
 		//for (int j = 0; j < seqLen-b; j++) {
 		for (int j = start ; j < end ; j++) {
 			// deal with contribution of rules of type U->VW
 			for (ProductionRule rule3: grammar.getRules(RuleType.RULE3)) {
 				PointRes tmp = PointRes.ZERO;
+				//for (int h = Math.max(start, j) ; h < Math.min(end, j+b) ; h++) {
 				for (int h = j; h < j+b; h++) {
+					/*if(!iProbs.used.get(rule3.getRight()[0])[j][h])
+					{
+						System.out.println("Rule3\t"+j+"\t"+h);
+					}*/
+					//System.out.println("A"+start+"\t"+end+"\t"+j+"\t"+h+"\t"+iProbs.getProb(rule3.getRight()[0], j, h).getStringRepresentation());
 					PointRes prob1 = iProbs.getProb(rule3.getRight()[0], j, h);
 					PointRes prob2 = iProbs.getProb(rule3.getRight()[1], h+1, j+b);
 					tmp = tmp.add(prob1.multiply(prob2));

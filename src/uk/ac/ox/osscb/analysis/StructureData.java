@@ -104,7 +104,7 @@ public class StructureData implements Comparable<StructureData> {
 		int i = 0;
 		while((textline = buffer.readLine()) != null)
 		{
-			String [] split = textline.split(",(\\s)*");
+			String [] split = textline.split("[,(\\s)](\\s)*");
 			if(i == 0)
 			{
 				basePairProb = new double[split.length][split.length];

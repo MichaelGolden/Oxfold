@@ -12,15 +12,22 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
+import uk.ac.ox.osscb.CoFoldAnalogue;
 import uk.ac.ox.osscb.Constants;
 import uk.ac.ox.osscb.PointRes;
 import uk.ac.ox.osscb.Program;
 
 public class VaryKDelta {
 	
+
+	
+	
+	enum FoldingAlgorithm {Oxfold, Cofold};
 	
 	public static void main(String [] args)
 	{		
+		FoldingAlgorithm algorithm = FoldingAlgorithm.Cofold;
+		
 		boolean runEvol = true;
 
 		int numdatasets = 25;
@@ -29,15 +36,15 @@ public class VaryKDelta {
 			numdatasets = Integer.parseInt(args[0]);
 			double k = Double.parseDouble(args[1]);
 
-			ArrayList<KDeltaJobInput> inputs = new ArrayList<KDeltaJobInput>();
+			ArrayList<Job> inputs = new ArrayList<Job>();
 			for(int i = 2 ; i < args.length ; i++)
 			{
 				double delta = Double.parseDouble(args[i]);
-				inputs.add(new KDeltaJobInput(k, delta, runEvol, numdatasets));
+				inputs.add(new Job(k, delta, runEvol, numdatasets));
 			}
 			VaryKDelta varyKDelta = new VaryKDelta();
 			 try {
-				List<KDeltaJobOutput> outputs = varyKDelta.processInputs(inputs);
+				List<JobOutput> outputs = varyKDelta.processInputs(inputs, algorithm);
 			} catch (InterruptedException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -49,7 +56,7 @@ public class VaryKDelta {
 		else
 		if(args.length != 2 && args.length != 3){
 			
-			double [] ks = new double[39];
+			/*double [] ks = new double[39];
 			double mink = 1 / (double)(ks.length-1);
 			for(int i = 0 ; i < ks.length ; i++)
 			{
@@ -57,7 +64,18 @@ public class VaryKDelta {
 				ks[i] = Math.pow(10, alpha*(2*(mink*i) - 1));
 				System.out.print(ks[i]+ " ");
 			}
+			System.out.println();*/
+			
+			double [] ks = new double[41];
+			double mink = 1 / (double)(ks.length);
+			for(int i = 0 ; i < ks.length ; i++)
+			{
+				double alpha = -Math.log10(0.15);
+				ks[i] = (mink)*(i+1)*2000;
+				System.out.print(ks[i]+ " ");
+			}
 			System.out.println();
+			
 			System.exit(0);
 			
 			double maxdelta = 1;
@@ -74,17 +92,17 @@ public class VaryKDelta {
 			//double [] deltas = {0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1};
 			
 
-			ArrayList<KDeltaJobInput> inputs = new ArrayList<KDeltaJobInput>();
+			ArrayList<Job> inputs = new ArrayList<Job>();
 			for(double k : ks)
 			{
 				for(double delta : deltas)
 				{
-					inputs.add(new KDeltaJobInput(k, delta, runEvol, numdatasets));
+					inputs.add(new Job(k, delta, runEvol, numdatasets));
 				}
 			}
 			VaryKDelta varyKDelta = new VaryKDelta();
 			 try {
-				List<KDeltaJobOutput> outputs = varyKDelta.processInputs(inputs);
+				List<JobOutput> outputs = varyKDelta.processInputs(inputs, algorithm);
 			} catch (InterruptedException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -105,19 +123,105 @@ public class VaryKDelta {
 			if(args.length > 2)
 			{
 
-				runSpecific(kArg, delta_o, numdatasets, runEvol);
+				runSpecificOxfold(kArg, delta_o, numdatasets, runEvol);
 			}
 			else
 			{
-				runSpecific(kArg, delta_o, numdatasets, runEvol);
+				runSpecificOxfold(kArg, delta_o, numdatasets, runEvol);
 			}
 		}
 		
 	}
 	
-	private static void runSpecific(double KValue, double dValue, int uptodataset, boolean runEvol){
+	private static void runSpecificCofold(double alpha, double tau, int uptodataset, boolean runEvol){
 		ArrayList<String> avgMetrics = new ArrayList<String>();
-		String outputDirString = "output/";
+		String outputDirString = "output_cofold/";
+		Constants.IterationCutOff = PointRes.valueOf(Double.valueOf(tau)); 
+		double delta = Constants.IterationCutOff.doubleValue(); 
+		if(alpha == 0){
+			System.err.println("Cannot use K = 0, use K > 0 instead");
+			alpha = 0.1; 
+		}
+		File dataDir = new File("datasets/");
+		String evol = runEvol ? "_evol" : "_noevol";
+		File outputDir = new File(outputDirString + "K_" + alpha + "_Delta_" + tau +evol+"/");
+		outputDir.mkdirs();
+		 
+		
+		ArrayList<StructureData> experimentalStructures = new ArrayList<StructureData>();
+		for(File experimentalFile : dataDir.listFiles())
+		{
+				try {
+					experimentalStructures.add(StructureData.readExperimentalStructureData(experimentalFile));				
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}			
+		}
+		
+		Collections.sort(experimentalStructures); // sort datasets in order of increasing length
+		
+
+		int maxIter = uptodataset;
+		ArrayList<StructureData> sublist =  new ArrayList<StructureData>();
+		sublist.addAll((List<StructureData>)experimentalStructures.subList(0, maxIter));
+		experimentalStructures = sublist;
+		
+		ArrayList<StructureData> predictedStructures = new ArrayList<StructureData>();
+		 
+		int j = 0;
+		for(StructureData s : experimentalStructures) 
+		{
+			//StructureData s = experimentalStructures.get(0);
+			//StructureData s = experimentalStructures.get(j);
+			
+			predictedStructures.add(VaryKDelta.foldCofold(outputDir, s.file.getName(), s.sequences, s.sequenceNames, runEvol, alpha, tau, false));
+			
+			try {
+				VaryKDelta.saveBenchmarkAvgCSV(avgMetrics,experimentalStructures, predictedStructures, alpha, delta, j == maxIter - 1);
+				j++;
+				
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		} //end dataset iterations
+		
+		try{
+			//set up for avg
+			double sensitivity = 0; 
+			double ppv = 0;
+			double fscore = 0; 
+			double mountainSim = 0; 
+			File outputCsvDir = new File(outputDirString + "csv/" );
+			outputCsvDir.mkdirs();
+			BufferedWriter writerKDelta = new BufferedWriter(new FileWriter(outputDirString + "csv/results_K_" + alpha + "_Delta_" + tau +evol+ ".csv"));
+			for(String str: avgMetrics) {
+			  writerKDelta.write(str);
+			  String[] line = str.split(",");
+			  sensitivity += Double.valueOf(line[2]);
+			  ppv += Double.valueOf(line[3]);
+			  fscore += Double.valueOf(line[4]);
+			  mountainSim += Double.valueOf(line[5]);
+			}
+			writerKDelta.write("Average,alpha_" + alpha + "_tau_" + tau +","+ sensitivity/avgMetrics.size()
+					+","+ ppv/avgMetrics.size()+","+ fscore/avgMetrics.size()+","+ mountainSim/avgMetrics.size());
+			writerKDelta.close();
+			
+			BufferedWriter writerFinal = new BufferedWriter(new FileWriter(outputDirString + "csv/result"+evol+".csv", true));
+			writerFinal.write(alpha +"," + tau +","+ (sensitivity/avgMetrics.size())+","+ (ppv/avgMetrics.size())+","+ (fscore/avgMetrics.size())+","+ (mountainSim/avgMetrics.size())+"\n");
+			writerFinal.close();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}			
+			
+			
+	}
+	
+	private static void runSpecificOxfold(double KValue, double dValue, int uptodataset, boolean runEvol){
+		ArrayList<String> avgMetrics = new ArrayList<String>();
+		String outputDirString = "output_oxfold/";
 		Constants.IterationCutOff = PointRes.valueOf(Double.valueOf(dValue)); 
 		double delta = Constants.IterationCutOff.doubleValue(); 
 		if(KValue == 0){
@@ -204,40 +308,47 @@ public class VaryKDelta {
 			
 	}
 	
-	public static class KDeltaJobInput
+	public static class Job
 	{
-		double K;
-		double delta;
+		double v1;
+		double v2;
 		boolean runEvolutionary;
 		int uptodataset;
 		
-		public KDeltaJobInput(double k, double delta, boolean runEvolutionary,	int uptodataset) {
-			this.K = k;
-			this.delta = delta;
+		public Job(double k, double delta, boolean runEvolutionary,	int uptodataset) {
+			this.v1 = k;
+			this.v2 = delta;
 			this.runEvolutionary = runEvolutionary;
 			this.uptodataset = uptodataset;
 		}		
 	}
 	
-	class KDeltaJobOutput
+	class JobOutput
 	{
 		
 	}	
 	
-	
-    public List<KDeltaJobOutput> processInputs(List<KDeltaJobInput> inputs)
+    public List<JobOutput> processInputs(List<Job> inputs, final FoldingAlgorithm algorithm)
             throws InterruptedException, ExecutionException {
 
         int threads = 8;
         ExecutorService service = Executors.newFixedThreadPool(threads);
 
-        List<Future<KDeltaJobOutput>> futures = new ArrayList<Future<KDeltaJobOutput>>();
-        for (final KDeltaJobInput input : inputs) {
-            Callable<KDeltaJobOutput> callable = new Callable<KDeltaJobOutput>() {
+        List<Future<JobOutput>> futures = new ArrayList<Future<JobOutput>>();
+        for (final Job input : inputs) {
+            Callable<JobOutput> callable = new Callable<JobOutput>() {
 
-                public KDeltaJobOutput call() throws Exception {
-                	KDeltaJobOutput output = new KDeltaJobOutput();
-                	runSpecific(input.K, input.delta, input.uptodataset, input.runEvolutionary);                   
+                public JobOutput call() throws Exception {
+                	JobOutput output = new JobOutput();
+                	switch(algorithm)
+                	{
+	                	case Oxfold:
+	                		runSpecificOxfold(input.v1, input.v2, input.uptodataset, input.runEvolutionary);
+	                		break;
+	                	case Cofold:
+	                		runSpecificCofold(input.v2, input.v1, input.uptodataset, input.runEvolutionary);
+	                		break;
+                	}
                     return output;
                 }
             };
@@ -246,8 +357,8 @@ public class VaryKDelta {
 
         service.shutdown();
 
-        List<KDeltaJobOutput> outputs = new ArrayList<KDeltaJobOutput>();
-        for (Future<KDeltaJobOutput> future : futures) {
+        List<JobOutput> outputs = new ArrayList<JobOutput>();
+        for (Future<JobOutput> future : futures) {
             outputs.add(future.get());
         }
         return outputs;
@@ -325,6 +436,80 @@ public class VaryKDelta {
 					e.printStackTrace();
 				}
 	}
+	
+	public static StructureData foldCofold(File dir, String name, List<String> sequences, List<String> sequenceNames, boolean runEvolutionary, double alpha, double tau, boolean reverseGrammar)
+	{
+		File fastaFile = new File(dir.getAbsolutePath()+File.separatorChar+name+".fas");
+		IO.saveToFASTAfile(sequences, sequenceNames, fastaFile);
+		File outNewick = new File(dir.getAbsolutePath()+File.separatorChar+name+".nwk");
+		File basePairProbFile = null;
+
+		int [] pairedSites = null;
+		File structureFile = new File(fastaFile.getAbsolutePath()+".evol.dbn");
+		if(!runEvolutionary)
+		{
+			structureFile = new File(fastaFile.getAbsolutePath()+".noevol.dbn");
+		}
+		
+		if(structureFile.exists()) // if structure cached, do not bother to recompute
+		{
+			pairedSites = RNAFoldingTools.getPairedSitesFromDotBracketFile(structureFile);
+			System.out.println("Using cached file " + structureFile);
+		}
+		else
+		{
+			if(runEvolutionary)
+			{
+				if(!outNewick.exists())
+				{
+					try {
+						FastTree.nucleotideGTRFastTree(fastaFile, outNewick);
+					} catch (Exception e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+				}
+			
+				
+				/*String [] argsArray = {fastaFile.getAbsolutePath(), 
+						"--grammar="+new File("doc/ppfold.grammar").getAbsolutePath(),
+						"--grammar-params="+new File("doc/ppfold.parameters").getAbsolutePath(),
+						"--tree="+outNewick.getAbsolutePath(),
+						"--weight="+weight};	*/		
+		
+				//new Program().run(argsArray);
+				CoFoldAnalogue cofold = new CoFoldAnalogue();
+				cofold.foldEvolutionary(fastaFile.getAbsolutePath(), new File(reverseGrammar ? "doc/ppfold_reverse.grammar" : "doc/ppfold.grammar").getAbsolutePath(), new File("doc/ppfold.parameters").getAbsolutePath(), outNewick.getAbsolutePath(), alpha, tau);
+				
+				basePairProbFile = new File(fastaFile.getAbsolutePath()+".evol.bp");
+				pairedSites = RNAFoldingTools.getPairedSitesFromDotBracketFile(new File(fastaFile.getAbsolutePath()+".evol.dbn"));		
+			}
+			else
+			{
+				String [] argsArray = {fastaFile.getAbsolutePath(), 
+						//"--grammar="+new File("doc/kh_reverse.grammar").getAbsolutePath(),
+						"--grammar="+new File(reverseGrammar ? "doc/kh_reverse.grammar" : "doc/kh.grammar").getAbsolutePath(),
+						"--grammar-params="+new File("doc/kh.parameters").getAbsolutePath()};
+		
+				//CoFoldAnalogue cofold = new CoFoldAnalogue();
+				//cofold.foldEvolutionary(fastaFile.getAbsolutePath(), new File("doc/kh.grammar").getAbsolutePath(), new File("doc/kh.parameters").getAbsolutePath(), outNewick.getAbsolutePath(), 0.0, 0.0);
+				
+				//new Program().run(argsArray);
+				System.err.println("Not yet implemented");
+				basePairProbFile = new File(fastaFile.getAbsolutePath()+".noevol.bp");
+				pairedSites = RNAFoldingTools.getPairedSitesFromDotBracketFile(new File(fastaFile.getAbsolutePath()+".noevol.dbn"));		
+			}	
+	
+			
+		}
+		StructureData structureData = new StructureData(pairedSites);
+		if(basePairProbFile != null && basePairProbFile.exists())
+		{
+			structureData.basePairProbFile =  basePairProbFile;
+		}
+		return structureData;		
+	}
+	
 	
 	public static StructureData foldOxfold(File dir, String name, List<String> sequences, List<String> sequenceNames, boolean runEvolutionary, double weight)
 	{

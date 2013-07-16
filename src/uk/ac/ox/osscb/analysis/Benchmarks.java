@@ -39,8 +39,8 @@ public class Benchmarks {
 		ArrayList<StructureData> predictedStructures = new ArrayList<StructureData>();
 		int datasetno = 0;
 		long startNanoTime = System.nanoTime();
-		int start = 41;
-		int end = 42;
+		int start = 0;
+		int end = 50;
 		for(int i = 0 ; i < Math.min(end, experimentalStructures.size()) ; i++)
 		{
 			StructureData s = experimentalStructures.get(i);
@@ -52,8 +52,26 @@ public class Benchmarks {
 			}
 			long startNano = System.nanoTime();
 			
-			StructureData predictedStructure = Benchmarks.foldCofold(outputDir, s.file.getName(), s.sequences, s.sequenceNames, true, 0,640, false);
-			StructureData predictedStructure2 = Benchmarks.foldCofold(outputDir, s.file.getName()+"_reverse", s.sequences, s.sequenceNames, true, 0,640, true);
+			StructureData predictedStructure = PPfold.fold(outputDir, s.file.getName()+"_ppfold", s.sequences, s.sequenceNames, true);
+			
+			/*
+			int [] decodedSites= null;
+			try {
+				decodedSites=RNAFoldingTools.getPosteriorDecodingConsensusStructure(predictedStructure.getBasePairProb(predictedStructure.basePairProbFile));
+				System.err.println(RNAFoldingTools.getDotBracketStringFromPairedSites(decodedSites));
+			} catch (IOException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
+			StructureData predictedStructure2 = new StructureData(decodedSites);*/
+			
+			//System.exit(0);
+			StructureData predictedStructure2 = Benchmarks.foldCofold(outputDir, s.file.getName()+"_cofold", s.sequences, s.sequenceNames, true, 0,640, false);
+			//System.out.println(RNAFoldingTools.getDotBracketStringFromPairedSites(predictedStructure.pairedSites));
+			//System.exit(0);
+			//StructureData predictedStructure2 = Benchmarks.foldCofold(outputDir, s.file.getName()+"_cofold", s.sequences, s.sequenceNames, true, 0,640, false);
+			//StructureData predictedStructure2 = Benchmarks.foldOxfold(outputDir, s.file.getName()+"_oxfold", s.sequences, s.sequenceNames, true,0.5, false);
+			//StructureData predictedStructure2 = Benchmarks.foldCofold(outputDir, s.file.getName()+"_reverse", s.sequences, s.sequenceNames, true, 0.5,640, false);
 		
 			long endNanoTime = System.nanoTime();
 			double elapsed = (endNanoTime-startNanoTime)/1e9;
@@ -85,20 +103,20 @@ public class Benchmarks {
 				s.title = "Experimental";
 				//s1.title = "Cofold (null)";
 				//s2.title = "Cofold (alpha=0.5 tau=640)";
-				s1.title = "Oxfold (normal)";
-				s2.title = "Oxfold (reverse)";
+				s1.title = "PPfold";
+				s2.title = "Cofold";
 	
 				SVG full = visualiser.drawComparisonPredicted(s1, s2, s);
 	
 	
 	
 				//SVG full = visualiser.drawComparisonPredictedExperimental(s1, s2);
-				/*try {
-					//full.savePNG(new File(outputDir.getAbsolutePath()+File.separatorChar+s.file.getName()+".svg"), new File(outputDir.getAbsolutePath()+File.separatorChar+s.file.getName()+".png"));
+				try {
+					full.savePNG(new File(outputDir.getAbsolutePath()+File.separatorChar+s.file.getName()+".svg"), new File(outputDir.getAbsolutePath()+File.separatorChar+s.file.getName()+".png"));
 				} catch (IOException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
-				}*/
+				}
 				
 				long endNano = System.nanoTime();
 				double elapsedNano = (endNano - startNano)/1000000000.0;

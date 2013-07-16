@@ -314,7 +314,12 @@ public class PointRes  extends Number implements Serializable {
 
 	public String toString() {
 		return this.doubleValue()+"";
-		//return "" + this.fraction + " x 2^" +this.exponent;
+		//
+	}
+	
+	public String getStringRepresentation()
+	{
+		return "" + this.fraction + " x 2^" +this.exponent;
 	}
 
 	// exponent must be between -126 and 127

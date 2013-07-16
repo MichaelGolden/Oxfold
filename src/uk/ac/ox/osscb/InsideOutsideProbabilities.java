@@ -1,12 +1,7 @@
 package uk.ac.ox.osscb;
 
 
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
 import java.math.MathContext;
-import java.text.DecimalFormat;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -108,22 +103,5 @@ public class InsideOutsideProbabilities {
 
 	public int getDimension() {
 		return dimension;
-	}
-	
-	public void writeTable(File outFile, char nonTerminal) throws IOException
-	{
-		DecimalFormat df = new DecimalFormat("0.000E00");
-		BufferedWriter writer = new BufferedWriter(new FileWriter(outFile));
-		PointRes [][] matrix = nonTerminalIndices.get(new Character(nonTerminal));
-		for(int i = 0 ; i < matrix.length ; i++)
-		{
-			for(int j = 0 ; j < matrix[0].length ; j++)
-			{
-				writer.write(matrix[i][j].toString()+"\t");
-				//writer.write(df.format(matrix[i][j].doubleValue())+"\t");
-			}
-			writer.newLine();
-		}
-		writer.close();
 	}
 }

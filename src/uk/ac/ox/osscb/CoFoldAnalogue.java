@@ -91,24 +91,26 @@ public class CoFoldAnalogue {
 		{
 			for(int j = 0 ; j < canPair.length ; j++)
 			{
-				if(Math.abs(i-j) >= 3)
+				if(Math.abs(i-j) > 3)
 				{
 					canPair[i][j] = true;
 				}
 			}
 		}
-		InsideOutsideProbabilities insideProbs = ioCalc.inside(evol ? alignmentProbs : alignmentProbsEvol, alpha, tau, structure, canPair);
-		InsideOutsideProbabilities outsideProbs = ioCalc.outside(insideProbs, evol ? alignmentProbs : alignmentProbsEvol, alpha, tau, structure, canPair);
+		InsideOutsideProbabilities insideProbs = ioCalc.inside(evol ? alignmentProbsEvol : alignmentProbs, alpha, tau, structure, canPair);
+		InsideOutsideProbabilities outsideProbs = ioCalc.outside(insideProbs, evol ? alignmentProbsEvol : alignmentProbs, alpha, tau, structure, canPair);
 		CoFoldPosteriorProbabilitiesCalculator ppCalc = new CoFoldPosteriorProbabilitiesCalculator(grammar);
 		int [][] distances = null;
-		PosteriorProbabilities currentPostProbs = ppCalc.calculate(insideProbs, outsideProbs, evol ? alignmentProbs : alignmentProbsEvol, distances, alpha, tau, structure, canPair);
-		MEACalculator meaCalculator = new MEACalculator();
+		PosteriorProbabilities currentPostProbs = ppCalc.calculate(insideProbs, outsideProbs, evol ? alignmentProbsEvol : alignmentProbs, distances, alpha, tau, structure, canPair);
+		//MEACalculator meaCalculator = new MEACalculator();
 		int [] structure2 = RNAFoldingTools.getPosteriorDecodingConsensusStructure(currentPostProbs.getBasePairProbs());
 		for(int i = 0 ; i < structure.length ; i++)
-		{
+		{//
 			structure[i] = structure2[i]-1;
 		}
+		//structure = meaCalculator.calculate(currentPostProbs);
 		
+		/*
 		for (ProductionRule rule1: grammar.getRules(RuleType.RULE1)) {
 			try {
 				outsideProbs.writeTable(new File("oprobs_"+rule1.getLeft()+"_"+dummy+".txt"), rule1.getLeft());
@@ -136,9 +138,9 @@ public class CoFoldAnalogue {
 				e.printStackTrace();
 			}
 		}
-		dummy++;
+		dummy++;*/
 		
-		//structure = meaCalculator.calculate(currentPostProbs);
+		//
 		//System.out.println(RNAFoldingTools.);
 		
 		//boolean[][] canPair = new PossiblePairFinder().canPair(structure);
