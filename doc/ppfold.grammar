@@ -4,6 +4,6 @@
 !terminals s,d
 
 # production rules
-!rule S>LS|s|dFd>0.869|0.117|0.014
-!rule F>dFd|LS>0.788|0.212
-!rule L>s|dFd>0.895|0.105
+!rule S>LS|s|dFd>0.868534|0.117609877998|0.013856122002
+!rule F>dFd|LS>0.787640|0.21236
+!rule L>s|dFd>0.894603|0.105397

@@ -61,6 +61,43 @@ public class StructureData implements Comparable<StructureData> {
         if (!sequence.equals("")) {
         	data.sequences.add(sequence.replace(".", "-").toUpperCase());
         }
+        /*
+        ArrayList<String> sequences = new ArrayList<String>();
+        ArrayList<String> sequenceNames = new ArrayList<String>();
+        String seq = data.sequences.get(0);
+        sequences.add(data.sequences.get(0).replaceAll("-", ""));
+        sequenceNames.add(data.sequenceNames.get(0));
+        data.sequences = sequences;
+        data.sequenceNames = sequenceNames;
+        
+
+        int [] s = new int[sequences.get(0).length()];
+
+        
+    	int a = 0;
+    	int b = 0;
+        for(int i = 0 ; i < data.pairedSites.length ; i++)
+        {        	
+        	if(seq.charAt(i) != '-')
+        	{
+        		if(data.pairedSites[i] != 0)
+        		{
+        			s[a] = data.pairedSites[i]-b;
+        		}
+        		//System.out.println(a+"\t"+s[a]);
+        		a++;
+        	}
+        	else
+        	{
+        		b++;
+        	}
+        }
+        
+        System.out.println(RNAFoldingTools.getDotBracketStringFromPairedSites(data.pairedSites));
+        System.out.println(RNAFoldingTools.getDotBracketStringFromPairedSites(s));
+        
+        data.pairedSites = s;
+        */
         
         return data;
 	}

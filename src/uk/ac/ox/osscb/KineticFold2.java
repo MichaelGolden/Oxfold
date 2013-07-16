@@ -5,12 +5,15 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import uk.ac.ox.osscb.KineticFoldPppCalculatorBase.PPOutputInternalResult2;
+import uk.ac.ox.osscb.analysis.IO;
+import uk.ac.ox.osscb.analysis.RNAFoldingTools;
 import uk.ac.ox.osscb.domain.NucleotideProbsPrecise;
 import uk.ac.ox.osscb.grammar.Grammar;
 import uk.ac.ox.osscb.grammar.GrammarParser;
@@ -162,8 +165,22 @@ public class KineticFold2 {
 				
 		EvolutionaryTree tree = new EvolutionaryTreeParser().parse(treeFile);
 		
+		boolean [] delete =new boolean[align[0].length()];
+		//boolean [] delete = CoFoldAnalogue.getGappyColumns(align, 0.25);
+		align = CoFoldAnalogue.deleteColumns(align, delete);
+		
 		NucleotideProbsPrecise alignmentProbs = new NucleotideBasePairingProbsCalculator().calculate(align, parameters);
 		NucleotideProbsPrecise alignmentProbsEvol = new EvolProbabilitiesCalculator().getEvolutionaryProbs(tree, parameters, align);
+		
+		// Added in
+		//
+		
+		
+		ArrayList<String> sequences = new ArrayList<String>();
+		ArrayList<String> sequenceNames = new ArrayList<String>();
+		IO.loadFastaSequences(new File(alignmentFile), sequences, sequenceNames);
+		alignmentProbsEvol = EvolProbabilitiesCalculator.calculateEvolutionaryProbsPPfold(align, sequenceNames, new File(treeFile));
+		
 		
 		if(log.isDebugEnabled()){
 			log.debug(String.format("Pairing probs (NON-evol):\r\n%s", Util.print2DArray(alignmentProbs.getMtx())));
@@ -191,14 +208,16 @@ public class KineticFold2 {
 		boolean evol = false;
 		boolean exitBecauseOfDiff = false;
 		
-		boolean[][] canPair = new PossiblePairFinder().canPair(structure);
+		boolean[][] canPair = new PossiblePairFinder().canPair(structure, delete);
+		//boolean[][] canPair = new PossiblePairFinder().canPair(structure);
 		InsideOutsideProbabilities insideProbs = ioCalc.insideE(alignmentProbs, structure, canPair);
 		InsideOutsideProbabilities outsideProbs = ioCalc.outsideE(insideProbs, alignmentProbs, structure, canPair);
 		PosteriorProbabilitiesCalculator ppCalc = new PosteriorProbabilitiesCalculator(grammar);
 		PosteriorProbabilities currentPostProbs = ppCalc.calculateE(insideProbs, outsideProbs, alignmentProbs, structure, canPair);
 		
 		for(int iterSoFar = 0; iterSoFar < Constants.MaxIterations; iterSoFar++){
-			canPair = new PossiblePairFinder().canPair(structure);			
+			//canPair = new PossiblePairFinder().canPair(structure);		
+			canPair = new PossiblePairFinder().canPair(structure, delete);
 					
 			PPOutputInternalResult2 postProbs = evol ? 
 					kFPppCalc.calculatePpOutputInternalResult2(alignmentProbsEvol, structure, currentPostProbs) 
@@ -236,7 +255,9 @@ public class KineticFold2 {
 		
 		try {
 			PosteriorProbabilities probs = new PosteriorProbabilities(structure);
-			
+			// Added in
+			probs.pairedProbs = CoFoldAnalogue.reinsertDeleted(currentPostProbs.pairedProbs, delete, PointRes.ZERO);
+			structure = CoFoldAnalogue.reinsertDeleted(structure, delete, Constants.UnpairedBaseIdx);
 			probs.savePosteriorProbabilities(new File(alignmentFile+".evol.bp"));
 		} catch (IOException e) {
 			// TODO Auto-generated catch block

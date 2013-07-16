@@ -12,8 +12,8 @@ import uk.ac.ox.osscb.PointRes;
 
 public class PosteriorProbabilities {
 
-		private PointRes[] unpairedProbs;
-		private PointRes[][] pairedProbs;
+		public PointRes[] unpairedProbs;
+		public PointRes[][] pairedProbs;
 		private PointRes maxP;
 		private int maxLeftIdx;
 		private int maxRightIdx;

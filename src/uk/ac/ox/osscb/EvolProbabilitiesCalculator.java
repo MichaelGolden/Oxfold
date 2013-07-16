@@ -1,6 +1,8 @@
 package uk.ac.ox.osscb;
 
 
+import java.io.File;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.HashMap;
@@ -10,6 +12,7 @@ import java.util.Stack;
 import javax.swing.tree.DefaultMutableTreeNode;
 
 import uk.ac.ox.osscb.domain.NucleotideProbsPrecise;
+import uk.ac.ox.osscb.phylo.PPfoldPhylogeneticCalculation;
 
 /**
  * Implementation of postorder traversal + calculation of probs for 
@@ -136,9 +139,14 @@ public class EvolProbabilitiesCalculator {
 		PointRes[][] L = new PointRes[totalNodes][standardLetters.length];
 		//just zero L
 		for(int i=0; i<totalNodes; i++)
+		{
 			for(int j=0; j<standardLetters.length; j++)
-				L[i][j] = PointRes.ZERO;
-				
+			{
+				//L[i][j] = PointRes.ZERO;
+				// TODO WARNING CHANGE BACK LATER
+				L[i][j] = Constants.NucleotideUncertainty;
+			}
+		}
 		//count the #leaves we've seen so that we can compare to the array of leafData
 		int leafCount = 0;
 		//traversal number so that we know where to find entries in L
@@ -223,6 +231,40 @@ public class EvolProbabilitiesCalculator {
 			traversalIdx++;
 		}
 		return result;
+	}
+	
+	public static NucleotideProbsPrecise calculateEvolutionaryProbsPPfold(String [] sequences, ArrayList<String> sequenceNames, File treeFile)
+	{
+		ArrayList<String> sequencesList = new ArrayList<String>();
+		for(int i = 0 ; i < sequences.length ; i++)
+		{
+			sequencesList.add(sequences[i]);
+		}
+		return calculateEvolutionaryProbsPPfold(sequencesList,sequenceNames,treeFile);
+	}
+	
+	public static NucleotideProbsPrecise calculateEvolutionaryProbsPPfold(ArrayList<String> sequences, ArrayList<String> sequenceNames, File treeFile)
+	{
+		double[][] ppfold = null;
+		try {
+			ppfold = PPfoldPhylogeneticCalculation.getPhyloProbs(sequences, sequenceNames, treeFile);
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		NucleotideProbsPrecise alignmentProbsEvol = new NucleotideProbsPrecise(ppfold.length);
+		for(int i = 0 ; i < ppfold.length ; i++)
+		{
+			for(int j = 0; j < ppfold.length ; j++)
+			{
+				alignmentProbsEvol.setPairingProbability(i, j, new PointRes(ppfold[i][j]));
+			}
+
+			alignmentProbsEvol.setUnpairingProbability(i, new PointRes(ppfold[i][i]));
+		}
+		
+		return alignmentProbsEvol;
 	}
 	
 	public NucleotideProbsPrecise getEvolutionaryProbs(EvolutionaryTree tree, EvolutionaryParameters param, String[] alignment){

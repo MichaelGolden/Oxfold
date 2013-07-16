@@ -1,5 +1,9 @@
 package uk.ac.ox.osscb.domain;
 
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.math.MathContext;
 
 import uk.ac.ox.osscb.PointRes;
@@ -35,6 +39,28 @@ public class NucleotideProbsPrecise extends SquareMatrixPlusVector<PointRes> {
 			prob = prob.round(this.mathCtx);
 		}
 		return super.setPairingProbability(i, j, prob);
+	}
+	
+	public void writeEvolutionaryProbs(File outFile)
+	{
+		try
+		{
+			BufferedWriter writer = new BufferedWriter(new FileWriter(outFile));
+			for(int i = 0 ; i < this.getDim() ; i++)
+			{
+				for(int j = 0 ; j <  this.getDim() ; j++)
+				{
+					writer.write(this.getPairingProbability(i, j)+"\t");
+				}
+				writer.newLine();
+			}
+
+			writer.close();
+		}
+		catch(IOException ex)
+		{
+			ex.printStackTrace();
+		}
 	}
 	
 	

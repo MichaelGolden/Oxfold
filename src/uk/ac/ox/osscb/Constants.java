@@ -25,6 +25,7 @@ public class Constants {
 	 */
 	public static  Double IterationCutOffDouble = 0.5;
 	public  static PointRes IterationCutOff = PointRes.valueOf(IterationCutOffDouble);
+	public  static PointRes NucleotideUncertainty = PointRes.valueOf(0.01);
 	
 	//public static  Double IterationCutOffDouble;
 	//public  static PointRes IterationCutOff;

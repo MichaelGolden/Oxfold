@@ -16,7 +16,7 @@ public class Benchmarks {
 	public static void main(String [] args)
 	{
 		File dataDir = new File("datasets/");
-		File outputDir = new File("output5/");
+		File outputDir = new File("output6/");
 		File resultsFile = new File("results_oxfold_reverse_noevol.csv");
 
 		boolean startFile = true;
@@ -27,14 +27,22 @@ public class Benchmarks {
 		for(File experimentalFile : dataDir.listFiles())
 		{
 			try {
-				experimentalStructures.add(StructureData.readExperimentalStructureData(experimentalFile));				
+				experimentalStructures.add(StructureData.readExperimentalStructureData(experimentalFile));		
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 		}
-		
+
 		Collections.sort(experimentalStructures);
+		
+
+		int m = 0;
+		for(StructureData e : experimentalStructures)
+		{
+				System.out.println(m+"\t"+e.file);
+				m++;
+		}
 		
 		ArrayList<StructureData> predictedStructures = new ArrayList<StructureData>();
 		int datasetno = 0;
@@ -52,7 +60,7 @@ public class Benchmarks {
 			}
 			long startNano = System.nanoTime();
 			
-			StructureData predictedStructure = PPfold.fold(outputDir, s.file.getName()+"_ppfold", s.sequences, s.sequenceNames, true);
+			//StructureData predictedStructure = PPfold.fold(outputDir, s.file.getName()+"_ppfold", s.sequences, s.sequenceNames, true);
 			
 			/*
 			int [] decodedSites= null;
@@ -66,11 +74,15 @@ public class Benchmarks {
 			StructureData predictedStructure2 = new StructureData(decodedSites);*/
 			
 			//System.exit(0);
-			StructureData predictedStructure2 = Benchmarks.foldCofold(outputDir, s.file.getName()+"_cofold", s.sequences, s.sequenceNames, true, 0,640, false);
+			//System.out.println(s.file.getName());
+			//StructureData predictedStructure2 = Benchmarks.foldCofold(outputDir, s.file.getName()+"_cofold", s.sequences, s.sequenceNames, true, 0,640, false);
+			//System.exit(0);
+			//System.exit(0);
 			//System.out.println(RNAFoldingTools.getDotBracketStringFromPairedSites(predictedStructure.pairedSites));
 			//System.exit(0);
 			//StructureData predictedStructure2 = Benchmarks.foldCofold(outputDir, s.file.getName()+"_cofold", s.sequences, s.sequenceNames, true, 0,640, false);
-			//StructureData predictedStructure2 = Benchmarks.foldOxfold(outputDir, s.file.getName()+"_oxfold", s.sequences, s.sequenceNames, true,0.5, false);
+			StructureData predictedStructure = Benchmarks.foldOxfold(outputDir, s.file.getName()+"_oxfold", s.sequences, s.sequenceNames, true,0.5, false);
+			StructureData predictedStructure2 = Benchmarks.foldOxfold(outputDir, s.file.getName()+"_oxfold", s.sequences, s.sequenceNames, true,0.5, false);
 			//StructureData predictedStructure2 = Benchmarks.foldCofold(outputDir, s.file.getName()+"_reverse", s.sequences, s.sequenceNames, true, 0.5,640, false);
 		
 			long endNanoTime = System.nanoTime();
@@ -111,12 +123,12 @@ public class Benchmarks {
 	
 	
 				//SVG full = visualiser.drawComparisonPredictedExperimental(s1, s2);
-				try {
-					full.savePNG(new File(outputDir.getAbsolutePath()+File.separatorChar+s.file.getName()+".svg"), new File(outputDir.getAbsolutePath()+File.separatorChar+s.file.getName()+".png"));
+				/*try {
+					//full.savePNG(new File(outputDir.getAbsolutePath()+File.separatorChar+s.file.getName()+".svg"), new File(outputDir.getAbsolutePath()+File.separatorChar+s.file.getName()+".png"));
 				} catch (IOException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
-				}
+				}*/
 				
 				long endNano = System.nanoTime();
 				double elapsedNano = (endNano - startNano)/1000000000.0;
