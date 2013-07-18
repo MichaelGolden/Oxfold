@@ -14,6 +14,7 @@ import java.util.concurrent.Future;
 
 import uk.ac.ox.osscb.CoFoldAnalogue;
 import uk.ac.ox.osscb.Constants;
+import uk.ac.ox.osscb.KineticFold2;
 import uk.ac.ox.osscb.PointRes;
 import uk.ac.ox.osscb.Program;
 
@@ -22,11 +23,12 @@ public class VaryKDelta {
 
 	
 	
-	enum FoldingAlgorithm {Oxfold, Cofold};
+	enum FoldingAlgorithm {Oxfold, Cofold, FastOxfold};
 	
 	public static void main(String [] args)
 	{		
-		FoldingAlgorithm algorithm = FoldingAlgorithm.Cofold;
+		//FoldingAlgorithm algorithm = FoldingAlgorithm.Cofold;
+		FoldingAlgorithm algorithm = FoldingAlgorithm.FastOxfold;
 		
 		boolean runEvol = true;
 
@@ -40,7 +42,9 @@ public class VaryKDelta {
 			for(int i = 2 ; i < args.length ; i++)
 			{
 				double delta = Double.parseDouble(args[i]);
-				inputs.add(new Job(k, delta, runEvol, numdatasets));
+				//inputs.add(new Job(k, delta, 1, runEvol, numdatasets));
+				System.out.println("delta2 "+delta);
+				inputs.add(new Job(0.5, k, delta, runEvol, numdatasets)); // for fast oxfold
 			}
 			VaryKDelta varyKDelta = new VaryKDelta();
 			 try {
@@ -76,10 +80,9 @@ public class VaryKDelta {
 			}
 			System.out.println();
 			
-			System.exit(0);
 			
-			double maxdelta = 1;
-			double [] deltas = new double[20];
+			double maxdelta = 2;
+			double [] deltas = new double[40];
 			double mindelta = 0;
 			double incdelta = (maxdelta-mindelta)/((double)deltas.length);
 			for(int i = 0 ; i < deltas.length ; i++)
@@ -87,6 +90,8 @@ public class VaryKDelta {
 				deltas[i] = mindelta + incdelta*i;
 				System.out.print(deltas[i]+ " ");
 			}
+
+			System.exit(0);
 			
 			//double [] ks = {0.2, 0.4, 0.6, 0.8, 1, 1.2, 1.4, 1.6, 1.8, 2, 2.2, 2.4, 2.6, 2.8, 3};
 			//double [] deltas = {0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1};
@@ -97,7 +102,7 @@ public class VaryKDelta {
 			{
 				for(double delta : deltas)
 				{
-					inputs.add(new Job(k, delta, runEvol, numdatasets));
+					inputs.add(new Job(k, delta, 1, runEvol, numdatasets));
 				}
 			}
 			VaryKDelta varyKDelta = new VaryKDelta();
@@ -138,10 +143,7 @@ public class VaryKDelta {
 		String outputDirString = "output_cofold/";
 		Constants.IterationCutOff = PointRes.valueOf(Double.valueOf(tau)); 
 		double delta = Constants.IterationCutOff.doubleValue(); 
-		if(alpha == 0){
-			System.err.println("Cannot use K = 0, use K > 0 instead");
-			alpha = 0.1; 
-		}
+
 		File dataDir = new File("datasets/");
 		String evol = runEvol ? "_evol" : "_noevol";
 		File outputDir = new File(outputDirString + "K_" + alpha + "_Delta_" + tau +evol+"/");
@@ -188,28 +190,27 @@ public class VaryKDelta {
 		} //end dataset iterations
 		
 		try{
-			//set up for avg
+			File outputCsvDir = new File(outputDirString + "csv/" );
+			outputCsvDir.mkdirs();
+			
 			double sensitivity = 0; 
 			double ppv = 0;
 			double fscore = 0; 
 			double mountainSim = 0; 
-			File outputCsvDir = new File(outputDirString + "csv/" );
-			outputCsvDir.mkdirs();
-			BufferedWriter writerKDelta = new BufferedWriter(new FileWriter(outputDirString + "csv/results_K_" + alpha + "_Delta_" + tau +evol+ ".csv"));
-			for(String str: avgMetrics) {
-			  writerKDelta.write(str);
-			  String[] line = str.split(",");
-			  sensitivity += Double.valueOf(line[2]);
-			  ppv += Double.valueOf(line[3]);
-			  fscore += Double.valueOf(line[4]);
-			  mountainSim += Double.valueOf(line[5]);
+			double n = 0;
+			for(int i = 0 ; i < experimentalStructures.size() ; i++)
+			{
+				String bench = Benchmarks.getBenchmarkString(experimentalStructures.get(i), predictedStructures.get(i));
+				String [] split = bench.split(",");
+				sensitivity += Double.valueOf(split[2]);
+				ppv += Double.valueOf(split[3]);
+				fscore += Double.valueOf(split[4]);
+				mountainSim += Double.valueOf(split[5]);
+				n++;
 			}
-			writerKDelta.write("Average,alpha_" + alpha + "_tau_" + tau +","+ sensitivity/avgMetrics.size()
-					+","+ ppv/avgMetrics.size()+","+ fscore/avgMetrics.size()+","+ mountainSim/avgMetrics.size());
-			writerKDelta.close();
 			
 			BufferedWriter writerFinal = new BufferedWriter(new FileWriter(outputDirString + "csv/result"+evol+".csv", true));
-			writerFinal.write(alpha +"," + tau +","+ (sensitivity/avgMetrics.size())+","+ (ppv/avgMetrics.size())+","+ (fscore/avgMetrics.size())+","+ (mountainSim/avgMetrics.size())+"\n");
+			writerFinal.write(alpha +"," + tau +","+ (sensitivity/n)+","+ (ppv/n)+","+ (fscore/n)+","+ (mountainSim/n)+"\n");
 			writerFinal.close();
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
@@ -224,10 +225,7 @@ public class VaryKDelta {
 		String outputDirString = "output_oxfold/";
 		Constants.IterationCutOff = PointRes.valueOf(Double.valueOf(dValue)); 
 		double delta = Constants.IterationCutOff.doubleValue(); 
-		if(KValue == 0){
-			System.err.println("Cannot use K = 0, use K > 0 instead");
-			KValue = 0.1; 
-		}
+
 		File dataDir = new File("datasets/");
 		String evol = runEvol ? "_evol" : "_noevol";
 		File outputDir = new File(outputDirString + "K_" + KValue + "_Delta_" + dValue +evol+"/");
@@ -260,7 +258,7 @@ public class VaryKDelta {
 		{
 			//StructureData s = experimentalStructures.get(0);
 			//StructureData s = experimentalStructures.get(j);
-			predictedStructures.add(VaryKDelta.foldOxfold(outputDir, s.file.getName(), s.sequences, s.sequenceNames, runEvol, KValue));
+			predictedStructures.add(VaryKDelta.foldOxfold(outputDir, s.file.getName(), s.sequences, s.sequenceNames, runEvol, KValue, 1));
 			
 			try {
 				//Don't want to save full CSV for this time, leave in possibility
@@ -277,28 +275,138 @@ public class VaryKDelta {
 		} //end dataset iterations
 		
 		try{
-			//set up for avg
+			File outputCsvDir = new File(outputDirString + "csv/" );
+			outputCsvDir.mkdirs();
+			
 			double sensitivity = 0; 
 			double ppv = 0;
 			double fscore = 0; 
 			double mountainSim = 0; 
-			File outputCsvDir = new File(outputDirString + "csv/" );
-			outputCsvDir.mkdirs();
-			BufferedWriter writerKDelta = new BufferedWriter(new FileWriter(outputDirString + "csv/results_K_" + KValue + "_Delta_" + dValue +evol+ ".csv"));
-			for(String str: avgMetrics) {
-			  writerKDelta.write(str);
-			  String[] line = str.split(",");
-			  sensitivity += Double.valueOf(line[2]);
-			  ppv += Double.valueOf(line[3]);
-			  fscore += Double.valueOf(line[4]);
-			  mountainSim += Double.valueOf(line[5]);
+			double n = 0;
+			for(int i = 0 ; i < experimentalStructures.size() ; i++)
+			{
+				String bench = Benchmarks.getBenchmarkString(experimentalStructures.get(i), predictedStructures.get(i));
+				String [] split = bench.split(",");
+				sensitivity += Double.valueOf(split[2]);
+				ppv += Double.valueOf(split[3]);
+				fscore += Double.valueOf(split[4]);
+				mountainSim += Double.valueOf(split[5]);
+				n++;
 			}
-			writerKDelta.write("Average,K_" + KValue + "_Delta_" + dValue +","+ sensitivity/avgMetrics.size()
-					+","+ ppv/avgMetrics.size()+","+ fscore/avgMetrics.size()+","+ mountainSim/avgMetrics.size());
-			writerKDelta.close();
 			
 			BufferedWriter writerFinal = new BufferedWriter(new FileWriter(outputDirString + "csv/result"+evol+".csv", true));
-			writerFinal.write(KValue +"," + dValue +","+ (sensitivity/avgMetrics.size())+","+ (ppv/avgMetrics.size())+","+ (fscore/avgMetrics.size())+","+ (mountainSim/avgMetrics.size())+"\n");
+			writerFinal.write(KValue +"," + dValue +","+ (sensitivity/n)+","+ (ppv/n)+","+ (fscore/n)+","+ (mountainSim/n)+"\n");
+			writerFinal.close();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}			
+			
+			
+	}
+	
+	private static void runSpecificFastOxfold(double KValue, double dValue, double delta2, int uptodataset, boolean runEvol){
+		ArrayList<String> avgMetrics = new ArrayList<String>();
+		String outputDirString = "output_fastoxfold_skip35/";
+		
+		Constants.IterationCutOff = PointRes.valueOf(Double.valueOf(dValue)); 
+		
+		double delta = Constants.IterationCutOff.doubleValue(); 
+
+		File dataDir = new File("datasets/");
+		String evol = runEvol ? "_evol" : "_noevol";
+		File outputDir = new File(outputDirString + "K_" + KValue + "_Delta_" + dValue+"_delta2_"+delta2 +evol+"/");
+		outputDir.mkdirs();
+		 
+		
+		ArrayList<StructureData> experimentalStructures = new ArrayList<StructureData>();
+		for(File experimentalFile : dataDir.listFiles())
+		{
+				try {
+					experimentalStructures.add(StructureData.readExperimentalStructureData(experimentalFile));				
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}			
+		}
+		
+		Collections.sort(experimentalStructures); // sort datasets in order of increasing length
+		
+
+		int maxIter = uptodataset;
+		ArrayList<StructureData> sublist =  new ArrayList<StructureData>();
+		sublist.addAll((List<StructureData>)experimentalStructures.subList(0, maxIter));
+		experimentalStructures = sublist;
+		
+		ArrayList<StructureData> predictedStructures = new ArrayList<StructureData>();
+		ArrayList<StructureData> noDelta2 = new ArrayList<StructureData>();
+		 
+		ArrayList<StructureData> usedExperimental = new ArrayList<StructureData>();
+		int skip = 38;
+		int j = 0;
+		for(int i = 0 ; i < experimentalStructures.size() ; i++) 
+		{
+			if(i < skip)
+			{
+				continue;
+			}
+			StructureData s= experimentalStructures.get(i);
+			usedExperimental.add(s);
+			
+			//StructureData s = experimentalStructures.get(0);
+			//StructureData s = experimentalStructures.get(j);
+			predictedStructures.add(foldOxfold(outputDir, s.file.getName()+"_", s.sequences, s.sequenceNames, runEvol, KValue, delta2));
+			File dir2 = new File(outputDirString + "K_" + KValue + "_Delta_" + dValue+"_delta2_"+1 +evol+"/");
+			dir2.mkdirs();
+			noDelta2.add(foldOxfold(dir2, s.file.getName(), s.sequences, s.sequenceNames, runEvol, KValue, 1));
+			
+			try {				
+				VaryKDelta.saveBenchmarkAvgCSV(avgMetrics,experimentalStructures, predictedStructures, KValue, delta, j == maxIter - 1);
+				j++;
+				
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		} //end dataset iterations
+		
+		try{
+			File outputCsvDir = new File(outputDirString + "csv/" );
+			outputCsvDir.mkdirs();
+			
+			double sensitivity = 0; 
+			double ppv = 0;
+			double fscore = 0; 
+			double mountainSim = 0; 
+			double n = 0;
+			for(int i = 0 ; i < usedExperimental.size() ; i++)
+			{
+				String bench = Benchmarks.getBenchmarkString(usedExperimental.get(i), predictedStructures.get(i));
+				String [] split = bench.split(",");
+				sensitivity += Double.valueOf(split[2]);
+				ppv += Double.valueOf(split[3]);
+				fscore += Double.valueOf(split[4]);
+				mountainSim += Double.valueOf(split[5]);
+				n++;
+			}
+			
+
+			double iterWithDelta2 = 0;
+			double iterWithoutDelta2 = 0;
+			for(int i = 0 ; i < predictedStructures.size() ; i++)
+			{
+				//System.out.println("ACVB "+predictedStructures.get(i).title);
+				String with = predictedStructures.get(i).title.split(";")[1].split("=")[1].split(",")[0];
+				String without = noDelta2.get(i).title.split(";")[1].split("=")[1].split(",")[0];
+				//System.out.println(">>>"+i+"\t"+with+"\t"+without);
+				iterWithDelta2 += Double.parseDouble(with); 
+				iterWithoutDelta2 += Double.parseDouble(without);
+			}
+			
+			
+			
+			BufferedWriter writerFinal = new BufferedWriter(new FileWriter(outputDirString + "csv/result"+evol+".csv", true));
+			writerFinal.write(KValue +"," + dValue+","+delta2 +","+ (sensitivity/n)+","+ (ppv/n)+","+ (fscore/n)+","+ (mountainSim/n)+"\t"+(iterWithDelta2/n)+"\t"+(iterWithoutDelta2/n)+"\n");
 			writerFinal.close();
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
@@ -312,12 +420,14 @@ public class VaryKDelta {
 	{
 		double v1;
 		double v2;
+		double v3;
 		boolean runEvolutionary;
 		int uptodataset;
 		
-		public Job(double k, double delta, boolean runEvolutionary,	int uptodataset) {
+		public Job(double k, double delta, double delta2, boolean runEvolutionary,	int uptodataset) {
 			this.v1 = k;
 			this.v2 = delta;
+			this.v3 = delta2;
 			this.runEvolutionary = runEvolutionary;
 			this.uptodataset = uptodataset;
 		}		
@@ -342,6 +452,9 @@ public class VaryKDelta {
                 	JobOutput output = new JobOutput();
                 	switch(algorithm)
                 	{
+                		case FastOxfold:
+                			runSpecificFastOxfold(input.v1, input.v2, input.v3, input.uptodataset, input.runEvolutionary);
+                		break;
 	                	case Oxfold:
 	                		runSpecificOxfold(input.v1, input.v2, input.uptodataset, input.runEvolutionary);
 	                		break;
@@ -405,7 +518,7 @@ public class VaryKDelta {
 						{
 							StructureData s = experimentalStructures.get(0);
 							//StructureData s = experimentalStructures.get(j);
-							predictedStructures.add(VaryKDelta.foldOxfold(outputDir, s.file.getName(), s.sequences, s.sequenceNames, false, KValue));
+							predictedStructures.add(VaryKDelta.foldOxfold(outputDir, s.file.getName(), s.sequences, s.sequenceNames, false, KValue, 1));
 							
 							try {
 								//Don't want to save full CSV for this time, leave in possibility
@@ -511,7 +624,7 @@ public class VaryKDelta {
 	}
 	
 	
-	public static StructureData foldOxfold(File dir, String name, List<String> sequences, List<String> sequenceNames, boolean runEvolutionary, double weight)
+	public static StructureData foldOxfold(File dir, String name, List<String> sequences, List<String> sequenceNames, boolean runEvolutionary, double weight, double delta2)
 	{
 		File fastaFile = new File(dir.getAbsolutePath()+File.separatorChar+name+".fas");
 		IO.saveToFASTAfile(sequences, sequenceNames, fastaFile);
@@ -525,8 +638,12 @@ public class VaryKDelta {
 			structureFile = new File(fastaFile.getAbsolutePath()+".noevol.dbn");
 		}
 		
+		double elapsedNano = -1;
+		
+		String title = "";
 		if(structureFile.exists()) // if structure cached, do not bother to recompute
 		{
+			title = RNAFoldingTools.getLine(structureFile, 0);
 			pairedSites = RNAFoldingTools.getPairedSitesFromDotBracketFile(structureFile);
 			System.out.println("Using cached file " + structureFile);
 		}
@@ -551,8 +668,14 @@ public class VaryKDelta {
 						"--tree="+outNewick.getAbsolutePath(),
 						"--weight="+weight};			
 		
-				new Program().run(argsArray);
-				pairedSites = RNAFoldingTools.getPairedSitesFromDotBracketFile(new File(fastaFile.getAbsolutePath()+".evol.dbn"));		
+				//new Program().run(argsArray);
+				long startNano = System.nanoTime();
+				new KineticFold2().foldEvolutionary(fastaFile.getAbsolutePath(),new File("doc/ppfold.grammar").getAbsolutePath(),new File("doc/ppfold.parameters").getAbsolutePath(),outNewick.getAbsolutePath(),weight, delta2);
+				long endNano = System.nanoTime();
+				elapsedNano = (endNano - startNano)/1000000000.0;
+				
+				title = RNAFoldingTools.getLine(structureFile, 0);
+				pairedSites = RNAFoldingTools.getPairedSitesFromDotBracketFile(structureFile);		
 			}
 			else
 			{
@@ -563,11 +686,15 @@ public class VaryKDelta {
 						"--weight="+weight};			
 		
 				new Program().run(argsArray);
+				
+				title = RNAFoldingTools.getLine(structureFile, 0);
 				pairedSites = RNAFoldingTools.getPairedSitesFromDotBracketFile(new File(fastaFile.getAbsolutePath()+".noevol.dbn"));		
 			}	
 		}
 
 		StructureData structureData = new StructureData(pairedSites);
+		structureData.time = elapsedNano;
+		structureData.title=  title;
 		return structureData;		
 	}
 	

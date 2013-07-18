@@ -14,9 +14,11 @@ import org.slf4j.LoggerFactory;
 import uk.ac.ox.osscb.KineticFoldPppCalculatorBase.PPOutputInternalResult2;
 import uk.ac.ox.osscb.analysis.IO;
 import uk.ac.ox.osscb.analysis.RNAFoldingTools;
+import uk.ac.ox.osscb.analysis.StructureData;
 import uk.ac.ox.osscb.domain.NucleotideProbsPrecise;
 import uk.ac.ox.osscb.grammar.Grammar;
 import uk.ac.ox.osscb.grammar.GrammarParser;
+import uk.ac.ox.osscb.inoutside.Helix;
 import uk.ac.ox.osscb.inoutside.IOsideCalculator;
 import uk.ac.ox.osscb.inoutside.InsideOutsideCalculator;
 import uk.ac.ox.osscb.inoutside.PPOutput;
@@ -146,7 +148,7 @@ public class KineticFold2 {
 		}
 	}
 
-	public void foldEvolutionary(String alignmentFile, String grammarFile, String paramsFile, String treeFile, double weight){
+	public void foldEvolutionary(String alignmentFile, String grammarFile, String paramsFile, String treeFile, double weight, double delta2){
 		Util.assertCanReadFile(alignmentFile);
 		Util.assertCanReadFile(grammarFile);
 		Util.assertCanReadFile(paramsFile);
@@ -215,7 +217,9 @@ public class KineticFold2 {
 		PosteriorProbabilitiesCalculator ppCalc = new PosteriorProbabilitiesCalculator(grammar);
 		PosteriorProbabilities currentPostProbs = ppCalc.calculateE(insideProbs, outsideProbs, alignmentProbs, structure, canPair);
 		
-		for(int iterSoFar = 0; iterSoFar < Constants.MaxIterations; iterSoFar++){
+		int fastIterations = 0;
+		int iterSoFar = 0;
+		for(; iterSoFar < Constants.MaxIterations; iterSoFar++){
 			//canPair = new PossiblePairFinder().canPair(structure);		
 			canPair = new PossiblePairFinder().canPair(structure, delete);
 					
@@ -225,15 +229,84 @@ public class KineticFold2 {
 			
 			PPOutput ppProbs = postProbs.getPpProbs();
 			currentPostProbs = postProbs.getPosteriorProbs();
+			
+			/*try {
+				currentPostProbs.savePosteriorProbabilities(new File("iteration"+iterSoFar+".currentPostProbs"));
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}*/
 
 			//if (ppProbs.getDiff().signum()>0) {
 			if ((!evol)&&(ppProbs.getDiff().compareTo(Constants.EndNonEvolutionaryFold)<0)) {
 				evol = true;
 				continue;
 			}
+			
 			if (ppProbs.getDiff().compareTo(Constants.IterationCutOff)>0) {
 				structure = new StructureUtils().makeNewStructure(structure, ppProbs);
-				dumpCurrentOutput(ppProbs);
+				
+				double currentDelta = ppProbs.getDiff().doubleValue();
+				boolean runfast = true;
+				for(int c = 0 ; runfast ; c++)
+				{
+					fastIterations++;
+					if(ppProbs.getDiff().compareTo(new PointRes(delta2))<0)
+					{
+						break;
+					}
+					boolean [][] canPair2 = new PossiblePairFinder().canPair(structure);					
+
+					PointRes[] unpairedProbs = currentPostProbs.getUnpairedProbs();
+					PointRes[][] pairedProbs = currentPostProbs.getPairedProbs();
+					
+					int leftIdx = -1;
+					int rightIdx = -1;
+					
+					for(int i = 0 ; i < canPair2.length ; i++)
+					{
+						for(int j = i + 1 ; j < canPair2.length ; j++)
+						{
+							if(canPair2[i][j]  && structure[i] < 0 && structure[j] < 0)
+							{
+								if((leftIdx == -1 && rightIdx == -1) || pairedProbs[i][j].compareTo( pairedProbs[leftIdx][rightIdx]) > 0)
+								{
+									leftIdx = i;
+									rightIdx = j;
+								}
+							}
+						}
+					}
+					System.out.println("fast "+c+"\t"+leftIdx+"\t"+rightIdx);
+					
+					if ((leftIdx<0)||(rightIdx<0)) {
+						ppProbs = new PPOutput(-1,-1,0,PointRes.ZERO,PointRes.ZERO);
+					} else {
+						boolean[][] incomp = new IncompatiblePairsFinder().find(canPair2, leftIdx, rightIdx);
+						PointRes rprob = new IncompatiblePairsFinder().calculateComp(incomp,leftIdx,rightIdx,pairedProbs);
+						PointRes[][] diffs = PosteriorProbabilitiesCalculator.getDiffs(pairedProbs, unpairedProbs, canPair2);
+						PointRes diff = diffs[leftIdx][rightIdx];
+						Helix helix = new HelicesMaker().makeHelix(leftIdx,rightIdx,diffs,canPair2);
+						PPOutput ppProbs2 = new PPOutput(helix.getLeftIdx(), helix.getRightIdx(), helix.getHelixLength(), diff, rprob);
+	
+						//if(ppProbs2.getDiff().compareTo(new PointRes(Math.max(delta2,weight)))>0)
+						if(ppProbs2.getDiff().compareTo(new PointRes(Math.max(currentDelta*delta2,weight)))>0)
+						{
+							canPair = canPair2;
+							ppProbs = ppProbs2;
+							int [] structure2 = new int[structure.length];
+							for(int i = 0 ; i < structure.length ; i++)
+							{
+								structure2[i] = structure[i]+1;
+							}
+							//System.out.println(RNAFoldingTools.getDotBracketStringFromPairedSites(structure2));
+							structure = new StructureUtils().makeNewStructure(structure, ppProbs2);
+	
+							continue;
+						}
+					}
+					break;				
+				}
 			} else {
 				exitBecauseOfDiff = true;
 				dumpCurrentOutput(ppProbs);
@@ -264,8 +337,9 @@ public class KineticFold2 {
 			e.printStackTrace();
 		}
 		
-		
-		writeDotBracketFile(new File(alignmentFile+".evol.dbn"),new File(alignmentFile).getName(), structure);
+		String metadata = ";oxfolditer="+iterSoFar+",fastiter="+fastIterations+",delta2="+delta2;
+		System.out.println(metadata);
+		writeDotBracketFile(new File(alignmentFile+".evol.dbn"),new File(alignmentFile).getName()+metadata, structure);
 	}
 	
 	private void dumpExitReason(boolean exitBecauseOfDiff) {

@@ -17,7 +17,7 @@ public class Program extends BaseProgram {
 			String alignmentsFile, String grammarFile, String paramsFile) {
 		
 		if (haveTree) {
-			new KineticFold2().foldEvolutionary(alignmentsFile,grammarFile,paramsFile,treeFile,weight);
+			new KineticFold2().foldEvolutionary(alignmentsFile,grammarFile,paramsFile,treeFile,weight, 1.0);
 		} else {
 			new KineticFold2().fold(alignmentsFile, grammarFile, paramsFile, weight);
 		}

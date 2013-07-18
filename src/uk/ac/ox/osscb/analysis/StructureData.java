@@ -20,6 +20,7 @@ public class StructureData implements Comparable<StructureData> {
 	public ArrayList<String> sequenceNames = new ArrayList<String>();
 	
 	double time;
+	String metadata;
 	
 	public StructureData()
 	{

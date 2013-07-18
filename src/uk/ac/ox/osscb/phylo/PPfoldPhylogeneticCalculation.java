@@ -70,7 +70,19 @@ public class PPfoldPhylogeneticCalculation {
 		}*/
 		
 		String parametersFile = "doc/matrices.in";
-		Parameters param = Parameters.readParam(new BufferedReader(new FileReader(parametersFile)));
+		Parameters param = null;
+		try
+		{
+			param = Parameters.readParam(parametersFile);
+		}
+		catch(Exception ex)
+		{
+			param = Parameters.cached.get(parametersFile);
+			if(param == null)
+			{
+				throw ex;
+			}
+		}
 		AsynchronousJobExecutor executor = new AsynchronousJobExecutorBlocking();
 		Tree  tree = NewickReader.readNewick(newickFile.getAbsolutePath());
 		

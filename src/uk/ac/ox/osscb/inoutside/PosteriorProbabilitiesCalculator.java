@@ -292,7 +292,7 @@ public class PosteriorProbabilitiesCalculator {
 		/**
 		 * calculate accuracy scores
 		 */
-		public PointRes[][] getDiffs(PointRes[][] pairedProbs, PointRes[] unpairedProbs, boolean[][] canPair) {
+		public static PointRes[][] getDiffs(PointRes[][] pairedProbs, PointRes[] unpairedProbs, boolean[][] canPair) {
 			int length = unpairedProbs.length;
 			PointRes[][] diffs = new PointRes[length][length];
 			for (int j = 0; j<length; j++) {

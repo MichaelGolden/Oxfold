@@ -2,6 +2,7 @@ package uk.ac.ox.osscb.grammar;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Scanner;
@@ -13,6 +14,9 @@ import uk.ac.ox.osscb.StochasticContextFreeGrammar;
 import static java.util.regex.Pattern.CASE_INSENSITIVE;;
 
 public class GrammarParser {
+	
+	public static HashMap<String, StochasticContextFreeGrammar> cached = new HashMap<String, StochasticContextFreeGrammar>();
+	
 	/**
 	 * parses a grammar file and produces the corresponding grammar object to be used later
 	 * a grammar file must contain the following lines:
@@ -29,7 +33,12 @@ public class GrammarParser {
 	private static Pattern nonterminal = Pattern.compile("^!nonterminals ",CASE_INSENSITIVE);
 	private static Pattern terminal = Pattern.compile("^!terminals ",CASE_INSENSITIVE);
 	private static Pattern rule = Pattern.compile("^!rule ",CASE_INSENSITIVE);
-	public StochasticContextFreeGrammar parse(String gPath) {
+	public static StochasticContextFreeGrammar parse(String gPath) {
+		if(cached.containsKey(gPath))
+		{
+			return cached.get(gPath);
+		}
+		
 		Scanner sc = null;
 		try {
 			sc = new Scanner(new File(gPath));
@@ -92,6 +101,7 @@ public class GrammarParser {
 				throw new IllegalArgumentException("Idiot! You need to specify at least one rule.");
 			}
 			StochasticContextFreeGrammar g = new StochasticContextFreeGrammar(nts,ts,rules);
+			cached.put(gPath, g);
 			return g;
 		} catch (FileNotFoundException e) {
 			throw new IllegalArgumentException(String.format("File %s not found.",gPath));

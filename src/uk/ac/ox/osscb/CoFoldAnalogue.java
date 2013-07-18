@@ -279,9 +279,9 @@ public class CoFoldAnalogue {
 			throw new IllegalArgumentException(String.format("Weight must be non-negative. Input: %f", weight));
 		}*/
 
-		Grammar grammar = new GrammarParser().parse(grammarFile);
+		Grammar grammar = GrammarParser.parse(grammarFile);
 		
-		EvolutionaryParameters parameters = new ParameterParserEvolutionary().parse(paramsFile);
+		EvolutionaryParameters parameters = ParameterParserEvolutionary.parse(paramsFile);
 		
 		AlignmentParser alignParse = new DefaultAlignmentParser();
 		

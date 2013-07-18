@@ -3,10 +3,13 @@ package uk.ac.ox.osscb;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Scanner;
 import java.util.regex.Pattern;
 
 public class ParameterParser2 {
+	public static HashMap<String, EvolutionaryParameters> cached = new HashMap<String, EvolutionaryParameters>();
+	
 	/**
 	 * parses parameter file
 	 */
@@ -17,6 +20,11 @@ public class ParameterParser2 {
 	//private static Pattern testend = Pattern.compile("^\\?");
 	
 	public EvolutionaryParameters parse(String pPath) {
+		if(cached.containsKey(pPath))
+		{
+			return cached.get(pPath);
+		}
+		
 		int AF = 0,UPPF = 0,PPF =0,SF=0;
 		Letter[] letters = new Letter[1];
 		Alphabet alphabet = null; Alphabet pAlphabet = null;
@@ -170,6 +178,7 @@ public class ParameterParser2 {
 				throw new IllegalArgumentException("Need to specify alphabet, special characters, unpaired probabilities and paired probabilities");
 			} 
 			EvolutionaryParameters param = new EvolutionaryParameters(alphabet, new Qmatrix(unpairedR,unpairedD,unpairedRI,unpairedprior), pAlphabet, new Qmatrix(pairedR,pairedD,pairedRI,pairedprior));
+			cached.put(pPath, param);
 			return param;
 		} catch (FileNotFoundException e) {
 			throw new IllegalArgumentException(String.format("File %s not found.",pPath));

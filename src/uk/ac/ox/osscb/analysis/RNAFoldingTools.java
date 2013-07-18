@@ -1049,6 +1049,29 @@ public class RNAFoldingTools {
         return null;
     }
     
+    public static String getLine(File file, int line) {
+
+        String ret = null;
+        try {
+            BufferedReader buffer = new BufferedReader(new FileReader(file));
+
+            String textline = null;
+            for(int i = 0 ; (textline = buffer.readLine()) != null ; i++)
+            {
+            	if(i == line)
+            	{
+            		ret = textline;
+            		break;
+            	}
+            }
+            buffer.close();
+        } catch (IOException ex) {
+            ex.printStackTrace();
+        }
+        
+        return ret;
+    }
+    
     public static int[] getPairedSitesFromDotBracketFile(File dbnFile) {
         try {
             BufferedReader buffer = new BufferedReader(new FileReader(dbnFile));

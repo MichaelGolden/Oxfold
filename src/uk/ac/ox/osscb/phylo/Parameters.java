@@ -2,8 +2,13 @@ package uk.ac.ox.osscb.phylo;
 
 
 import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.Serializable;
+import java.util.HashMap;
+
+import uk.ac.ox.osscb.EvolutionaryParameters;
 
 /**
  * Reads and stores the input parameters (matrices) of the algorithm
@@ -12,6 +17,8 @@ import java.io.Serializable;
  */
 
 public class Parameters implements Serializable {
+	public static HashMap<String, Parameters> cached = new HashMap<String, Parameters>();
+	
 	
 	private static final long serialVersionUID = -6960312420312527995L;
 
@@ -67,7 +74,9 @@ public class Parameters implements Serializable {
 
 	}
 
-	public static Parameters readParam(BufferedReader input) throws IOException {
+	public static Parameters readParam(String parametersFile) throws IOException {
+		BufferedReader input  = new BufferedReader(new FileReader(parametersFile));
+		
 		double[][] prob = new double[3][2];
 
 		
@@ -189,8 +198,11 @@ public class Parameters implements Serializable {
 				}
 			}
 		}
+		
+		Parameters params = new Parameters(prob, pr, ps, pd, rV, rD, rV1, sV, sD, sV1, dV, dD, dV1);
+		cached.put(parametersFile, params);
 
-		return new Parameters(prob, pr, ps, pd, rV, rD, rV1, sV, sD, sV1, dV, dD, dV1);
+		return params;
 
 	}
 
