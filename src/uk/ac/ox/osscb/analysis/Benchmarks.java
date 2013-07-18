@@ -47,8 +47,8 @@ public class Benchmarks {
 		ArrayList<StructureData> predictedStructures = new ArrayList<StructureData>();
 		int datasetno = 0;
 		long startNanoTime = System.nanoTime();
-		int start = 0;
-		int end = 50;
+		int start = 41;
+		int end = 42;
 		for(int i = 0 ; i < Math.min(end, experimentalStructures.size()) ; i++)
 		{
 			StructureData s = experimentalStructures.get(i);
