@@ -101,7 +101,8 @@ public class KineticFold2 {
 		boolean exitBecauseOfDiff = false;
 		for(int iterSoFar = 0; iterSoFar < Constants.MaxIterations; iterSoFar++){
 			canPair = new PossiblePairFinder().canPair(structure);				
-			completePPProbs = ppCalc.calculate(insideProbs, outsideProbs, alignmentProbs, distances, weight, structure, canPair);
+			//completePPProbs = ppCalc.calculate(insideProbs, outsideProbs, alignmentProbs, distances, weight, structure, canPair);
+			completePPProbs = ppCalc.calculateParallel(insideProbs, outsideProbs, alignmentProbs, distances, weight, structure, canPair);
 			
 			PPOutputInternalResult2 postProbs = kFPppCalc.calculatePpOutputInternalResult2(alignmentProbs, structure, currentPostProbs);
 			
@@ -195,6 +196,14 @@ public class KineticFold2 {
 	}
 
 	public void foldEvolutionary(String alignmentFile, String grammarFile, String paramsFile, String treeFile, double weight, double delta2){
+		weight = Double.POSITIVE_INFINITY;
+		//weight = 0.5;
+
+		//	double k = delta2;
+		double k = 0.1;
+		boolean cotranscriptional = true;
+		
+		
 		Util.assertCanReadFile(alignmentFile);
 		Util.assertCanReadFile(grammarFile);
 		Util.assertCanReadFile(paramsFile);
@@ -203,8 +212,7 @@ public class KineticFold2 {
 			throw new IllegalArgumentException(String.format("Weight must be non-negative. Input: %f", weight));
 		}
 		
-		//weight = Double.POSITIVE_INFINITY;
-		weight = 0.5;
+
 
 		Grammar grammar = new GrammarParser().parse(grammarFile);
 		
@@ -256,9 +264,9 @@ public class KineticFold2 {
 		}
 		
 		//IterationsGenerator iterationsGenerator = new IterationsGenerator ();
-		
+		//
 		//IOsideCalculator ioCalc = new ValidatingIOSideCalculator(new InsideOutsideCalculator(grammar), grammar);
-		IOsideCalculator ioCalc = new ParallelValidatingIOSideCalculator(new ParallelInsideOutsideCalculator(grammar), new InsideOutsideCalculator(grammar), grammar);
+		IOsideCalculator ioCalc = new ParallelValidatingIOSideCalculator(new ParallelInsideOutsideCalculator(grammar), grammar);
 		
 		KineticFoldPppCalculator kFPppCalc = weight > 0 ? new KineticFoldPppCalculatorWithWeight(weight, grammar, ioCalc)
 			// 0 == weight, negative was rejected at the very beginning
@@ -296,12 +304,9 @@ public class KineticFold2 {
 			}
 			
 			
-
-		//	double k = delta2;
-			double k = 0.1;
 			PointRes[] unpairedProbs = currentPostProbs.getUnpairedProbs();
 			PointRes[][] pairedProbs = currentPostProbs.getPairedProbs();
-			PointRes[][] diffs = PosteriorProbabilitiesCalculator.getDiffs(pairedProbs, unpairedProbs, canPair);
+			PointRes[][] diffs = ppCalc.getDiffs(pairedProbs, unpairedProbs, canPair);
 			
 			ArrayList<BasePair> pairsList = listPossibleBasePairs(canPair, pairedProbs, diffs, Constants.IterationCutOff);
 			System.out.println(pairsList);
@@ -319,7 +324,6 @@ public class KineticFold2 {
 			}*/
 			
 			PPOutput oxfoldPProbs = ppProbs;
-			boolean cotranscriptional = false;
 			if(cotranscriptional)
 			{
 				if(next != null)

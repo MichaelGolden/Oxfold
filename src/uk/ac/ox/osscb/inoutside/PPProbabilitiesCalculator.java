@@ -53,7 +53,8 @@ public class PPProbabilitiesCalculator {
 			double[][] distances, double weight, int[] structure, boolean[][] canPair){
 		
 		PosteriorProbabilitiesCalculator posteriorProbabilitiesCalculator = new PosteriorProbabilitiesCalculator(grammar);
-		PosteriorProbabilities posteriorProbabilities = posteriorProbabilitiesCalculator.calculate(insideProbs, outsideProbs, nucleotideProbs, distances, weight, structure, canPair);
+		//PosteriorProbabilities posteriorProbabilities = posteriorProbabilitiesCalculator.calculate(insideProbs, outsideProbs, nucleotideProbs, distances, weight, structure, canPair);
+		PosteriorProbabilities posteriorProbabilities = posteriorProbabilitiesCalculator.calculateParallel(insideProbs, outsideProbs, nucleotideProbs, distances, weight, structure, canPair);
 		int leftIdx = posteriorProbabilities.getMaxLeftIdx();
 		int rightIdx = posteriorProbabilities.getMaxRightIdx();
 		PointRes[] unpairedProbs = posteriorProbabilities.getUnpairedProbs();

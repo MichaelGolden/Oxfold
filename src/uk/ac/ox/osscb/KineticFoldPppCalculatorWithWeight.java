@@ -46,7 +46,8 @@ public class KineticFoldPppCalculatorWithWeight
 		InsideOutsideProbabilities insideProbs = ioCalc.inside(alignmentProbs, distances, weight, structure, canPair);
 		InsideOutsideProbabilities outsideProbs = ioCalc.outside(insideProbs, alignmentProbs, distances, weight, structure, canPair);				
 		PPOutput ppProbs = new PPProbabilitiesCalculator(grammar).calculate(insideProbs, outsideProbs, alignmentProbs, distances, weight, structure, canPair);
-		PosteriorProbabilities completePPProbs = new PosteriorProbabilitiesCalculator(grammar).calculate(insideProbs, outsideProbs, alignmentProbs, distances, weight, structure, canPair);
+		//PosteriorProbabilities completePPProbs = new PosteriorProbabilitiesCalculator(grammar).calculate(insideProbs, outsideProbs, alignmentProbs, distances, weight, structure, canPair);
+		PosteriorProbabilities completePPProbs = new PosteriorProbabilitiesCalculator(grammar).calculateParallel(insideProbs, outsideProbs, alignmentProbs, distances, weight, structure, canPair);
 
 		
 		return new PPOutputInternalResult2(ppProbs, completePPProbs);

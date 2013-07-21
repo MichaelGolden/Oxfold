@@ -14,13 +14,11 @@ public class ParallelValidatingIOSideCalculator implements IOsideCalculator{
 	//private final Logger log = LoggerFactory.getLogger(ValidatingIOSideCalculator.class);
 	
 	private ParallelInsideOutsideCalculator ioCalcInternal;
-	private IOsideCalculator ioCalcInternal2;
 	private Grammar grammar;
 
-	public ParallelValidatingIOSideCalculator(ParallelInsideOutsideCalculator iOsideCalculator, IOsideCalculator iOsideCalculator2, Grammar grammar) {
+	public ParallelValidatingIOSideCalculator(ParallelInsideOutsideCalculator iOsideCalculator, Grammar grammar) {
 		super();
 		this.ioCalcInternal = iOsideCalculator;
-		this.ioCalcInternal2 = iOsideCalculator2;
 		this.grammar = grammar;
 	}
 
@@ -38,7 +36,6 @@ public class ParallelValidatingIOSideCalculator implements IOsideCalculator{
 			NucleotideProbsPrecise pairingProbs, int[] structure, boolean[][] canPair) {
 		
 		InsideOutsideProbabilities inside = this.ioCalcInternal.insideParallel(pairingProbs, structure, canPair, null);
-		//InsideOutsideProbabilities inside = this.ioCalcInternal2.insideE(pairingProbs, structure, canPair);
 		
 		return validateInside(inside);
 	}
@@ -56,7 +53,6 @@ public class ParallelValidatingIOSideCalculator implements IOsideCalculator{
 			InsideOutsideProbabilities insideProbs,
 			NucleotideProbsPrecise pairingProbs, int[] structure, boolean[][] canPair) {
 		InsideOutsideProbabilities outside = this.ioCalcInternal.outsideParallel(insideProbs, pairingProbs, structure, canPair, null);
-		//InsideOutsideProbabilities outside = this.ioCalcInternal2.outsideE(insideProbs, pairingProbs, structure, canPair);
 		return validateOutside(outside);
 	}
 	

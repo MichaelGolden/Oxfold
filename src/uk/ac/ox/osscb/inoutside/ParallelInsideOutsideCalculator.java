@@ -21,7 +21,7 @@ import uk.ac.ox.osscb.grammar.RuleType;
 
 public class ParallelInsideOutsideCalculator {
 
-	final int threads = 4;
+	final int threads = Constants.threads;
 
 
 	private Grammar grammar;

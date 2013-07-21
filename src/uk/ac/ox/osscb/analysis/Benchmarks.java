@@ -49,8 +49,8 @@ public class Benchmarks {
 		long startNanoTime = System.nanoTime();
 		//int start = 0;
 		//int end = 1;
-		int start = 45;
-		int end = 46;
+		int start = 0;
+		int end = 50;
 		for(int i = 0 ; i < Math.min(end, experimentalStructures.size()) ; i++)
 		{
 			StructureData s = experimentalStructures.get(i);
@@ -62,12 +62,12 @@ public class Benchmarks {
 			}
 			long startNano = System.nanoTime();
 			
-			//StructureData predictedStructure = Benchmarks.foldOxfold(outputDir, s.file.getName()+"_oxfold", s.sequences, s.sequenceNames, true,0.5, false);
-			StructureData predictedStructure = Benchmarks.foldCofold(outputDir, s.file.getName()+"_cofold", s.sequences, s.sequenceNames, true, 0,640, false);
-			System.exit(0);
-			StructureData predictedStructure2 = Benchmarks.foldCofold(outputDir, s.file.getName()+"_cofold", s.sequences, s.sequenceNames, true, 0,640, false);
+			StructureData predictedStructure = Benchmarks.foldOxfold(outputDir, s.file.getName()+"_oxfold", s.sequences, s.sequenceNames, true,0.5, false);
+			//StructureData predictedStructure = Benchmarks.foldCofold(outputDir, s.file.getName()+"_cofold", s.sequences, s.sequenceNames, true, 0,640, false);
+			//System.exit(0);
+			//StructureData predictedStructure2 = Benchmarks.foldCofold(outputDir, s.file.getName()+"_cofold", s.sequences, s.sequenceNames, true, 0,640, false);
 			//StructureData predictedStructure = PPfold.fold(outputDir, s.file.getName()+"_ppfold", s.sequences, s.sequenceNames, true);
-			//StructureData predictedStructure2 = PPfold.fold(outputDir, s.file.getName()+"_ppfold", s.sequences, s.sequenceNames, true);
+			StructureData predictedStructure2 = PPfold.fold(outputDir, s.file.getName()+"_ppfold", s.sequences, s.sequenceNames, true);
 			//StructureData predictedStructure2 = Benchmarks.foldOxfold(outputDir, s.file.getName()+"_oxfold", s.sequences, s.sequenceNames, true,0.5, false);
 			
 			
