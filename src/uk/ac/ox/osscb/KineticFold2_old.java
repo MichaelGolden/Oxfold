@@ -7,7 +7,6 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Random;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,8 +23,6 @@ import uk.ac.ox.osscb.inoutside.IOsideCalculator;
 import uk.ac.ox.osscb.inoutside.InsideOutsideCalculator;
 import uk.ac.ox.osscb.inoutside.PPOutput;
 import uk.ac.ox.osscb.inoutside.PPProbabilitiesCalculator;
-import uk.ac.ox.osscb.inoutside.ParallelInsideOutsideCalculator;
-import uk.ac.ox.osscb.inoutside.ParallelValidatingIOSideCalculator;
 import uk.ac.ox.osscb.inoutside.PosteriorProbabilities;
 import uk.ac.ox.osscb.inoutside.PosteriorProbabilitiesCalculator;
 import uk.ac.ox.osscb.inoutside.ValidatingIOSideCalculator;
@@ -38,14 +35,9 @@ import uk.ac.ox.osscb.parser.DefaultAlignmentParser;
  * @author Vladimir, lepuslapis
  *
  */
-public class KineticFold2 {
+public class KineticFold2_old {
 	
-	private final Logger log = LoggerFactory.getLogger(KineticFold2.class);
-	
-	public static void main(String [] args)
-	{
-		System.out.println(1/Double.POSITIVE_INFINITY);
-	}
+	private final Logger log = LoggerFactory.getLogger(KineticFold2_old.class);
 
 
 	/**
@@ -155,44 +147,6 @@ public class KineticFold2 {
 			e.printStackTrace();
 		}
 	}
-	
-	Random random= new Random(983118011408130222L);
-	public String [] selectN(String [] align, int n)
-	{
-		int select = Math.min(align.length, n);
-		boolean [] used = new boolean[align.length];
-		String [] ret = new String[select];
-		System.out.println("ret length "+ret.length+"\t"+n+"\t"+align.length);
-		int count = 0;
-		while(count < select)
-		{
-			int i = random.nextInt(align.length);
-			if(!used[i])
-			{
-				System.out.println("getting sequence "+i);
-				ret[count] = align[i];
-				used[i] = true;
-				count++;
-			}
-		}
-
-		
-		//align = ret;
-		//boolean [] delete = new boolean[align[0].length()];
-		/*Arrays.fill(delete, true);
-		for(int i = 0 ; i < align.length ; i++)
-		{
-			String seq = align[i];
-			for(int j = 0 ; j < seq.length() ; j++)
-			{
-				if(seq.charAt(j) != 'N' && seq.charAt(j) != '-')
-				{
-					delete[j] = false;
-				}
-			}
-		}*/
-		return ret;
-	}
 
 	public void foldEvolutionary(String alignmentFile, String grammarFile, String paramsFile, String treeFile, double weight, double delta2){
 		Util.assertCanReadFile(alignmentFile);
@@ -202,9 +156,6 @@ public class KineticFold2 {
 		if(weight < 0){
 			throw new IllegalArgumentException(String.format("Weight must be non-negative. Input: %f", weight));
 		}
-		
-		//weight = Double.POSITIVE_INFINITY;
-		weight = 0.5;
 
 		Grammar grammar = new GrammarParser().parse(grammarFile);
 		
@@ -212,20 +163,13 @@ public class KineticFold2 {
 		
 		AlignmentParser alignParse = new DefaultAlignmentParser();
 		
-		
 		String[] align = alignParse.parseEvolutionary(alignmentFile,parameters.getSAlphabet());
 				
 		EvolutionaryTree tree = new EvolutionaryTreeParser().parse(treeFile);
 		
-
-		//align = selectN(align, (int)delta2);
-
-		//boolean [] delete =new boolean[align[0].length()];
-		boolean [] delete = CoFoldAnalogue.getGappyColumns(align, 0.25);
+		boolean [] delete =new boolean[align[0].length()];
+		//boolean [] delete = CoFoldAnalogue.getGappyColumns(align, 0.25);
 		align = CoFoldAnalogue.deleteColumns(align, delete);
-		//System.out.println(align[0]);
-		//
-		//.out.println(align[0]);
 		
 		NucleotideProbsPrecise alignmentProbs = new NucleotideBasePairingProbsCalculator().calculate(align, parameters);
 		NucleotideProbsPrecise alignmentProbsEvol = new EvolProbabilitiesCalculator().getEvolutionaryProbs(tree, parameters, align);
@@ -237,8 +181,7 @@ public class KineticFold2 {
 		ArrayList<String> sequences = new ArrayList<String>();
 		ArrayList<String> sequenceNames = new ArrayList<String>();
 		IO.loadFastaSequences(new File(alignmentFile), sequences, sequenceNames);
-		//alignmentProbsEvol = EvolProbabilitiesCalculator.calculateEvolutionaryProbsPPfold(align, sequenceNames, new File(treeFile));
-		//alignmentProbsEvol = alignmentProbs;
+		alignmentProbsEvol = EvolProbabilitiesCalculator.calculateEvolutionaryProbsPPfold(align, sequenceNames, new File(treeFile));
 		
 		
 		if(log.isDebugEnabled()){
@@ -257,8 +200,7 @@ public class KineticFold2 {
 		
 		//IterationsGenerator iterationsGenerator = new IterationsGenerator ();
 		
-		//IOsideCalculator ioCalc = new ValidatingIOSideCalculator(new InsideOutsideCalculator(grammar), grammar);
-		IOsideCalculator ioCalc = new ParallelValidatingIOSideCalculator(new ParallelInsideOutsideCalculator(grammar), new InsideOutsideCalculator(grammar), grammar);
+		IOsideCalculator ioCalc = new ValidatingIOSideCalculator(new InsideOutsideCalculator(grammar), grammar);
 		
 		KineticFoldPppCalculator kFPppCalc = weight > 0 ? new KineticFoldPppCalculatorWithWeight(weight, grammar, ioCalc)
 			// 0 == weight, negative was rejected at the very beginning
@@ -277,8 +219,6 @@ public class KineticFold2 {
 		
 		int fastIterations = 0;
 		int iterSoFar = 0;
-
-		int jstar = 0;
 		for(; iterSoFar < Constants.MaxIterations; iterSoFar++){
 			//canPair = new PossiblePairFinder().canPair(structure);		
 			canPair = new PossiblePairFinder().canPair(structure, delete);
@@ -289,59 +229,23 @@ public class KineticFold2 {
 			
 			PPOutput ppProbs = postProbs.getPpProbs();
 			currentPostProbs = postProbs.getPosteriorProbs();
+			
+			/*try {
+				currentPostProbs.savePosteriorProbabilities(new File("iteration"+iterSoFar+".currentPostProbs"));
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}*/
 
+			//if (ppProbs.getDiff().signum()>0) {
 			if ((!evol)&&(ppProbs.getDiff().compareTo(Constants.EndNonEvolutionaryFold)<0)) {
 				evol = true;
 				continue;
 			}
 			
-			
-
-		//	double k = delta2;
-			double k = 0.1;
-			PointRes[] unpairedProbs = currentPostProbs.getUnpairedProbs();
-			PointRes[][] pairedProbs = currentPostProbs.getPairedProbs();
-			PointRes[][] diffs = PosteriorProbabilitiesCalculator.getDiffs(pairedProbs, unpairedProbs, canPair);
-			
-			ArrayList<BasePair> pairsList = listPossibleBasePairs(canPair, pairedProbs, diffs, Constants.IterationCutOff);
-			System.out.println(pairsList);
-			BasePair next = findNext(pairsList,jstar, k);
-			
-			/*try {
-				if(next != null)
-				{
-					IO.writeLine(new File("basepairs.txt"), next.toString(), true, true);
-					IO.writeLine(new File("basepairs.txt"), ppProbs.toString()+"\n", true, true);
-				}
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}*/
-			
-			PPOutput oxfoldPProbs = ppProbs;
-			boolean cotranscriptional = false;
-			if(cotranscriptional)
-			{
-				if(next != null)
-				{
-					boolean[][] incomp = new IncompatiblePairsFinder().find(canPair, next.i, next.j);
-					Helix helix = new HelicesMaker().makeHelix(next.i,next.j,diffs,canPair);
-					PointRes diff = diffs[next.i][next.j];
-					PointRes rprob = new IncompatiblePairsFinder().calculateComp(incomp,next.i,next.j,pairedProbs);
-				
-					System.out.println("Next "+jstar+"\t"+next);
-					ppProbs = new PPOutput(helix.getLeftIdx(), helix.getRightIdx(), helix.getHelixLength(), diff, rprob);
-	
-					jstar = Math.max(jstar, helix.getRightIdx());
-				}
-			}
-			
-			
-			if (ppProbs.getDiff().compareTo(Constants.IterationCutOff)>0 && oxfoldPProbs.getDiff().compareTo(Constants.IterationCutOff)>0) {
+			if (ppProbs.getDiff().compareTo(Constants.IterationCutOff)>0) {
 				structure = new StructureUtils().makeNewStructure(structure, ppProbs);
-		
 				
-				/*
 				double currentDelta = ppProbs.getDiff().doubleValue();
 				boolean runfast = true;
 				for(int c = 0 ; runfast ; c++)
@@ -353,14 +257,11 @@ public class KineticFold2 {
 					}
 					boolean [][] canPair2 = new PossiblePairFinder().canPair(structure);					
 
-					
 					PointRes[] unpairedProbs = currentPostProbs.getUnpairedProbs();
 					PointRes[][] pairedProbs = currentPostProbs.getPairedProbs();
 					
-
-					PPOutput strong = getStrongestBasePair(canPair2, pairedProbs, structure);
-					int leftIdx = strong.getLeftIdx();
-					int rightIdx = strong.getRightIdx();
+					int leftIdx = -1;
+					int rightIdx = -1;
 					
 					for(int i = 0 ; i < canPair2.length ; i++)
 					{
@@ -405,7 +306,7 @@ public class KineticFold2 {
 						}
 					}
 					break;				
-				}*/
+				}
 			} else {
 				exitBecauseOfDiff = true;
 				dumpCurrentOutput(ppProbs);
@@ -439,98 +340,6 @@ public class KineticFold2 {
 		String metadata = ";oxfolditer="+iterSoFar+",fastiter="+fastIterations+",delta2="+delta2;
 		System.out.println(metadata);
 		writeDotBracketFile(new File(alignmentFile+".evol.dbn"),new File(alignmentFile).getName()+metadata, structure);
-	}
-	
-	public static BasePair findNext(ArrayList<BasePair> possibleBasePairs, int jstar, double kfactor)
-	{
-		PointRes k = new PointRes(kfactor);
-		
-		BasePair minPair = null;
-		PointRes min = null;
-		
-		for(BasePair basePair : possibleBasePairs)
-		{
-			PointRes j =new PointRes(Math.max(basePair.i, basePair.j));
-			//PointRes cotranscriptional = k.multiply(j);
-			PointRes cotranscriptional = k.multiply(PointRes.max(PointRes.ZERO, j.subtract(new PointRes(jstar))));
-			if(basePair.probability.compareTo(PointRes.ZERO) == 0)
-			{
-				continue;
-			}
-			PointRes val = PointRes.ONE.divide(basePair.probability).add(k.multiply(cotranscriptional));
-			if(min == null || val.compareTo(min) < 0)
-			{
-				minPair = basePair;
-				min = val;
-			}
-		}
-		
-		return minPair;
-	}
-	
-	public static ArrayList<BasePair> listPossibleBasePairs(boolean [][] canPair, PointRes [][] pairedProbs, PointRes [][] diffs, PointRes deltaGreaterThan)
-	{
-		ArrayList<BasePair> pairs = new ArrayList<BasePair>();
-		
-		for(int i = 0 ; i < canPair.length ; i++)
-		{
-			for(int j = i + 1 ; j < canPair.length ; j++)
-			{
-				if(canPair[i][j] && diffs[i][j].compareTo(deltaGreaterThan) > 0)
-				{
-					pairs.add(new BasePair(i, j, pairedProbs[i][j], diffs[i][j]));
-				}
-			}
-		}
-		
-		return pairs;
-	}
-	
-	public static class BasePair
-	{
-		public int i;
-		public int j;
-		PointRes probability;
-		PointRes delta;
-		
-		public BasePair(int i, int j, PointRes probability, PointRes delta)
-		{
-			this.i = i;
-			this.j = j;
-			this.probability = probability;
-			this.delta = delta;
-		}
-
-		@Override
-		public String toString() {
-			return "BasePair [i=" + i + ", j=" + j + ", probability="
-					+ probability + ", delta=" + delta + "]";
-		}
-		
-		
-	}
-	
-	public static PPOutput getStrongestBasePair(boolean [][] canPair, PointRes [][] pairedProbs, int [] structure)
-	{
-		int leftIdx = -1;
-		int rightIdx = -1;
-		
-		for(int i = 0 ; i < canPair.length ; i++)
-		{
-			for(int j = i + 1 ; j < canPair.length ; j++)
-			{
-				if(canPair[i][j]  && structure[i] < 0 && structure[j] < 0)
-				{
-					if((leftIdx == -1 && rightIdx == -1) || pairedProbs[i][j].compareTo( pairedProbs[leftIdx][rightIdx]) > 0)
-					{
-						leftIdx = i;
-						rightIdx = j;
-					}
-				}
-			}
-		}
-		
-		return new PPOutput(leftIdx, rightIdx, 0, new PointRes(0.0), new PointRes(0.0));
 	}
 	
 	private void dumpExitReason(boolean exitBecauseOfDiff) {

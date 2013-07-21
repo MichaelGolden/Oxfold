@@ -21,8 +21,8 @@ import uk.ac.ox.osscb.analysis.StructureData;
 
 public class DataVisualiser {
 	
-	ColorGradient alphaRedGradient =  new ColorGradient(new Color(255,255,255,0), new Color(255,0,0,255));
-	ColorGradient whiteRedGradient =  new ColorGradient(new Color(255,255,255,255), new Color(255,0,0,255));
+	public static final ColorGradient alphaRedGradient =  new ColorGradient(new Color(255,255,255,0), new Color(255,0,0,255));
+	public static final ColorGradient whiteRedGradient =  new ColorGradient(new Color(255,255,255,255), new Color(255,0,0,255));
 	
 	Color missingDataColor = Color.gray;
     Color filteredDataColor = Color.darkGray;
@@ -97,14 +97,17 @@ public class DataVisualiser {
         return nucleotidePositions;
     }
 	
-	public SVG drawBasePairProbMatrix(double [][] basePairProb, double width, double height)
+	public static SVG drawBasePairProbMatrix(double [][] basePairProb, double width, double height)
 	{
 		SVG matrix = new SVG(width, height);
 		
 		double cellWidth = width / ((double)basePairProb.length);
 		double cellHeight = height / ((double)basePairProb[0].length);
 		
-		matrix.bodyElement += "<rect x=\"0\" y=\"0\" width=\""+width+"\" height=\""+height+"\" style=\"fill:rgb(200,200,200)\"/>";
+		StringBuffer sb = new StringBuffer();
+		sb.append("<rect x=\"0\" y=\"0\" width=\""+width+"\" height=\""+height+"\" style=\"fill:rgb(200,200,200)\"/>");
+		sb.append("\n");
+		matrix.bodyElement += "";
 		
 		for(int i = 0 ; i < basePairProb.length ; i++)
 		{
@@ -113,9 +116,11 @@ public class DataVisualiser {
 				double x = i*cellWidth;
 				double y = j*cellHeight;
 				Color c = alphaRedGradient.getColor((float)basePairProb[i][j]);
-				matrix.bodyElement += "<rect x=\"" + x+"\" y=\""+y+"\" width=\""+cellWidth+"\" height=\""+cellHeight+"\" style=\"fill:" + GraphicsUtils.getRGBAString(c) + "\"/>\n";
+				sb.append("<rect x=\"" + x+"\" y=\""+y+"\" width=\""+cellWidth+"\" height=\""+cellHeight+"\" style=\"fill:" + GraphicsUtils.getRGBAString(c) + "\"/>\n");				
 			}
+			//System.out.println(i+"\t"+basePairProb[0].length);
 		}
+		matrix.bodyElement = sb.toString();
 		return matrix;
 		
 	}

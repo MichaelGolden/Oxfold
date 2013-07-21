@@ -24,6 +24,7 @@ import uk.ac.ox.osscb.inoutside.IOsideCalculator;
 import uk.ac.ox.osscb.inoutside.InsideOutsideCalculator;
 import uk.ac.ox.osscb.inoutside.PPOutput;
 import uk.ac.ox.osscb.inoutside.PPOutputHelix;
+import uk.ac.ox.osscb.inoutside.ParallelInsideOutsideCalculator;
 import uk.ac.ox.osscb.inoutside.PosteriorProbabilities;
 import uk.ac.ox.osscb.inoutside.PosteriorProbabilitiesCalculator;
 import uk.ac.ox.osscb.inoutside.ValidatingIOSideCalculator;
@@ -349,16 +350,10 @@ public class CoFoldAnalogue {
 			log.debug(String.format("Pairing probs (Evol):\r\n%s", Util.print2DArray(alignmentProbs.getMtx())));
 			log.debug(String.format("Unpairing probs (Evol):\r\n%s", Util.dump1DArray(alignmentProbs.getVector(), 2, 4)));
 		}
-		
-		// by default is initialised with zeros automatically
-		int[] structure = new int[align[0].length()];
-		for(int posIdx = 0; posIdx < structure.length; posIdx++){
-			structure[posIdx] = Constants.UnpairedBaseIdx;
-		}
-
 
 
 		CoFoldInsideOutsideCalculator ioCalc = new CoFoldInsideOutsideCalculator(grammar);
+		ParallelInsideOutsideCalculator parallelCalc = new ParallelInsideOutsideCalculator(grammar);
 		
 		
 		//IOsideCalculator ioCalc = new ValidatingIOSideCalculator(new CoFoldInsideOutsideCalculator(grammar), grammar);
@@ -386,9 +381,35 @@ public class CoFoldAnalogue {
 			}	
 		}
 		canPair = CoFoldAnalogue.deleteColumns(canPair, delete);
-		
+				
+		// by default is initialised with zeros automatically
+		int[] structure = new int[align[0].length()];
+		for(int posIdx = 0; posIdx < structure.length; posIdx++){
+			structure[posIdx] = Constants.UnpairedBaseIdx;
+		}
+		//InsideOutsideProbabilities insideProbs = ioCalc.inside(evol ? alignmentProbsEvol : alignmentProbs, alpha, tau, structure, canPair);
+		//InsideOutsideProbabilities outsideProbs = ioCalc.outside(insideProbs, evol ? alignmentProbsEvol : alignmentProbs, alpha, tau, structure, canPair);
+		long startIOSerial = System.nanoTime();
 		InsideOutsideProbabilities insideProbs = ioCalc.inside(evol ? alignmentProbsEvol : alignmentProbs, alpha, tau, structure, canPair);
 		InsideOutsideProbabilities outsideProbs = ioCalc.outside(insideProbs, evol ? alignmentProbsEvol : alignmentProbs, alpha, tau, structure, canPair);
+		long endIOSerial = System.nanoTime();
+		System.out.println("IO serial: "+((endIOSerial - startIOSerial) / 1e9));
+		
+		structure = new int[align[0].length()];
+		for(int posIdx = 0; posIdx < structure.length; posIdx++){
+			structure[posIdx] = Constants.UnpairedBaseIdx;
+		}
+		long startIOParallel = System.nanoTime();
+		//insideProbs = parallelCalc.insideParallel(evol ? alignmentProbsEvol : alignmentProbs, alpha, tau, structure, canPair);
+		//outsideProbs = parallelCalc.outsideParallel(insideProbs, evol ? alignmentProbsEvol : alignmentProbs, alpha, tau, structure, canPair);
+		insideProbs = parallelCalc.insideParallelCoFold(evol ? alignmentProbsEvol : alignmentProbs, alpha, tau, structure, canPair);
+		outsideProbs = parallelCalc.outsideParallelCoFold(insideProbs, evol ? alignmentProbsEvol : alignmentProbs, alpha, tau, structure, canPair);
+		
+		long endIOParellel = System.nanoTime();
+		System.out.println("IO parallel: "+((endIOParellel - startIOParallel) / 1e9));
+		double speedup =((endIOSerial - startIOSerial) / 1e9)/((endIOParellel - startIOParallel) / 1e9);
+		System.out.println("Speedup "+speedup);
+				
 		CoFoldPosteriorProbabilitiesCalculator ppCalc = new CoFoldPosteriorProbabilitiesCalculator(grammar);
 		int [][] distances = null;
 		PosteriorProbabilities currentPostProbs = ppCalc.calculate(insideProbs, outsideProbs, evol ? alignmentProbsEvol : alignmentProbs, distances, alpha, tau, structure, canPair);

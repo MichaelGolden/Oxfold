@@ -29,8 +29,8 @@ public class PossiblePairFinder {
 				cp[j][structure[j]] = true;
 			}
 		}
-		CoFoldAnalogue.deleteColumns(cp, delete);
-		return cp;
+
+		return CoFoldAnalogue.deleteColumns(cp, delete);
 	}
 	/**
 	 * finds possible pairs in structure

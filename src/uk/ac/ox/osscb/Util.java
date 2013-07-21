@@ -9,6 +9,8 @@ import org.joda.time.Period;
 import org.joda.time.format.PeriodFormatter;
 import org.joda.time.format.PeriodFormatterBuilder;
 
+import uk.ac.ox.osscb.inoutside.PointResUpperMatrix;
+
 public class Util {
 	
 	/**
@@ -26,6 +28,19 @@ public class Util {
 		for(int i = 0; i < dim; i++){
 			for(int j = 0; j < dim; j++){
 				bigDecAr[i][j] = PointRes.ZERO;
+			}
+		}
+		return bigDecAr;
+	}
+	
+	public static PointResUpperMatrix makePointResSquareZerosMatrix(int dim){
+		
+		PointResUpperMatrix bigDecAr = new PointResUpperMatrix(dim);
+		
+		for(int i = 0; i < dim; i++){
+			for(int j = 0; j < dim; j++){
+			//for(int j = i+1; j < dim; j++){
+				bigDecAr.set(i, j, PointRes.ZERO);
 			}
 		}
 		return bigDecAr;
@@ -86,6 +101,10 @@ public class Util {
 	public  static String print2DArray(PointRes[][] numAr) {
 		return print2DArray(numAr, 5, 2);
 	}
+	
+	public  static String print2DArray(PointResUpperMatrix numAr) {
+		return print2DArray(numAr, 5, 2);
+	}
 
 	/**
 	 * TODO make width & precision be 'active'. Currently they're ignored.
@@ -101,6 +120,27 @@ public class Util {
 			sb.append("[");
 			for(int j = 0; j < numAr[i].length;j++){
 				PointRes val = numAr[i][j];
+				String format;
+				if(null != val){
+					double doubleValue = val.doubleValue();
+					format = String.format("%8.2g; ", doubleValue);
+				}else{
+					format = "<null>";
+				}
+				sb.append(format);
+			}
+			sb.append("]").append(nL());
+		}
+		
+		return sb.toString();
+	}
+	
+	public  static String print2DArray(PointResUpperMatrix numAr, int width, int precision) {
+		StringBuilder sb = new StringBuilder();
+		for(int i = 0; i < numAr.length; i++){
+			sb.append("[");
+			for(int j = 0; j < numAr.length;j++){
+				PointRes val = numAr.get(i, j);
 				String format;
 				if(null != val){
 					double doubleValue = val.doubleValue();

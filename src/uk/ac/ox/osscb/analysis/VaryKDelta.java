@@ -4,8 +4,10 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Random;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -44,7 +46,7 @@ public class VaryKDelta {
 				double delta = Double.parseDouble(args[i]);
 				//inputs.add(new Job(k, delta, 1, runEvol, numdatasets));
 				System.out.println("delta2 "+delta);
-				inputs.add(new Job(0.5, k, delta, runEvol, numdatasets)); // for fast oxfold
+				inputs.add(new Job(0.5, k, delta, runEvol, numdatasets)); // for fast oxfold, k=0.5, delta=k, delta2=delta
 			}
 			VaryKDelta varyKDelta = new VaryKDelta();
 			 try {
@@ -305,9 +307,62 @@ public class VaryKDelta {
 			
 	}
 	
+	static Random random= new Random(983118011408130222L);
+	/*public static void selectN(StructureData s, int n)
+	{		
+		int select = Math.min(s.sequences.size(), n);
+		while(select < s.sequences.size())
+		{
+			int i = random.nextInt(s.sequences.size());
+			s.sequences.remove(i);
+			s.sequenceNames.remove(i);
+		}
+		
+		boolean [] delete = new boolean[s.sequences.get(0).length()];
+		Arrays.fill(delete, true);
+		for(int i = 0 ; i < s.sequences.size() ; i++)
+		{
+			String seq = s.sequences.get(i);
+			for(int j = 0 ; j < seq.length() ; j++)
+			{
+				if(seq.charAt(j) != '-')
+				{
+					delete[j] = false;
+				}
+			}
+		}
+		
+		for(int i = 0 ; i < delete.length ; i++)
+		{
+			if(delete[i])
+			{
+				int pairedTo = s.pairedSites[i]-1;
+				if(pairedTo >= 0)
+				{
+					s.pairedSites[i] = 0;
+					s.pairedSites[pairedTo]=0;
+				}				
+			}
+		}
+	}*/
+	
+	public static void selectN(ArrayList<String> sequences, ArrayList<String> sequenceNames, int n)
+	{
+		
+		int select = Math.min(sequences.size(), n);
+		while(select < sequences.size())
+		{
+			int i = random.nextInt(sequences.size());
+			sequences.remove(i);
+			sequenceNames.remove(i);
+		}
+	}
+	
+
+    int threads = 8;
 	private static void runSpecificFastOxfold(double KValue, double dValue, double delta2, int uptodataset, boolean runEvol){
 		ArrayList<String> avgMetrics = new ArrayList<String>();
-		String outputDirString = "output_fastoxfold_skip35/";
+		String outputDirString = "output_rrna/";
 		
 		Constants.IterationCutOff = PointRes.valueOf(Double.valueOf(dValue)); 
 		
@@ -335,14 +390,14 @@ public class VaryKDelta {
 
 		int maxIter = uptodataset;
 		ArrayList<StructureData> sublist =  new ArrayList<StructureData>();
-		sublist.addAll((List<StructureData>)experimentalStructures.subList(0, maxIter));
+		sublist.addAll((List<StructureData>)experimentalStructures.subList(0, Math.min(experimentalStructures.size(), maxIter)));
 		experimentalStructures = sublist;
 		
 		ArrayList<StructureData> predictedStructures = new ArrayList<StructureData>();
 		ArrayList<StructureData> noDelta2 = new ArrayList<StructureData>();
 		 
 		ArrayList<StructureData> usedExperimental = new ArrayList<StructureData>();
-		int skip = 38;
+		int skip = 0;
 		int j = 0;
 		for(int i = 0 ; i < experimentalStructures.size() ; i++) 
 		{
@@ -350,15 +405,17 @@ public class VaryKDelta {
 			{
 				continue;
 			}
+			System.out.println(experimentalStructures.get(i).file);
 			StructureData s= experimentalStructures.get(i);
+			selectN(s.sequences, s.sequenceNames, (int)delta2);
+			System.out.println("VAL"+s.sequences.size()+"\t"+delta2);
 			usedExperimental.add(s);
 			
-			//StructureData s = experimentalStructures.get(0);
-			//StructureData s = experimentalStructures.get(j);
 			predictedStructures.add(foldOxfold(outputDir, s.file.getName()+"_", s.sequences, s.sequenceNames, runEvol, KValue, delta2));
-			File dir2 = new File(outputDirString + "K_" + KValue + "_Delta_" + dValue+"_delta2_"+1 +evol+"/");
-			dir2.mkdirs();
-			noDelta2.add(foldOxfold(dir2, s.file.getName(), s.sequences, s.sequenceNames, runEvol, KValue, 1));
+			//noDelta2.add(foldOxfold(outputDir, s.file.getName()+"_", s.sequences, s.sequenceNames, runEvol, KValue, delta2));
+			//File dir2 = new File(outputDirString + "K_" + KValue + "_Delta_" + dValue+"_delta2_"+(1.0) +evol+"/");
+			//dir2.mkdirs();
+			//noDelta2.add(foldOxfold(dir2, s.file.getName(), s.sequences, s.sequenceNames, runEvol, KValue, 1));
 			
 			try {				
 				VaryKDelta.saveBenchmarkAvgCSV(avgMetrics,experimentalStructures, predictedStructures, KValue, delta, j == maxIter - 1);
@@ -397,10 +454,15 @@ public class VaryKDelta {
 			{
 				//System.out.println("ACVB "+predictedStructures.get(i).title);
 				String with = predictedStructures.get(i).title.split(";")[1].split("=")[1].split(",")[0];
-				String without = noDelta2.get(i).title.split(";")[1].split("=")[1].split(",")[0];
 				//System.out.println(">>>"+i+"\t"+with+"\t"+without);
 				iterWithDelta2 += Double.parseDouble(with); 
+				
+
+				if(i < noDelta2.size())
+				{
+				String without = noDelta2.get(i).title.split(";")[1].split("=")[1].split(",")[0];
 				iterWithoutDelta2 += Double.parseDouble(without);
+				}
 			}
 			
 			
@@ -441,7 +503,6 @@ public class VaryKDelta {
     public List<JobOutput> processInputs(List<Job> inputs, final FoldingAlgorithm algorithm)
             throws InterruptedException, ExecutionException {
 
-        int threads = 8;
         ExecutorService service = Executors.newFixedThreadPool(threads);
 
         List<Future<JobOutput>> futures = new ArrayList<Future<JobOutput>>();

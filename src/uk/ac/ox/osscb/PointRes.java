@@ -21,8 +21,8 @@ public class PointRes  extends Number implements Serializable {
 	private static final long serialVersionUID = 6121110456253627605L;
 	private static final double LOG_TWO = Math.log(2);
 	// container for new number representation
-	private float fraction; // = 0 OR >=1 0R <basis (in absolute value)
-	private int exponent; // can be any integer, positive and negative
+	public float fraction; // = 0 OR >=1 0R <basis (in absolute value)
+	public int exponent; // can be any integer, positive and negative
 
 	public PointRes(float fraction, int exponent) {
 		// Input fraction should always have exponent zero!!
@@ -66,6 +66,16 @@ public class PointRes  extends Number implements Serializable {
 		} else {
 			this.exponent = (int) ((bits >> 52) & 0x7FF) - 1023;
 		}
+	}
+	
+	public static PointRes max(PointRes a, PointRes b)
+	{
+		PointRes max = a;
+		if(max.compareTo(b) < 0)
+		{
+			max = b;
+		}
+		return max;
 	}
 
 	@Override

@@ -63,5 +63,14 @@ public class PPOutput {
 	public int gethelixLength() {
 		return helixLength;
 	}
+
+	@Override
+	public String toString() {
+		return "PPOutput [leftIdx=" + leftIdx + ", rightIdx=" + rightIdx
+				+ ", diff=" + diff + ", comp=" + comp + ", helixLength="
+				+ helixLength + "]";
+	}
+	
+	
 }
 
