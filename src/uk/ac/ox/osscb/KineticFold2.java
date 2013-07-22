@@ -238,15 +238,22 @@ public class KineticFold2 {
 		//.out.println(align[0]);
 		
 		NucleotideProbsPrecise alignmentProbs = new NucleotideBasePairingProbsCalculator().calculate(align, parameters);
-		NucleotideProbsPrecise alignmentProbsEvol = new EvolProbabilitiesCalculator().getEvolutionaryProbs(tree, parameters, align);
+		//NucleotideProbsPrecise alignmentProbsEvol = new EvolProbabilitiesCalculator().getEvolutionaryProbs(tree, parameters, align);
+
+		ArrayList<String> sequences = new ArrayList<String>();
+		ArrayList<String> sequenceNames = new ArrayList<String>();
+		IO.loadFastaSequences(new File(alignmentFile), sequences, sequenceNames);
+		NucleotideProbsPrecise alignmentProbsEvol = EvolProbabilitiesCalculator.calculateEvolutionaryProbsPPfold(align, sequenceNames, new File(treeFile));
+		
+		
 		
 		// Added in
 		//
 		
 		
-		ArrayList<String> sequences = new ArrayList<String>();
-		ArrayList<String> sequenceNames = new ArrayList<String>();
-		IO.loadFastaSequences(new File(alignmentFile), sequences, sequenceNames);
+		//ArrayList<String> sequences = new ArrayList<String>();
+		//ArrayList<String> sequenceNames = new ArrayList<String>();
+		//IO.loadFastaSequences(new File(alignmentFile), sequences, sequenceNames);
 		//alignmentProbsEvol = EvolProbabilitiesCalculator.calculateEvolutionaryProbsPPfold(align, sequenceNames, new File(treeFile));
 		//alignmentProbsEvol = alignmentProbs;
 		
