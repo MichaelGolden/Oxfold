@@ -35,6 +35,39 @@ public class ParallelInsideOutsideCalculator {
 		this.grammar = grammar;
 	}
 	
+	public InsideOutsideProbabilities insideParallel (NucleotideProbsPrecise pairingProbs, int [] structure, boolean [][] canPair, BasePairWeighting basepairWeighting)
+	{
+		final int seqLen = structure.length;
+
+		InsideOutsideProbabilities iProbs = new InsideOutsideProbabilities(grammar.getNonterminals(), seqLen);
+
+		// initialise inside with values of i[U,j,j]
+		for (ProductionRule rule1 : grammar.getRules(RuleType.RULE1)) {
+			for (int charIdx = 0; charIdx<seqLen; charIdx++) {
+				if(Constants.UnpairedBaseIdx == structure[charIdx]) {
+					PointRes prob = pairingProbs.getUnpairingProbability(charIdx).multiply(rule1.getProbability());
+					iProbs.setProb(rule1.getLeft(), charIdx, charIdx, prob);
+				}
+			}			
+		}
+		runInsideJobs(iProbs,pairingProbs,structure,canPair, basepairWeighting);
+		return iProbs;
+	}
+
+	/* (non-Javadoc)
+	 * @see uk.ac.ox.osscb.inoutside.IOsideCalculator#outside(uk.ac.ox.osscb.InsideOutsideProbabilities, uk.ac.ox.osscb.domain.NucleotideProbsPrecise, int[][], double, boolean[][])
+	 */
+	public InsideOutsideProbabilities outsideParallel(InsideOutsideProbabilities insideProbs, 
+			NucleotideProbsPrecise pairingProbs, int[] structure, boolean[][] canPair, BasePairWeighting basepairWeighting) {
+
+		final int seqLen = structure.length;
+		InsideOutsideProbabilities oProbs = new InsideOutsideProbabilities(grammar.getNonterminals(), seqLen);
+		oProbs.setProb(this.grammar.getNonterminals()[0], 0, seqLen - 1, PointRes.ONE);
+		runOutsideJobs(insideProbs, oProbs,pairingProbs,structure,canPair, basepairWeighting);
+
+		return oProbs;
+	}
+	
 
 
 	public InsideOutsideProbabilities insideParallel (NucleotideProbsPrecise pairingProbs, int [] structure, boolean [][] canPair, PointResUpperMatrix basepairWeighting)
@@ -72,7 +105,7 @@ public class ParallelInsideOutsideCalculator {
 
 	public InsideOutsideProbabilities insideParallelCoFold (NucleotideProbsPrecise pairingProbs, double alpha, double tau, int [] structure, boolean [][] canPair)
 	{
-
+		/*
 		PointResUpperMatrix basepairWeighting = new PointResUpperMatrix(structure.length);
 		for(int i = 0 ; i < structure.length ; i++)
 		{
@@ -82,15 +115,16 @@ public class ParallelInsideOutsideCalculator {
 				double exp = alpha*(Math.exp(-distance/tau) - 1) + 1;
 				basepairWeighting.set(i, j, PointRes.valueOf(exp));
 			}
-		}
+		}*/
 
-		return insideParallel (pairingProbs, structure,canPair, basepairWeighting);
+		return insideParallel (pairingProbs, structure,canPair, new BasePairWeightingCofold(alpha, tau));
 	}
 	
 	public InsideOutsideProbabilities outsideParallelCoFold (InsideOutsideProbabilities insideProbs, 
 			NucleotideProbsPrecise pairingProbs, double alpha, double tau, int[] structure, boolean[][] canPair)
 	{
 
+		/*
 		PointResUpperMatrix basepairWeighting = new PointResUpperMatrix(structure.length);
 		for(int i = 0 ; i < structure.length ; i++)
 		{
@@ -100,38 +134,40 @@ public class ParallelInsideOutsideCalculator {
 				double exp = alpha*(Math.exp(-distance/tau) - 1) + 1;
 				basepairWeighting.set(i, j, PointRes.valueOf(exp));
 			}
-		}
+		}*/
 
-		return outsideParallel (insideProbs, pairingProbs, structure,canPair, basepairWeighting);
+		return outsideParallel (insideProbs, pairingProbs, structure,canPair, new BasePairWeightingCofold(alpha, tau));
 	}
 	
 	public InsideOutsideProbabilities insideParallelOxfold (NucleotideProbsPrecise pairingProbs,  int[][] distances, double weight, int [] structure, boolean [][] canPair)
-	{
-		PointResUpperMatrix basepairWeighting = new PointResUpperMatrix(structure.length);
+	{		
+		/*PointResUpperMatrix basePairWeighting = new PointResUpperMatrix(structure.length);
 		for(int i = 0 ; i < structure.length ; i++)
 		{
 			for(int j = i ; j < structure.length ; j++)
 			{
-				basepairWeighting.set(i, j, PointRes.valueOf(Math.exp(-distances[i][j]/weight)));
+				basePairWeighting.set(i, j, PointRes.valueOf(Math.exp(-distances[i][j]/weight)));
 			}
-		}
+		}*/
 
-		return insideParallel (pairingProbs, structure,canPair, basepairWeighting);
+		BasePairWeightingOxfold basePairWeighting = new BasePairWeightingOxfold(distances, weight);
+
+		return insideParallel (pairingProbs, structure,canPair, basePairWeighting);
 	}
 	
 	public InsideOutsideProbabilities outsideParallelOxfold (InsideOutsideProbabilities insideProbs, 
 			NucleotideProbsPrecise pairingProbs, int[][] distances, double weight, int[] structure, boolean[][] canPair)
-	{
-
-		PointResUpperMatrix basepairWeighting = new PointResUpperMatrix(structure.length);
+	{		
+		/*PointResUpperMatrix basePairWeighting = new PointResUpperMatrix(structure.length);
 		for(int i = 0 ; i < structure.length ; i++)
 		{
 			for(int j = i ; j < structure.length ; j++)
 			{
-				basepairWeighting.set(i, j, PointRes.valueOf(Math.exp(-distances[i][j]/weight)));
+				basePairWeighting.set(i, j, PointRes.valueOf(Math.exp(-distances[i][j]/weight)));
 			}
-		}
-		return outsideParallel (insideProbs, pairingProbs, structure,canPair, basepairWeighting);
+		}*/
+		BasePairWeightingOxfold basePairWeighting = new BasePairWeightingOxfold(distances, weight);
+		return outsideParallel (insideProbs, pairingProbs, structure,canPair, basePairWeighting);
 	}
 	
 	public InsideOutsideProbabilities insideParallelOxfold (NucleotideProbsPrecise pairingProbs,  double[][] distances, double weight, int [] structure, boolean [][] canPair)
@@ -180,6 +216,8 @@ public class ParallelInsideOutsideCalculator {
 			e.printStackTrace();
 		}
 	}
+	
+	
 
 	public void runOutsideJobs(InsideOutsideProbabilities iProbs, InsideOutsideProbabilities oProbs,
 			NucleotideProbsPrecise pairingProbs,int[] structure, boolean[][] canPair, PointResUpperMatrix basepairWeighting)
@@ -196,10 +234,83 @@ public class ParallelInsideOutsideCalculator {
 			e.printStackTrace();
 		}
 	}
+	
+	public void runInsideJobs(InsideOutsideProbabilities iProbs,
+			NucleotideProbsPrecise pairingProbs,
+			int[] structure, boolean[][] canPair, BasePairWeighting basepairWeighting)
+	{
 
+		try {
+			ArrayList<Sector> sectors = createInsideSectors(structure.length, iProbs, pairingProbs,structure,canPair, basepairWeighting);
+			processInsideSectors(sectors);
+
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (ExecutionException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+	
+
+	public void runOutsideJobs(InsideOutsideProbabilities iProbs, InsideOutsideProbabilities oProbs,
+			NucleotideProbsPrecise pairingProbs,int[] structure, boolean[][] canPair, BasePairWeighting basepairWeighting)
+	{
+
+		try {
+			ArrayList<Sector> sectors = createOutsideSectors(structure.length, iProbs, oProbs, pairingProbs,structure,canPair, basepairWeighting);
+			processOutsideSectors(sectors);
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (ExecutionException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+	
 	public ArrayList<Sector> createInsideSectors(int seqLen, InsideOutsideProbabilities iProbs,
 			NucleotideProbsPrecise pairingProbs,
 			int[] structure, boolean[][] canPair, PointResUpperMatrix basepairWeighting)
+			{
+		int divisions = (int)(threads*2);
+		ArrayList<Sector> sectors = new ArrayList<Sector>();
+		ParallelInfo info = new ParallelInfo(sectors);
+		for (int b = 1; b <= seqLen; b += 1) {
+			int j_divisions = Math.max(2, (seqLen-b)/divisions);			
+			for (int j = 0; j <= seqLen-b; j += j_divisions) {
+				Sector s = new Sector(sectors.size(), b, Math.min(seqLen, b+1), j,Math.min(seqLen-b, j+j_divisions), 0, seqLen, iProbs, pairingProbs,structure,canPair, basepairWeighting, info);
+				sectors.add(s);
+			}
+		}
+
+		return sectors;
+			}
+
+	public ArrayList<Sector> createOutsideSectors(int seqLen, InsideOutsideProbabilities iProbs, InsideOutsideProbabilities oProbs,
+			NucleotideProbsPrecise pairingProbs, int[] structure, boolean[][] canPair, BasePairWeighting basepairWeighting)
+			{
+		int divisions = (int)(threads*2);
+		ArrayList<Sector> sectors = new ArrayList<Sector>();
+
+
+		ParallelInfo info = new ParallelInfo(sectors);
+		for (int b = structure.length-2; b >= 0; b--) 
+		{
+			int j_divisions = Math.max(2, (seqLen-b)/divisions);
+			for (int j = 0; j <= seqLen-b; j += j_divisions) {
+				Sector s = new Sector(sectors.size(), b, Math.max(0, b-1), j,Math.min(seqLen-b, j+j_divisions), 0, seqLen, iProbs, oProbs, pairingProbs,structure,canPair, basepairWeighting, info);
+				sectors.add(s);
+			}
+		}
+
+		return sectors;
+			}
+
+	public ArrayList<Sector> createInsideSectors(int seqLen, InsideOutsideProbabilities iProbs,
+			NucleotideProbsPrecise pairingProbs,
+			int[] structure, boolean[][] canPair, BasePairWeighting basepairWeighting)
 			{
 		int divisions = (int)(threads*2);
 		ArrayList<Sector> sectors = new ArrayList<Sector>();
@@ -243,8 +354,9 @@ public class ParallelInsideOutsideCalculator {
 
 		}
 		
-		PointResUpperMatrix basepairWeighting = sector.basepairWeighting;
-		if(basepairWeighting == null)
+		PointResUpperMatrix basepairWeightingMatrix = sector.basepairWeighting;
+		BasePairWeighting basepairWeightingFunction = sector.basePairWeightingFunction;
+		if(basepairWeightingMatrix == null)
 		{	
 			InsideOutsideProbabilities iProbs = sector.iProbs;
 			NucleotideProbsPrecise pairingProbs = sector.pairingProbs;
@@ -279,6 +391,7 @@ public class ParallelInsideOutsideCalculator {
 			}
 		}
 		else
+		if(basepairWeightingFunction != null)
 		{
 			InsideOutsideProbabilities iProbs = sector.iProbs;
 			NucleotideProbsPrecise pairingProbs = sector.pairingProbs;
@@ -303,7 +416,41 @@ public class ParallelInsideOutsideCalculator {
 					if (canPair[j][j+b]) {
 						for (ProductionRule rule2: grammar.getRules(RuleType.RULE2)) {
 							PointRes probIncrement = PointRes.ZERO;
-							probIncrement = rule2.getProbability().multiply(basepairWeighting.get(j, j+b))
+							probIncrement = rule2.getProbability().multiply(basepairWeightingFunction.getPointResWeight(j, j+b))
+									.multiply(pairingProbs.getPairingProbability(j, j+b))
+									.multiply(iProbs.getProb(rule2.getRight()[1],j+1,j+b-1));
+							iProbs.increment(rule2.getLeft(), j, j+b, probIncrement);
+						}
+					}
+				}	
+			}
+		}
+		else
+		{
+			InsideOutsideProbabilities iProbs = sector.iProbs;
+			NucleotideProbsPrecise pairingProbs = sector.pairingProbs;
+			boolean [][] canPair = sector.canPair;
+			for (int b = sector.startb; b < sector.endb ; b++) {
+				for (int j = sector.startj ; j < sector.endj ; j++) {
+					//System.out.println(b+"\t"+j+"\t");
+					// deal with contribution of rules of type U->VW
+					for (ProductionRule rule3: grammar.getRules(RuleType.RULE3)) {
+						PointRes tmp = PointRes.ZERO;
+						for (int h = j ; h < j+b  ; h++) {
+							PointRes prob1 = iProbs.getProb(rule3.getRight()[0], j, h);
+							PointRes prob2 = iProbs.getProb(rule3.getRight()[1], h+1, j+b);
+							tmp = tmp.add(prob1.multiply(prob2));
+						}
+						PointRes probIncrement = rule3.getProbability().multiply(tmp);
+
+						iProbs.increment(rule3.getLeft(), j, j+b, probIncrement);
+					}
+
+					// deal with production rules of type U->(V)				
+					if (canPair[j][j+b]) {
+						for (ProductionRule rule2: grammar.getRules(RuleType.RULE2)) {
+							PointRes probIncrement = PointRes.ZERO;
+							probIncrement = rule2.getProbability().multiply(basepairWeightingMatrix.get(j, j+b))
 									.multiply(pairingProbs.getPairingProbability(j, j+b))
 									.multiply(iProbs.getProb(rule2.getRight()[1],j+1,j+b-1));
 							iProbs.increment(rule2.getLeft(), j, j+b, probIncrement);
@@ -332,8 +479,9 @@ public class ParallelInsideOutsideCalculator {
 		boolean [][] canPair = sector.canPair;
 
 		int b = sector.startb;	
-		PointResUpperMatrix basepairWeighting = sector.basepairWeighting;
-		if(basepairWeighting == null)
+		PointResUpperMatrix basepairWeightingMatrix = sector.basepairWeighting;
+		BasePairWeighting basepairWeightingFunction = sector.basePairWeightingFunction;
+		if(basepairWeightingMatrix == null)
 		{		
 			// iterate over (decreasing) length of inside interval
 			//for (int b = seqLen-2; b >= 0; b--) {
@@ -373,6 +521,7 @@ public class ParallelInsideOutsideCalculator {
 			}
 		}
 		else
+		if(basepairWeightingFunction != null)
 		{
 			// iterate over (decreasing) length of inside interval
 			//for (int b = seqLen-2; b >= 0; b--) {
@@ -403,7 +552,46 @@ public class ParallelInsideOutsideCalculator {
 					for (ProductionRule rule2: this.grammar.getRules(RuleType.RULE2)) {
 						PointRes probIncrement = PointRes.ZERO;
 						//PointRes exp = PointRes.valueOf(Math.exp(-distances[j-1][j+b+1]/weight));
-						probIncrement = rule2.getProbability().multiply(basepairWeighting.get(j-1, j+b+1))
+						probIncrement = rule2.getProbability().multiply(basepairWeightingFunction.getPointResWeight(j-1, j+b+1))
+								.multiply(pairingProbs.getPairingProbability(j-1, j+b+1))
+								.multiply(oProbs.getProb(rule2.getLeft(), j-1, j+b+1));
+						oProbs.increment(rule2.getRight()[1], j, j+b, probIncrement);
+					}
+				}
+			}
+		}
+		else
+		{
+			// iterate over (decreasing) length of inside interval
+			//for (int b = seqLen-2; b >= 0; b--) {
+			// iterate over (decreasing) length of inside interval
+			//for (int b = sector.startb ; b >= sector.endb; b--) {
+			for (int j = sector.startj; j < sector.endj ; j++) {
+				//for (int j = 0; j < seqLen - b; j++) {
+				for (ProductionRule rule3 : this.grammar.getRules(RuleType.RULE3)) {
+					PointRes tmp = PointRes.ZERO;
+					for (int k = j + b + 1; k < seqLen; k++) {
+						PointRes oProb = oProbs.getProb(rule3.getLeft(), j, k);
+						PointRes iProb = insideProbs.getProb(rule3.getRight()[1], j+b+1, k);
+						tmp = tmp.add(oProb.multiply( iProb));
+					}
+					PointRes probIncrement = tmp.multiply(rule3.getProbability());
+					oProbs.increment(rule3.getRight()[0], j, j+b, probIncrement);
+					tmp = PointRes.ZERO;
+					for(int k = 0; k<j;k++) {
+						PointRes oProb = oProbs.getProb(rule3.getLeft(), k, j+b);
+						PointRes iProb = insideProbs.getProb(rule3.getRight()[0], k, j-1);
+						tmp = tmp.add(oProb.multiply(iProb));						
+					}
+					probIncrement = tmp.multiply(rule3.getProbability());					
+					oProbs.increment(rule3.getRight()[1], j, j+b, probIncrement);
+				}
+				// get contributions of rules of type U->(V)
+				if ((j>=1)&&(j+b+1<seqLen)&&(canPair[j-1][j+b+1])) {
+					for (ProductionRule rule2: this.grammar.getRules(RuleType.RULE2)) {
+						PointRes probIncrement = PointRes.ZERO;
+						//PointRes exp = PointRes.valueOf(Math.exp(-distances[j-1][j+b+1]/weight));
+						probIncrement = rule2.getProbability().multiply(basepairWeightingMatrix.get(j-1, j+b+1))
 								.multiply(pairingProbs.getPairingProbability(j-1, j+b+1))
 								.multiply(oProbs.getProb(rule2.getLeft(), j-1, j+b+1));
 						oProbs.increment(rule2.getRight()[1], j, j+b, probIncrement);
@@ -540,8 +728,51 @@ public class ParallelInsideOutsideCalculator {
 		final boolean [][] canPair;
 		final ParallelInfo info;
 		final PointResUpperMatrix basepairWeighting;
+		final BasePairWeighting basePairWeightingFunction;
 
 
+		public Sector(int n, int startb, int endb, int startj, int endj, int starth, int endh, InsideOutsideProbabilities iProbs,
+				NucleotideProbsPrecise pairingProbs,
+				int[] structure, boolean[][] canPair, BasePairWeighting basepairWeightingFunction, ParallelInfo info) {
+			super();
+			this.n = n;
+			this.startb = startb;
+			this.endb = endb;
+			this.startj = startj;
+			this.endj = endj;
+			this.starth = starth;
+			this.endh = endh;
+			this.iProbs = iProbs;
+			this.pairingProbs = pairingProbs;
+			this.structure = structure;
+			this.canPair = canPair;
+			this.oProbs = null;
+			this.info = info;
+			this.basepairWeighting = null;
+			this.basePairWeightingFunction = basepairWeightingFunction;
+		}
+
+		public Sector(int n, int startb, int endb, int startj, int endj, int starth, int endh, InsideOutsideProbabilities iProbs, InsideOutsideProbabilities oProbs,
+				NucleotideProbsPrecise pairingProbs,
+				int[] structure, boolean[][] canPair, BasePairWeighting basepairWeightingFunction, ParallelInfo info) {
+			super();
+			this.n = n;
+			this.startb = startb;
+			this.endb = endb;
+			this.startj = startj;
+			this.endj = endj;
+			this.starth = starth;
+			this.endh = endh;
+			this.iProbs = iProbs;
+			this.oProbs = oProbs;
+			this.pairingProbs = pairingProbs;
+			this.structure = structure;
+			this.canPair = canPair;
+			this.info = info;
+			this.basepairWeighting = null;
+			this.basePairWeightingFunction = basepairWeightingFunction;
+		}
+		
 		public Sector(int n, int startb, int endb, int startj, int endj, int starth, int endh, InsideOutsideProbabilities iProbs,
 				NucleotideProbsPrecise pairingProbs,
 				int[] structure, boolean[][] canPair, PointResUpperMatrix basepairWeighting, ParallelInfo info) {
@@ -560,6 +791,7 @@ public class ParallelInsideOutsideCalculator {
 			this.oProbs = null;
 			this.info = info;
 			this.basepairWeighting = basepairWeighting;
+			this.basePairWeightingFunction = null;
 		}
 
 		public Sector(int n, int startb, int endb, int startj, int endj, int starth, int endh, InsideOutsideProbabilities iProbs, InsideOutsideProbabilities oProbs,
@@ -580,6 +812,7 @@ public class ParallelInsideOutsideCalculator {
 			this.canPair = canPair;
 			this.info = info;
 			this.basepairWeighting = basepairWeighting;
+			this.basePairWeightingFunction = null;
 		}
 
 		@Override

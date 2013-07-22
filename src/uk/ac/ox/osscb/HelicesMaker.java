@@ -12,6 +12,8 @@ import uk.ac.ox.osscb.inoutside.Helix;
 
 public class HelicesMaker {
 	
+		double mu = 0; 
+	
 		/**
 		 * given an initial pair, looks around that pair to form a helix with all Deltas > 0
 		 * @param leftIdx
@@ -24,10 +26,10 @@ public class HelicesMaker {
 		public Helix makeHelix(int leftIdx, int rightIdx, PointRes[][] diffs, boolean[][] canPair) {
 			int length = diffs.length;	
 			int helixLength = 1;
-			while (diffs[leftIdx+helixLength][rightIdx-helixLength].signum()>0) {
+			while (diffs[leftIdx+helixLength][rightIdx-helixLength].signum()>mu) {
 				helixLength++;
 			}
-			while ((leftIdx>0)&&(rightIdx<length-1)&&(diffs[leftIdx-1][rightIdx+1].signum()>0)) {
+			while ((leftIdx>0)&&(rightIdx<length-1)&&(diffs[leftIdx-1][rightIdx+1].signum()>mu)) {
 				leftIdx--; rightIdx++; helixLength++;
 			}
 			Helix helix = new Helix(leftIdx,rightIdx,helixLength,diffs);
@@ -37,10 +39,10 @@ public class HelicesMaker {
 		public Helix makeHelix(int leftIdx, int rightIdx, double[][] diffs, boolean[][] canPair) {
 			int length = diffs.length;	
 			int helixLength = 1;
-			while (diffs[leftIdx+helixLength][rightIdx-helixLength]>0) {
+			while (diffs[leftIdx+helixLength][rightIdx-helixLength]>mu) {
 				helixLength++;
 			}
-			while ((leftIdx>0)&&(rightIdx<length-1)&&(diffs[leftIdx-1][rightIdx+1]>0)) {
+			while ((leftIdx>0)&&(rightIdx<length-1)&&(diffs[leftIdx-1][rightIdx+1]>mu)) {
 				leftIdx--; rightIdx++; helixLength++;
 			}
 			Helix helix = new Helix(leftIdx,rightIdx,helixLength,diffs);

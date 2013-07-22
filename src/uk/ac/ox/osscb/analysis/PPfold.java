@@ -7,10 +7,15 @@ import java.io.InputStreamReader;
 import java.util.ArrayList;
 
 public class PPfold {
-	public static String PPFOLD_EXECUTABLE = "binaries/PPfold3.0.jar.";
+	public static String PPFOLD_EXECUTABLE = "binaries/PPfold3.0.jar";
 
 	public static StructureData fold(File dir, String name, ArrayList<String> sequences, ArrayList<String> sequenceNames, boolean runEvolutionary)
 	{	
+		for(int i = 0 ; i < sequenceNames.size() ; i++)
+		{
+			sequenceNames.set(i, "seq"+i);
+		}
+		
 		File fastaFile = new File(dir.getAbsolutePath()+File.separatorChar+name+".fas");
 		IO.saveToFASTAfile(sequences, sequenceNames, fastaFile);
 		File outNewick = new File(dir.getAbsolutePath()+File.separatorChar+name+".nwk");

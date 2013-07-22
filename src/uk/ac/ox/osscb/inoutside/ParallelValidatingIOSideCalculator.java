@@ -35,7 +35,7 @@ public class ParallelValidatingIOSideCalculator implements IOsideCalculator{
 	public InsideOutsideProbabilities insideE(
 			NucleotideProbsPrecise pairingProbs, int[] structure, boolean[][] canPair) {
 		
-		InsideOutsideProbabilities inside = this.ioCalcInternal.insideParallel(pairingProbs, structure, canPair, null);
+		InsideOutsideProbabilities inside = this.ioCalcInternal.insideParallel(pairingProbs, structure, canPair, new BasePairWeightingNull());
 		
 		return validateInside(inside);
 	}
@@ -52,7 +52,7 @@ public class ParallelValidatingIOSideCalculator implements IOsideCalculator{
 	public InsideOutsideProbabilities outsideE(
 			InsideOutsideProbabilities insideProbs,
 			NucleotideProbsPrecise pairingProbs, int[] structure, boolean[][] canPair) {
-		InsideOutsideProbabilities outside = this.ioCalcInternal.outsideParallel(insideProbs, pairingProbs, structure, canPair, null);
+		InsideOutsideProbabilities outside = this.ioCalcInternal.outsideParallel(insideProbs, pairingProbs, structure, canPair, new BasePairWeightingNull());
 		return validateOutside(outside);
 	}
 	

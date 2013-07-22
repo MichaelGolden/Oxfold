@@ -6,7 +6,7 @@ import org.slf4j.MDC;
 
 public class Constants {
 	
-	public static final int threads = Runtime.getRuntime().availableProcessors(); 
+	public static int threads = Runtime.getRuntime().availableProcessors(); 
 	
 	public final static int		UnpairedBaseIdx = -1;
 	
@@ -25,9 +25,9 @@ public class Constants {
 	/**
 	 * Set it to zero to get more iterations
 	 */
-	//public static  Double IterationCutOffDouble = 0.5;
-	//public static  Double IterationCutOffDouble = 0.1;
-	public static  Double IterationCutOffDouble = 0.0;
+	public static  Double IterationCutOffDouble = 0.5;
+	//public static  Double IterationCutOffDouble = 0.2;
+	//public static  Double IterationCutOffDouble = 0.0;
 	
 	public  static PointRes IterationCutOff = PointRes.valueOf(IterationCutOffDouble);
 	public  static PointRes NucleotideUncertainty = PointRes.valueOf(0.01);

@@ -16,7 +16,7 @@ public class Benchmarks {
 	public static void main(String [] args)
 	{
 		File dataDir = new File("datasets/");
-		File outputDir = new File("output9/");
+		File outputDir = new File("output10/");
 		File resultsFile = new File("results_oxfold_evol_test.csv");
 
 		boolean startFile = true;
@@ -50,7 +50,7 @@ public class Benchmarks {
 		//int start = 0;
 		//int end = 1;
 		int start = 0;
-		int end = 50;
+		int end = 40;
 		for(int i = 0 ; i < Math.min(end, experimentalStructures.size()) ; i++)
 		{
 			StructureData s = experimentalStructures.get(i);
@@ -137,12 +137,12 @@ public class Benchmarks {
 	
 	
 				//SVG full = visualiser.drawComparisonPredictedExperimental(s1, s2);
-				/*try {
-					//full.savePNG(new File(outputDir.getAbsolutePath()+File.separatorChar+s.file.getName()+".svg"), new File(outputDir.getAbsolutePath()+File.separatorChar+s.file.getName()+".png"));
+				try {
+					full.savePNG(new File(outputDir.getAbsolutePath()+File.separatorChar+s.file.getName()+".svg"), new File(outputDir.getAbsolutePath()+File.separatorChar+s.file.getName()+".png"));
 				} catch (IOException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
-				}*/
+				}
 				
 				long endNano = System.nanoTime();
 				double elapsedNano = (endNano - startNano)/1000000000.0;
@@ -174,6 +174,10 @@ public class Benchmarks {
 	
 	public static StructureData foldOxfold(File dir, String name, List<String> sequences, List<String> sequenceNames, boolean runEvolutionary, double weight, boolean reverseGrammar)
 	{
+		for(int i = 0 ; i < sequenceNames.size() ; i++)
+		{
+			sequenceNames.set(i, "seq"+i);
+		}
 		File fastaFile = new File(dir.getAbsolutePath()+File.separatorChar+name+".fas");
 		IO.saveToFASTAfile(sequences, sequenceNames, fastaFile);
 		File outNewick = new File(dir.getAbsolutePath()+File.separatorChar+name+".nwk");
@@ -231,6 +235,10 @@ public class Benchmarks {
 	public static StructureData foldCofold(File dir, String name, List<String> sequences, List<String> sequenceNames, boolean runEvolutionary, double alpha, double tau, boolean reverseGrammar)
 	{
 		File fastaFile = new File(dir.getAbsolutePath()+File.separatorChar+name+".fas");
+		for(int i = 0 ; i < sequenceNames.size() ; i++)
+		{
+			sequenceNames.set(i, "seq"+i);
+		}
 		IO.saveToFASTAfile(sequences, sequenceNames, fastaFile);
 		File outNewick = new File(dir.getAbsolutePath()+File.separatorChar+name+".nwk");
 		File basePairProbFile = null;

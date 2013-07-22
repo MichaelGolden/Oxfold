@@ -29,6 +29,8 @@ public class VaryKDelta {
 	
 	public static void main(String [] args)
 	{		
+		System.out.println("AVAILABLE PROCESSORS ON THIS NODE = "+Runtime.getRuntime().availableProcessors());
+		
 		//FoldingAlgorithm algorithm = FoldingAlgorithm.Cofold;
 		FoldingAlgorithm algorithm = FoldingAlgorithm.FastOxfold;
 		
@@ -362,7 +364,7 @@ public class VaryKDelta {
     int threads = 8;
 	private static void runSpecificFastOxfold(double KValue, double dValue, double delta2, int uptodataset, boolean runEvol){
 		ArrayList<String> avgMetrics = new ArrayList<String>();
-		String outputDirString = "output_rrna/";
+		String outputDirString = "output_simulated/";
 		
 		Constants.IterationCutOff = PointRes.valueOf(Double.valueOf(dValue)); 
 		
@@ -394,11 +396,14 @@ public class VaryKDelta {
 		experimentalStructures = sublist;
 		
 		ArrayList<StructureData> predictedStructures = new ArrayList<StructureData>();
+		ArrayList<StructureData> predictedStructuresPPfold = new ArrayList<StructureData>();
 		ArrayList<StructureData> noDelta2 = new ArrayList<StructureData>();
 		 
 		ArrayList<StructureData> usedExperimental = new ArrayList<StructureData>();
 		int skip = 0;
 		int j = 0;
+		Random random = new Random(4048101481014814449L);
+		Constants.threads = 1;
 		for(int i = 0 ; i < experimentalStructures.size() ; i++) 
 		{
 			if(i < skip)
@@ -407,8 +412,15 @@ public class VaryKDelta {
 			}
 			System.out.println(experimentalStructures.get(i).file);
 			StructureData s= experimentalStructures.get(i);
-			selectN(s.sequences, s.sequenceNames, (int)delta2);
-			System.out.println("VAL"+s.sequences.size()+"\t"+delta2);
+			
+			ArrayList<String> sequences = new ArrayList<String>();
+			ArrayList<String> sequenceNames = new ArrayList<String>();
+			//simulate(ArrayList<String> sequences,  ArrayList<String> sequenceNames, Random random, String sequence, int [] pairedSites, double expectedMutations, int n, boolean includeFirst)
+			AlignmentSimulator.simulate(sequences, sequenceNames, random, s.sequences.get(0), s.pairedSites, 0.2, (int)delta2, true);
+			s.sequences = sequences;
+			s.sequenceNames = sequenceNames;
+			//selectN(s.sequences, s.sequenceNames, (int)delta2);
+			//System.out.println("VAL"+s.sequences.size()+"\t"+delta2);
 			usedExperimental.add(s);
 			
 			predictedStructures.add(foldOxfold(outputDir, s.file.getName()+"_", s.sequences, s.sequenceNames, runEvol, KValue, delta2));
