@@ -70,4 +70,9 @@ public class AmbiguityCodes {
 
         return scores;
     }
+    
+    public char[] getAmbigChars(char ambiguityCode){
+    	String standardBases = codes.get(Character.toString(ambiguityCode));
+    	return standardBases.toCharArray(); 
+    }
 }

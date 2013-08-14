@@ -25,14 +25,24 @@ public class Constants {
 	/**
 	 * Set it to zero to get more iterations
 	 */
-	public static  Double IterationCutOffDouble = 0.5;
-	public static  Double mu = 0.4;
-	//public static  Double IterationCutOffDouble = 0.2;
-	//public static  Double IterationCutOffDouble = 0.0;
+	public static  Double IterationCutOffDouble = 0.0;
 	
-	public static double gapPercentage = 0.75;
+	public static  PointRes IterationCutOffDr = PointRes.valueOf(0.2);
+	public static  PointRes IterationCutOffDf = PointRes.valueOf(0.0);
+	public static double sigma = 0.1; 
+	public static PointRes mu2 = PointRes.valueOf(0.0); 
+	
+	public static  Double mu = 0.0;
+	public static Double gapPercentage = 0.75;
+
+	public static double weight = 0.5; 
+	
 	public  static PointRes IterationCutOff = PointRes.valueOf(IterationCutOffDouble);
 	public  static PointRes NucleotideUncertainty = PointRes.valueOf(0.01);
+	
+	public static PointRes AYOffset = PointRes.valueOf(0);
+	
+	public static PointRes currentIterationCutOff = IterationCutOff; 
 	
 	//public static  Double IterationCutOffDouble;
 	//public  static PointRes IterationCutOff;

@@ -46,4 +46,41 @@ public class LoggingOutputGenerator implements OutputGenerator{
 		String string = sb.toString();
 		return string;
 	}
+	
+
+
+	public static String dumpStructure(Structure structure) {
+		StringBuilder sb = new StringBuilder();
+		int[] pairings = structure.getPairings();
+		boolean[] keepPairs = structure.getKeepPairs();
+		for(int i=0; i<pairings.length; i++)
+		{
+			char currentIdx = '+';
+			if(pairings[i] == -1 )//|| keepPairs[i] == false)
+				currentIdx = '.';
+			else if(pairings[i] > i)// && keepPairs[i])
+				currentIdx = '(';
+			else if(pairings[i] < i )//&& keepPairs[i])
+				currentIdx = ')';
+			else
+				throw new InputMismatchException("Input was not an int array representing a structure");
+			sb.append(currentIdx);
+		}	
+		String string = sb.toString();
+		return string;
+	}
+
+	//@Override
+	public void generate(Structure structure) {
+		// TODO Auto-generated method stub
+		if(log.isInfoEnabled()){		
+			log.info(dumpStructure(structure));
+		}
+	}
+
+	//@Override
+	public void generateFinal(Structure structure) {
+		// TODO Auto-generated method stub
+		ProgramOutput.outMsg2(String.format("Final structure is:%n%s", dumpStructure(structure)));
+	}
 }

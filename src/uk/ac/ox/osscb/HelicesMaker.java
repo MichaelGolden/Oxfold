@@ -12,6 +12,23 @@ import uk.ac.ox.osscb.inoutside.Helix;
 
 public class HelicesMaker {
 	
+		double mu = 0; 
+		PointRes mu2 = PointRes.valueOf(mu);
+		
+		public Helix makeHelix(int leftIdx, int rightIdx, PointRes [][] pairedProbs, PointRes[][] diffs, boolean[][] canPair) {
+			int length = diffs.length;	
+			int helixLength = 1;
+			while (diffs[leftIdx+helixLength][rightIdx-helixLength].compareTo(PointRes.valueOf(Math.min(0, Constants.IterationCutOffDouble)))>0) {
+				helixLength++;
+			}
+			while ((leftIdx>0)&&(rightIdx<length-1)&&(diffs[leftIdx-1][rightIdx+1].compareTo(PointRes.valueOf(Math.min(0, Constants.IterationCutOffDouble)))>0)) {
+				leftIdx--; rightIdx++; helixLength++;
+			}
+			Helix helix = new Helix(leftIdx,rightIdx,helixLength,diffs);
+			return helix;
+		}
+		
+	
 		/**
 		 * given an initial pair, looks around that pair to form a helix with all Deltas > 0
 		 * @param leftIdx
@@ -21,65 +38,26 @@ public class HelicesMaker {
 		 * @param canPair
 		 * @return said helix
 		 */
-	
-		/*public Helix makeHelix(int leftIdx, int rightIdx, PointRes [][] pairedProbs, PointRes[][] diffs, boolean[][] canPair) {
+		public Helix makeHelix(int leftIdx, int rightIdx, PointRes[][] diffs, boolean[][] canPair) {
+			mu2 = Constants.mu2; 
 			int length = diffs.length;	
 			int helixLength = 1;
-			while (diffs[leftIdx+helixLength][rightIdx-helixLength].signum()>0) {
+			System.out.println(length);
+			System.out.println(diffs[leftIdx+helixLength].length);
+			System.out.println(leftIdx+helixLength);
+			System.out.println(rightIdx-helixLength);
+			while (rightIdx-helixLength >= 0 && leftIdx+helixLength < length && diffs[leftIdx+helixLength][rightIdx-helixLength].compareTo(mu2) > 0) {
 				helixLength++;
 			}
-			while ((leftIdx>0)&&(rightIdx<length-1)&&(diffs[leftIdx-1][rightIdx+1].signum()>0)) {
+			while ((leftIdx>0)&&(rightIdx<length-1)&&(diffs[leftIdx-1][rightIdx+1].compareTo(mu2) > 0)) {
 				leftIdx--; rightIdx++; helixLength++;
 			}
 			Helix helix = new Helix(leftIdx,rightIdx,helixLength,diffs);
 			return helix;
-		}*/
-	public Helix makeHelix(int leftIdx, int rightIdx, PointRes [][] pairedProbs, PointRes[][] diffs, boolean[][] canPair) {
-		int length = diffs.length;	
-		int helixLength = 1;
-		while (diffs[leftIdx+helixLength][rightIdx-helixLength].compareTo(PointRes.valueOf(Math.min(0, Constants.IterationCutOffDouble)))>0) {
-			helixLength++;
 		}
-		while ((leftIdx>0)&&(rightIdx<length-1)&&(diffs[leftIdx-1][rightIdx+1].compareTo(PointRes.valueOf(Math.min(0, Constants.IterationCutOffDouble)))>0)) {
-			leftIdx--; rightIdx++; helixLength++;
-		}
-		Helix helix = new Helix(leftIdx,rightIdx,helixLength,diffs);
-		return helix;
-	}
-	
 		
-		
-	    //PointRes delta2 = Constants.IterationCutOff;
-		PointRes delta2 = PointRes.valueOf(0);
-	/*	public Helix makeHelix(int leftIdx, int rightIdx, PointRes [][] pairedProbs, PointRes[][] diffs, boolean[][] canPair) {
-			int length = diffs.length;	 
-			int helixLength = 1;
-			
-			PointRes deltaMu = delta2.subtract(PointRes.valueOf(Constants.mu).multiply(pairedProbs[leftIdx][rightIdx]));
-						
-			while (diffs[leftIdx+helixLength][rightIdx-helixLength].compareTo(deltaMu) > 0 && (diffs[leftIdx+helixLength][rightIdx-helixLength].signum() >0 || canPair[leftIdx+helixLength][rightIdx-helixLength])) { // move inwards
-				System.out.println("move inwards "+(leftIdx+helixLength)+"\t"+(rightIdx-helixLength)+"\td(i,j)"+diffs[leftIdx+helixLength][rightIdx-helixLength].doubleValue()+"\tdeltamu=" + deltaMu+"\t"+(diffs[leftIdx+helixLength][rightIdx-helixLength].doubleValue() > deltaMu.doubleValue())+"\tp(i,j)"+ "\t"+pairedProbs[leftIdx+helixLength][rightIdx-helixLength].doubleValue());
-				System.out.println((diffs[leftIdx+helixLength][rightIdx-helixLength].doubleValue() > deltaMu.doubleValue())+"\t"+diffs[leftIdx+helixLength][rightIdx-helixLength].compareTo(deltaMu));
-				deltaMu = delta2.subtract(PointRes.valueOf(Constants.mu).multiply(pairedProbs[leftIdx+helixLength][rightIdx-helixLength]));
-				helixLength++;
-			}
-			deltaMu = delta2.subtract(PointRes.valueOf(Constants.mu).multiply(pairedProbs[leftIdx][rightIdx]));
-			int helixLength2 = 1;
-			int leftIdxFinal = leftIdx;
-			int rightIdxFinal = rightIdx;
-			while (leftIdx-helixLength2 >=0 && rightIdx+helixLength2 < length && diffs[leftIdx-helixLength2][rightIdx+helixLength2].compareTo(deltaMu) > 0  && (diffs[leftIdx-helixLength2][rightIdx+helixLength2].signum() > 0  || canPair[leftIdx-helixLength2][rightIdx+helixLength2])) { // move outwards
-				System.out.println("move outwards "+(leftIdx-helixLength2)+"\t"+(rightIdx+helixLength2 )+ deltaMu+"\t"+diffs[leftIdx-helixLength2][rightIdx+helixLength2].doubleValue()+"\t"+pairedProbs[leftIdx-helixLength2][rightIdx+helixLength2].doubleValue());
-				deltaMu = delta2.subtract(PointRes.valueOf(Constants.mu).multiply(pairedProbs[leftIdx-helixLength2][rightIdx+helixLength2]));
-				leftIdxFinal--;
-				rightIdxFinal++;
-				helixLength2++;
-			}
-			Helix helix = new Helix(leftIdxFinal,rightIdxFinal,helixLength+helixLength2-1,diffs);
-			return helix;
-		}*/
-		
-		/*
 		public Helix makeHelix(int leftIdx, int rightIdx, double[][] diffs, boolean[][] canPair) {
+			mu = Constants.mu2.toDouble(); 
 			int length = diffs.length;	
 			int helixLength = 1;
 			while (diffs[leftIdx+helixLength][rightIdx-helixLength]>mu) {
@@ -90,7 +68,7 @@ public class HelicesMaker {
 			}
 			Helix helix = new Helix(leftIdx,rightIdx,helixLength,diffs);
 			return helix;
-		}*/
+		}
 }
 
 /*
