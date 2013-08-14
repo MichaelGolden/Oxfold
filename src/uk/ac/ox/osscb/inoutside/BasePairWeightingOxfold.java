@@ -1,5 +1,9 @@
 package uk.ac.ox.osscb.inoutside;
 
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+import java.io.IOException;
+
 import uk.ac.ox.osscb.PointRes;
 
 public class BasePairWeightingOxfold implements BasePairWeighting{

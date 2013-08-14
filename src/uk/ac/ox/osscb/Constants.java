@@ -26,9 +26,11 @@ public class Constants {
 	 * Set it to zero to get more iterations
 	 */
 	public static  Double IterationCutOffDouble = 0.5;
+	public static  Double mu = 0.4;
 	//public static  Double IterationCutOffDouble = 0.2;
 	//public static  Double IterationCutOffDouble = 0.0;
 	
+	public static double gapPercentage = 0.75;
 	public  static PointRes IterationCutOff = PointRes.valueOf(IterationCutOffDouble);
 	public  static PointRes NucleotideUncertainty = PointRes.valueOf(0.01);
 	

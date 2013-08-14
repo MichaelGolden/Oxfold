@@ -4,6 +4,7 @@ package uk.ac.ox.osscb;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.math.MathContext;
 import java.math.RoundingMode;
 
@@ -187,16 +188,29 @@ public class PointRes  extends Number implements Serializable {
 	}
 	
 	public boolean isLessThan(PointRes point) {
+		
+		return this.doubleValue() < point.doubleValue();
+		/*
+		if(this.fraction < 0)
+		{
+			
+		}
+		
+		
 		if (this.fraction > 0f && point.fraction > 0f || this.fraction < 0f
 				&& point.fraction < 0f) {
 			if (this.exponent > point.exponent) {
+				System.out.println("A");
 				return false;
 			} else if (this.exponent < point.exponent) {
+				System.out.println("B");
 				return true;
 			} else { // case of equal exponents
 				if (this.fraction < point.fraction) {
+					System.out.println("C");
 					return true;
 				} else {
+					System.out.println("D");
 					return false;
 				}
 			}
@@ -204,7 +218,7 @@ public class PointRes  extends Number implements Serializable {
 			return false;
 		} else {
 			return true;
-		}
+		}*/
 	}
 
 	public boolean equals(PointRes point) {

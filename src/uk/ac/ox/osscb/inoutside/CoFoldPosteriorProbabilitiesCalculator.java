@@ -301,16 +301,30 @@ public class CoFoldPosteriorProbabilitiesCalculator {
 			int length = unpairedProbs.length;
 			PointRes[][] diffs = new PointRes[length][length];
 			for (int j = 0; j<length; j++) {
-				for (int k = 0; k<length; k++) {
+				for (int k = j; k<length; k++) {
 					if (canPair[j][k]) {
 						diffs[j][k] = pairedProbs[j][k].subtract((unpairedProbs[j].add(unpairedProbs[k])).divide(PointRes.valueOf(2)));
+						diffs[k][j] = diffs[j][k];
 					} else {
 						diffs[j][k] = PointRes.valueOf(-1);
+						diffs[k][j] = diffs[j][k];
 					}	
 				}
 			}
 			return diffs;
 		}
+		
+		public double [][] getDiffs(double[][] pairedProbs, double[] unpairedProbs) {
+			int length = unpairedProbs.length;
+			double[][] diffs = new double[length][length];
+			for (int j = 0; j<length; j++) {
+				for (int k = 0; k<length; k++) {
+					diffs[j][k] = pairedProbs[j][k] - ((unpairedProbs[j]+unpairedProbs[k])/2);
+				}
+			}
+			return diffs;
+		}
+		
 		
 		
 		/**

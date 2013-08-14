@@ -52,6 +52,8 @@ public class RNAFoldingTools {
 
         int x;
         int y;
+        int n;
+        public boolean finished = false;
 
         public Pair(int x, int y) {
             this.x = x;
@@ -888,6 +890,20 @@ public class RNAFoldingTools {
         }
         return dbs;
     }
+    
+    public static String getDotBracketStringFromPairedSites(int[] pairedSites, int empty) {
+        String dbs = "";
+        for (int i = 0; i < pairedSites.length; i++) {
+            if (pairedSites[i] == empty) {
+                dbs += ".";
+            } else if (pairedSites[i] >= i) {
+                dbs += "(";
+            } else {
+                dbs += ")";
+            }
+        }
+        return dbs;
+    }
 
     /**
      * Given a dot bracket string representation, returns an array of paired
@@ -1310,5 +1326,24 @@ public class RNAFoldingTools {
         }
 
         return seq;
+    }
+    
+    public static void saveMatrix(File outFile, double [][] matrix) throws IOException
+    {
+    	BufferedWriter writer = new BufferedWriter(new FileWriter(outFile));
+    	for(int i = 0 ; i < matrix.length ; i++)
+    	{
+    		for(int j = 0 ; j < matrix[0].length ; j++)
+        	{
+    			writer.write(matrix[i][j]+"");
+    			if(j != matrix[0].length -1)
+    			{
+    				writer.write(",");
+    			}
+        	}
+    		writer.newLine();
+    	}
+    	
+    	writer.close();
     }
 }

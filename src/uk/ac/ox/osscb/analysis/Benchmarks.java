@@ -8,7 +8,9 @@ import java.util.Collections;
 import java.util.List;
 
 import uk.ac.ox.osscb.CoFoldAnalogue;
+import uk.ac.ox.osscb.Constants;
 import uk.ac.ox.osscb.Program;
+import uk.ac.ox.osscb.inoutside.PosteriorProbabilitiesCalculator;
 import uk.ac.ox.osscb.visualisation.DataVisualiser;
 import uk.ac.ox.osscb.visualisation.SVG;
 
@@ -16,7 +18,7 @@ public class Benchmarks {
 	public static void main(String [] args)
 	{
 		File dataDir = new File("datasets/");
-		File outputDir = new File("output10/");
+		File outputDir = new File("output13/");
 		File resultsFile = new File("results_oxfold_evol_test.csv");
 
 		boolean startFile = true;
@@ -27,7 +29,20 @@ public class Benchmarks {
 		for(File experimentalFile : dataDir.listFiles())
 		{
 			try {
-				experimentalStructures.add(StructureData.readExperimentalStructureData(experimentalFile));		
+				StructureData data = StructureData.readExperimentalStructureData(experimentalFile);
+				
+				/*while(data.sequences.size() > 1)
+				{
+					data.sequences.remove(data.sequences.size()-1);
+					data.sequenceNames.remove(data.sequenceNames.size()-1);
+				}*/
+				/*
+				for(int i = 0 ; i < 4 ; i++)
+				{
+					data.sequences.add(data.sequences.get(0));
+					data.sequenceNames.add(data.sequenceNames.get(0));
+				}*/
+				experimentalStructures.add(data);
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -50,7 +65,7 @@ public class Benchmarks {
 		//int start = 0;
 		//int end = 1;
 		int start = 0;
-		int end = 40;
+		int end = 45;
 		for(int i = 0 ; i < Math.min(end, experimentalStructures.size()) ; i++)
 		{
 			StructureData s = experimentalStructures.get(i);
@@ -62,15 +77,32 @@ public class Benchmarks {
 			}
 			long startNano = System.nanoTime();
 			
+			double oxfoldK = 0.5;
+			//StructureData predictedStructure = Benchmarks.foldCofold(outputDir, s.file.getName()+"_cofold", s.sequences, s.sequenceNames, true, 0,Double.POSITIVE_INFINITY, false);
+			//StructureData predictedStructure = Benchmarks.foldOxfold(outputDir, s.file.getName()+"_oxfold", s.sequences, s.sequenceNames, true,oxfoldK, false);
+			try {
+				IO.writeLine(new File(outputDir+"/"+ s.file.getName()+".experimental"), RNAFoldingTools.getDotBracketStringFromPairedSites(s.pairedSites), true, false);
+			} catch (IOException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
 			StructureData predictedStructure = Benchmarks.foldOxfold(outputDir, s.file.getName()+"_oxfold", s.sequences, s.sequenceNames, true,0.5, false);
-			//StructureData predictedStructure = Benchmarks.foldCofold(outputDir, s.file.getName()+"_cofold", s.sequences, s.sequenceNames, true, 0,640, false);
+			
+			//StructureData predictedStructure = Benchmarks.foldCofold(outputDir, s.file.getName()+"_cofold", s.sequences, s.sequenceNames, true, 0.5,500, false);
+			//StructureData predictedStructure = Benchmarks.foldCofold(outputDir, s.file.getName()+"_cofold", s.sequences, s.sequenceNames, true, 0,250, false);
+			//StructureData predictedStructure2 = predictedStructure;
 			//System.exit(0);
 			//StructureData predictedStructure2 = Benchmarks.foldCofold(outputDir, s.file.getName()+"_cofold", s.sequences, s.sequenceNames, true, 0,640, false);
 			//StructureData predictedStructure = PPfold.fold(outputDir, s.file.getName()+"_ppfold", s.sequences, s.sequenceNames, true);
-			StructureData predictedStructure2 = PPfold.fold(outputDir, s.file.getName()+"_ppfold", s.sequences, s.sequenceNames, true);
+			//////StructureData predictedStructure2 = PPfold.fold(outputDir, s.file.getName()+"_ppfold", s.sequences, s.sequenceNames, true);
+			StructureData predictedStructure2 = Benchmarks.foldRNAalifold(outputDir, s.file.getName()+"_rnaalifold", s.sequences, s.sequenceNames);
+		//	System.out.println(RNAFoldingTools.getDotBracketStringFromPairedSites(predictedStructure2.pairedSites));
 			//StructureData predictedStructure2 = Benchmarks.foldOxfold(outputDir, s.file.getName()+"_oxfold", s.sequences, s.sequenceNames, true,0.5, false);
 			
 			
+			StructureData predictedStructure3 = PPfold.fold(outputDir, s.file.getName()+"_ppfold", s.sequences, s.sequenceNames, true);
+			
+			System.out.println("Entropy: "+predictedStructure3.entropy+"\t"+predictedStructure3.normalisedEntropy);
 			/*
 			int [] decodedSites= null;
 			try {
@@ -129,20 +161,20 @@ public class Benchmarks {
 				s.title = "Experimental";
 				//s1.title = "Cofold (null)";
 				//s2.title = "Cofold (alpha=0.5 tau=640)";
-				s1.title = "PPfold";
-				s2.title = "Cofold";
+				s1.title = "Cofold";
+				s2.title = "PPfold";
 	
-				SVG full = visualiser.drawComparisonPredicted(s1, s2, s);
+				//SVG full = visualiser.drawComparisonPredicted(s1, s2, s);
 	
 	
 	
 				//SVG full = visualiser.drawComparisonPredictedExperimental(s1, s2);
-				try {
+				/*try {
 					full.savePNG(new File(outputDir.getAbsolutePath()+File.separatorChar+s.file.getName()+".svg"), new File(outputDir.getAbsolutePath()+File.separatorChar+s.file.getName()+".png"));
 				} catch (IOException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
-				}
+				}*/
 				
 				long endNano = System.nanoTime();
 				double elapsedNano = (endNano - startNano)/1000000000.0;
@@ -155,16 +187,18 @@ public class Benchmarks {
 					if(startFile)
 					{
 						IO.clearFile(resultsFile);
-						IO.writeLine(resultsFile, "Name,Length,Sensitivity,PPV,FScore,MountainSim,Name,Length,Sensitivity,PPV,FScore,MountainSim", true, true);
+						IO.writeLine(resultsFile, "Oxfold (delta="+Constants.IterationCutOffDouble+" k="+oxfoldK+" gap%="+Constants.gapPercentage+"),,,,,,RNAalifold,,,,,,PPfold,,,,,", true, true);
+						IO.writeLine(resultsFile, "Name,Length,Sensitivity,PPV,FScore,MountainSim,Name,Length,Sensitivity,PPV,FScore,MountainSim,Name,Length,Sensitivity,PPV,FScore,MountainSim,N", true, true);
 						startFile = false;
 					}
-					IO.writeLine(resultsFile, getBenchmarkString(s, s1)+","+getBenchmarkString(s, s2), true, true);
+					IO.writeLine(resultsFile, getBenchmarkString(s, s1)+","+getBenchmarkString(s, s2)+","+getBenchmarkString(s, predictedStructure3)+","+s.sequences.size(), true, true);
 					//Benchmarks.saveBenchmarksCSV(resultsFile, experimentalStructures, predictedStructures);
 				} catch (IOException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
 			}
+			
 		}
 		
 		
@@ -292,6 +326,87 @@ public class Benchmarks {
 			structureData.basePairProbFile =  basePairProbFile;
 		}
 		return structureData;		
+	}
+	
+
+	
+	public static StructureData foldRNAalifold(File dir, String name, ArrayList<String> sequences, ArrayList<String> sequenceNames)
+	{
+		StructureData data = new StructureData();
+
+		try {
+			RNAalifoldResult res = RNAalifold.fold(sequences, sequenceNames, "", true, false);
+			data.sequences = sequences;
+			data.sequenceNames = sequenceNames;
+			data.pairedSites = res.pairedSites;
+			File fastaFile = new File(dir.getAbsolutePath()+File.separatorChar+name+".fas");
+			File basePairProbFile = new File(fastaFile.getAbsolutePath()+".bp");			
+			if(data.basePairProb != null)
+			{
+				RNAFoldingTools.saveMatrix(basePairProbFile, res.matrix);	
+				data.basePairProbFile = basePairProbFile;
+			}
+		} catch (Exception e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+		
+		return data;
+	}
+	
+	public static String getDistributionString(StructureData data)
+	{
+		try
+		{
+			ArrayList<Double> all = new ArrayList<Double>();
+			ArrayList<Double> structure = new ArrayList<Double>();
+			double [][] bp = StructureData.getBasePairProb(data.basePairProbFile);
+			double [][] matrix = PosteriorProbabilitiesCalculator.getDiffs(bp);
+			for(int i = 0 ; i < matrix.length ; i++)
+			{
+				for(int j = i+1 ; j < matrix.length ; j++)
+				{
+					all.add(matrix[i][j]);
+					
+				}
+			}
+			
+			for(int i = 0 ; i < data.pairedSites.length ; i++)
+			{
+				if(data.pairedSites[i] != 0 && i < data.pairedSites[i]-1)
+				{
+					structure.add(matrix[i][data.pairedSites[i]-1]);
+				}
+			}
+			
+			System.out.println("all size "+all.size()+"\t"+bp.length);
+			System.out.println("all size "+structure.size());
+		
+			double [] allDist = {RankingAnalyses.getMin(all), RankingAnalyses.getPercentile(all, 0.25), RankingAnalyses.getMedian(all), RankingAnalyses.getPercentile(all, 0.75), RankingAnalyses.getMax(all)};
+			double [] structureDist = {RankingAnalyses.getMin(structure), RankingAnalyses.getPercentile(structure, 0.25), RankingAnalyses.getMedian(structure), RankingAnalyses.getPercentile(structure, 0.75), RankingAnalyses.getMax(structure)};
+		
+			String ret = "";
+			for(int i = 0 ; i < allDist.length ; i++)
+			{
+				ret += allDist[i]+",";
+			}
+			for(int i = 0 ; i < structureDist.length ; i++)
+			{
+				ret += structureDist[i];
+				if(i != structureDist.length - 1)
+				{
+					ret += ",";
+				}
+			}
+			
+			return ret;
+		}
+		catch(IOException ex)
+		{
+			ex.printStackTrace();
+		}
+		
+		return null;
 	}
 	
 	

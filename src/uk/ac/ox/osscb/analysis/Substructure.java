@@ -112,7 +112,7 @@ public class Substructure implements Serializable {
     {
     	//File rnastrandfile=new File("C:/Users/Michael/Dropbox/Oxfold II/datasets/PDB_00488_23s_rRNA_HALOARCULA MARISMORTUI.txt");
     	
-    	File [] files = new File("C:/Users/Michael/Dropbox/Oxfold II/datasets/").listFiles();
+    	File [] files = new File("C:/Users/Michael/Dropbox/Oxfold II/long_datasets/").listFiles();
     	for(File rnastrandfile : files)
     	{
     		if(!rnastrandfile.getName().endsWith(".dat"))
@@ -120,15 +120,19 @@ public class Substructure implements Serializable {
 		    	Substructure structure = getRNAstrandStructure(rnastrandfile);
 		    	//System.out.println(s);
 		    	int [] pairedSites = structure.pairedSites;
-		    	ArrayList<Substructure> substructures = enumerateAdjacentSubstructures(pairedSites,structure.sequence,150,850,false);
+		    	
+		    	ArrayList<Substructure> substructures = enumerateAdjacentSubstructures(pairedSites,structure.sequence,0,1800,false);
 		    	System.out.println("length="+pairedSites.length);
 		    	for(int i = 0 ; i < substructures.size() ; i++)
 		    	{
 		    		System.out.println(substructures.get(i)+"\n");
 		    		Substructure s = substructures.get(i);
-		    		String name = rnastrandfile.getName()+"_"+s.startPosition+"_"+(s.startPosition+s.length)+".dat";
+		    		/*String name = rnastrandfile.getName()+"_"+s.startPosition+"_"+(s.startPosition+s.length)+".dat";
 		    		saveDatFile(substructures.get(i),s.startPosition+"_"+(s.startPosition+s.length),new File(rnastrandfile.getParentFile().getAbsolutePath()+File.separatorChar+name));
-		    	}
+		    	}*/}
+		    	String name = rnastrandfile.getName()+"_full.dat";
+		    	//Substructurenew Substructure(0, pairedSites)
+		    	saveDatFile(structure,name,new File(rnastrandfile.getParentFile().getAbsolutePath()+File.separatorChar+name));
     		}
     	}
     	
@@ -140,7 +144,7 @@ public class Substructure implements Serializable {
     {
     	try {
 			BufferedWriter writer = new BufferedWriter(new FileWriter(outFile));
-			writer.write(RNAFoldingTools.getDotBracketStringFromPairedSites(s.pairedSites).replace('(', '<').replace(')', '>'));
+			writer.write(RNAFoldingTools.getDotBracketStringFromPairedSites(s.pairedSites).replace('(', '<').replace(')', '>').substring(0, s.sequence.length()));
 			writer.newLine();
 			writer.write(">"+name);
 			writer.newLine();
@@ -213,37 +217,11 @@ public class Substructure implements Serializable {
 
         int[] pairedSites = Arrays.copyOf(pairedSitesIn, pairedSitesIn.length);
         int genomeLength = pairedSites.length;
-        if (circularize) {
-            pairedSites = new int[pairedSitesIn.length * 2];
-            for (int i = 0; i < pairedSitesIn.length; i++) {
-                pairedSites[i] = pairedSitesIn[i];
-                if ((i - pairedSites[i]) > pairedSitesIn.length / 2) {
-                    if (pairedSitesIn[i] != 0) {
-                        pairedSites[i] = pairedSitesIn[i] + pairedSitesIn.length;
-                    }
-                }
-
-            }
-            for (int i = 0; i < pairedSitesIn.length; i++) {
-
-                if ((pairedSites[i] - i) > pairedSitesIn.length / 2) {
-                    if (pairedSitesIn[i] != 0) {
-                        pairedSites[i + pairedSitesIn.length] = (pairedSitesIn.length - (pairedSitesIn[i] - 1)) + pairedSitesIn.length;
-                    }
-                }
-            }
-            genomeLength *= 2;
-        }
-
-        boolean lastStructureAdded = false;
         for (int i = 0; i < pairedSites.length; i++) {
             int x = i;
             int y = pairedSites[i];
 
             if (y > 0 && y - x + 1 > 0) {
-
-                // System.out.println(">> " + x +"\t"+y);
-
                 int[] pairedSitesSub = new int[y - x];
                 for (int j = 0; j < pairedSitesSub.length; j++) {
                     if (pairedSites[i + j] != 0) {
@@ -258,24 +236,9 @@ public class Substructure implements Serializable {
                 s.startPosition = x;
                 s.name = structures.size() + "";
 
-                // System.out.println(s.startPosition+"\t"+pairedSitesIn.length+"\t"+s.length);
-                if (circularize) {
-                    if (s.startPosition >= pairedSitesIn.length) {
-                        continue;
-                    }
-                }
-
                 if (maxLength == 0 || s.length <= maxLength) {
                     i += s.length;
                     if (s.length >= minLength && x + s.length < genomeLength) {
-                        if (circularize) {
-                            for (int j = 0; j < pairedSitesSub.length; j++) {
-                                if (pairedSitesSub[j] != 0 && j < pairedSitesSub.length / 2 + 1) {
-                                    pairedSitesSub[pairedSitesSub[j] - 1] = j + 1;
-                                }
-                                System.out.println(s.startPosition + "\t" + (j + 1) + "\t" + pairedSitesSub[j] + "\t" + pairedSitesSub.length);
-                            }
-                        }
                         System.out.println(structures.size() + "\t" + s.getDotBracketString());
                         structures.add(s);
                     }
@@ -292,7 +255,7 @@ public class Substructure implements Serializable {
             	s.length++;
         	}
         	
-        	while(pairedSites[s.startPosition+s.length] == 0)
+        	while(s.startPosition+s.length < pairedSites.length && pairedSites[s.startPosition+s.length] == 0)
         	{
         		s.length++;
         	}
@@ -308,7 +271,8 @@ public class Substructure implements Serializable {
         	
         	if(sequence != null)
 			{
-				s.sequence = sequence.substring(s.startPosition,s.startPosition+s.length);
+        		//System.out.println(sequence.length()+"\t"+s.startPosition+"\t"+Math.min(s.startPosition+s.length, sequence.length()));
+				s.sequence = sequence.substring(s.startPosition,Math.min(s.startPosition+s.length, sequence.length()));
 			}
         }
 

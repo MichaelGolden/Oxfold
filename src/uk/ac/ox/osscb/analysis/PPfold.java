@@ -2,14 +2,20 @@ package uk.ac.ox.osscb.analysis;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 
 public class PPfold {
 	public static String PPFOLD_EXECUTABLE = "binaries/PPfold3.0.jar";
-
+	
 	public static StructureData fold(File dir, String name, ArrayList<String> sequences, ArrayList<String> sequenceNames, boolean runEvolutionary)
+	{
+		return fold(dir,name,sequences,sequenceNames,runEvolutionary,false);
+	}
+
+	public static StructureData fold(File dir, String name, ArrayList<String> sequences, ArrayList<String> sequenceNames, boolean runEvolutionary, boolean useCache)
 	{	
 		for(int i = 0 ; i < sequenceNames.size() ; i++)
 		{
@@ -19,6 +25,29 @@ public class PPfold {
 		File fastaFile = new File(dir.getAbsolutePath()+File.separatorChar+name+".fas");
 		IO.saveToFASTAfile(sequences, sequenceNames, fastaFile);
 		File outNewick = new File(dir.getAbsolutePath()+File.separatorChar+name+".nwk");
+		File structureFile = new File(dir.getAbsolutePath()+File.separatorChar+name+".ct");
+		File entropyFile =  new File(dir.getAbsolutePath()+File.separatorChar+name+".entropy");
+		
+		
+		if(structureFile.exists())
+		{
+			StructureData d = new StructureData(RNAFoldingTools.getPairedSitesFromCtFile(structureFile));
+			d.basePairProbFile = new File(dir.getAbsolutePath()+File.separatorChar+name+".bp");
+			System.out.println("Using cached");
+			try
+			{
+				BufferedReader buffer = new BufferedReader(new FileReader(entropyFile));
+				d.entropy = Double.parseDouble(buffer.readLine());
+				d.normalisedEntropy = Double.parseDouble(buffer.readLine());
+				buffer.close();
+			}
+			catch(IOException ex)
+			{
+				ex.printStackTrace();
+			}
+			
+			return d;
+		}
 
 		if(runEvolutionary)
 		{
@@ -40,17 +69,24 @@ public class PPfold {
 			cmd += "-t \""+outNewick.getAbsolutePath()+"\"";
 		}  
 
+
+        double entropy = 0;
 		try {
 			Process process = Runtime.getRuntime().exec(cmd, null, dir);
-			FastTree.nullOutput(process.getInputStream());
-			FastTree.nullOutput(process.getErrorStream());
+
+			//FastTree.nullOutput(process.getInputStream());
+			//FastTree.nullOutput(process.getErrorStream());
 			
-			/*BufferedReader r = new BufferedReader(new InputStreamReader(process.getInputStream()));
+			BufferedReader r = new BufferedReader(new InputStreamReader(process.getInputStream()));
 	          String textline = null;
 	          while((textline = r.readLine()) != null)
 	          {
-	        	//  System.out.println("error: "+textline);
-	          }*/
+	        	 if(textline.matches("ENTROPY:.+=\\s.*"))
+	        	 {
+	        		 entropy = Double.parseDouble(textline.replaceAll("ENTROPY:.+=\\s", "").trim());	        		
+	        	 }
+	        		 
+	          }
 
 			int exitCode = process.waitFor();
 			System.out.println(exitCode);
@@ -62,9 +98,18 @@ public class PPfold {
 			e.printStackTrace();
 		}
 
-		StructureData d = new StructureData(RNAFoldingTools.getPairedSitesFromCtFile(new File(dir.getAbsolutePath()+File.separatorChar+name+".ct")));
+		StructureData d = new StructureData(RNAFoldingTools.getPairedSitesFromCtFile(structureFile));
 		d.basePairProbFile = new File(dir.getAbsolutePath()+File.separatorChar+name+".bp");
-
+		d.entropy = entropy;
+		double maxentropy_nr = 0.142- 1.5*Math.log(d.pairedSites.length)/Math.log(2) + 1.388*d.pairedSites.length;
+		//double maxentropy = new Double(df2.format(maxentropy_nr)).doubleValue();
+		d.normalisedEntropy = (entropy/maxentropy_nr);
+		try {
+			IO.writeLine(entropyFile, d.entropy+"\n"+d.normalisedEntropy, true, false);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		return d;
 	}
 }

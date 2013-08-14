@@ -21,6 +21,8 @@ public class StructureData implements Comparable<StructureData> {
 	
 	double time;
 	String metadata;
+	public double entropy;
+	public double normalisedEntropy;
 	
 	public StructureData()
 	{
@@ -133,6 +135,21 @@ public class StructureData implements Comparable<StructureData> {
 		return probs;
 	}
 	
+	public static double [] getSingleProbs(double [][] basePairProbs)
+	{
+		double [] single = new double[basePairProbs.length];
+		for(int i = 0 ; i < basePairProbs.length ; i++)
+		{
+			single[i] = 1;
+			for(int j = 0 ; j < basePairProbs.length ; j++)
+			{
+				single[i] -= basePairProbs[i][j];
+			}
+		}
+		
+		return single;
+	}
+	
 	public static double [][] getBasePairProb(File bpFile) throws IOException
 	{
 		double [][] basePairProb = null;
@@ -151,6 +168,10 @@ public class StructureData implements Comparable<StructureData> {
 			for(int j = 0 ; j < basePairProb.length ; j++)
 			{
 				basePairProb[i][j] = Double.parseDouble(split[j]);
+				if(basePairProb[i][j] > 0)
+				{
+					basePairProb[j][i] = basePairProb[i][j];
+				}
 			}
 			
 			i++;
@@ -160,7 +181,7 @@ public class StructureData implements Comparable<StructureData> {
 		{
 			for(int y = 0 ; y < basePairProb.length ; y++)
 			{
-				if(basePairProb[x][y] != 0)
+				if(basePairProb[x][y] > 0)
 				{
 					basePairProb[y][x] = basePairProb[x][y];
 				}

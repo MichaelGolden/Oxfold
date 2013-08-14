@@ -11,9 +11,7 @@ import org.slf4j.LoggerFactory;
 
 import uk.ac.ox.osscb.KineticFoldPppCalculatorBase.PPOutputHelixInternalResult;
 import uk.ac.ox.osscb.KineticFoldPppCalculatorBase.PPOutputInternalResult2;
-import uk.ac.ox.osscb.analysis.HaasMEA;
 import uk.ac.ox.osscb.analysis.IO;
-import uk.ac.ox.osscb.analysis.PPfold;
 import uk.ac.ox.osscb.analysis.RNAFoldingTools;
 import uk.ac.ox.osscb.analysis.StructureData;
 import uk.ac.ox.osscb.domain.NucleotideProbsPrecise;
@@ -34,8 +32,8 @@ import uk.ac.ox.osscb.parser.AlignmentParser;
 import uk.ac.ox.osscb.parser.DefaultAlignmentParser;
 import uk.ac.ox.osscb.phylo.PPfoldPhylogeneticCalculation;
 
-public class CoFoldAnalogue {
-	private final Logger log = LoggerFactory.getLogger(CoFoldAnalogue.class);
+public class CoFoldAnalogue2 {
+	private final Logger log = LoggerFactory.getLogger(CoFoldAnalogue2.class);
 	
 	static int dummy = 0;
 	
@@ -406,8 +404,6 @@ public class CoFoldAnalogue {
 	}
 	
 	public void foldEvolutionary(String alignmentFile, String grammarFile, String paramsFile, String treeFile, double alpha, double tau){
-		tau = alpha;
-		alpha = 0.5;
 		Util.assertCanReadFile(alignmentFile);
 		Util.assertCanReadFile(grammarFile);
 		Util.assertCanReadFile(paramsFile);
@@ -446,8 +442,8 @@ public class CoFoldAnalogue {
 		//boolean [] delete2 = CoFoldAnalogue.getGappyColumns(align, 0.75);
 		*/
 		//boolean [] delete = new boolean[align[0].length()];
-		boolean [] delete = CoFoldAnalogue.getGappyColumns(align, 0.25);
-		align = CoFoldAnalogue.deleteColumns(align, delete);
+		boolean [] delete = CoFoldAnalogue2.getGappyColumns(align, 0.25);
+		align = CoFoldAnalogue2.deleteColumns(align, delete);
 		
 		/*
 		for(int j = 0 ; j < align.length; j++)
@@ -485,10 +481,10 @@ public class CoFoldAnalogue {
 		alignmentProbsEvol = EvolProbabilitiesCalculator.calculateEvolutionaryProbsPPfold(align, sequenceNames, new File(treeFile));
 		alignmentProbsEvol.writeEvolutionaryProbs(new File(alignmentFile+".evolutionary"));
 		
-		//NucleotideProbsPrecise cotranscriptional = cotranscriptionalWeight(alignmentProbsEvol, 0.1, 5);
-		//alignmentProbsEvol = cotranscriptional;
+		NucleotideProbsPrecise cotranscriptional = cotranscriptionalWeight(alignmentProbsEvol, 0.1, 5);
+		alignmentProbsEvol = cotranscriptional;
 		//NucleotideProbsPrecise cotranscriptional = alignmentProbsEvol;
-		//cotranscriptional.writeEvolutionaryProbs(new File(alignmentFile+".cotranscriptional"));
+		cotranscriptional.writeEvolutionaryProbs(new File(alignmentFile+".cotranscriptional"));
 		System.out.println("alpha="+alpha);
 		
 		if(log.isDebugEnabled()){
@@ -528,7 +524,7 @@ public class CoFoldAnalogue {
 				}
 			}	
 		}
-		canPair = CoFoldAnalogue.deleteColumns(canPair, delete);
+		canPair = CoFoldAnalogue2.deleteColumns(canPair, delete);
 				
 		// by default is initialised with zeros automatically
 		int[] structure = new int[align[0].length()];
@@ -562,64 +558,18 @@ public class CoFoldAnalogue {
 		int [][] distances = null;
 		PosteriorProbabilities currentPostProbs = ppCalc.calculate(insideProbs, outsideProbs, evol ? alignmentProbsEvol : alignmentProbs, distances, alpha, tau, structure, canPair);
 		//MEACalculator meaCalculator = new MEACalculator();
-		
-		
-		
-		PointRes [][] diffs = ppCalc.getDiffs(currentPostProbs.pairedProbs, currentPostProbs.unpairedProbs, canPair);
-		
-		long parStart = System.nanoTime();
 		int [] decoded_structure = RNAFoldingTools.getPosteriorDecodingConsensusStructure(currentPostProbs.getBasePairProbs());
-		//int [] decoded_structure = HaasMEA.parallelHaasMEA(currentPostProbs.pairedProbs, currentPostProbs.unpairedProbs, diffs, delta, Double.POSITIVE_INFINITY);
-		long parEnd= System.nanoTime();
-		double parTime = (parEnd-parStart)/1e9;
-		
-		//new ParallelHaasMEA(currentPostProbs.pairedProbs, currentPostProbs.unpairedProbs, diffs,0, 500);
-		
-		/*for(int i = 0 ; i < diffs.length ; i++)
-		{
-			for(int j = 0 ; j < diffs.length ; j++)
-			{
-				System.out.print(diffs[i][j].doubleValue()+"\t");
-			}
-			System.out.println();
-		}*/
-		
-		/*long serialStart = System.nanoTime();
-		//int [] decoded_structure = HaasMEA.haasMEA(currentPostProbs.pairedProbs, currentPostProbs.unpairedProbs, diffs,0, Double.POSITIVE_INFINITY);
-		int [] decoded_structure2 = HaasMEA.haasMEA(currentPostProbs.pairedProbs, currentPostProbs.unpairedProbs, diffs,0, 1000);
-		long serialEnd = System.nanoTime();
-		double serialTime = (serialEnd-serialStart)/1e9;
-		System.out.println("TIMING:"+parTime+"\t"+serialTime);*/
-		System.out.println("TIMING:"+parTime);
-		
-		/*
-		int [] decoded_structure2 = RNAFoldingTools.getPosteriorDecodingConsensusStructure(currentPostProbs.getBasePairProbs());
-	    for(int i = 0 ; i < decoded_structure2.length ; i++)
-	      {
-	    	  if(decoded_structure2[i] != 0)
-	    	  {
-	    		  int x = i;
-	    		  int y = decoded_structure2[i]-1;
-	    		  if(diffs[x][y].doubleValue() <= 0 )
-	    		  {
-	    			  System.out.println(alignmentFile+"D less than zero!!"+x+"\t"+y+"\t"+diffs[x][y].doubleValue());
-	    
-	    		  }
-	    	  }
-	      }*/
-		
-		currentPostProbs.pairedProbs = CoFoldAnalogue.reinsertDeleted(currentPostProbs.pairedProbs, delete, PointRes.ZERO);
+		currentPostProbs.pairedProbs = CoFoldAnalogue2.reinsertDeleted(currentPostProbs.pairedProbs, delete, PointRes.ZERO);
 		
 		
 		//structure = structure2;
-		decoded_structure = CoFoldAnalogue.reinsertDeleted(decoded_structure, delete, 0);
+		decoded_structure = CoFoldAnalogue2.reinsertDeleted(decoded_structure, delete, 0);
 		String dbs = RNAFoldingTools.getDotBracketStringFromPairedSites(decoded_structure);
 		structure = new int[decoded_structure.length];
 		for(int i = 0 ; i < structure.length ; i++)
 		{
 			structure[i] = decoded_structure[i]-1;
 		}
-		System.out.println("alpha="+alpha+"\ttau="+tau);
 		//structure = meaCalculator.calculate(currentPostProbs);
 		
 		/*

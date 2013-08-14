@@ -102,7 +102,7 @@ public class IncompatiblePairsFinder {
 			return incomp;
 		}
 		
-		public LinkedList<Helix> getIncompatibleHelices(boolean[][] canPair, boolean[][] incomp, PointRes[][] diffs, 
+		/*public LinkedList<Helix> getIncompatibleHelices(boolean[][] canPair, boolean[][] incomp, PointRes[][] diffs, 
 				int leftIdx, int rightIdx) {
 			LinkedList<Helix> Helices = new LinkedList<Helix>();
 			boolean[][] tmpincomp = new boolean[incomp.length][incomp.length];
@@ -112,6 +112,27 @@ public class IncompatiblePairsFinder {
 				for (int k = j+1; k<length; k++) {
 					if (((j != leftIdx)||(k != rightIdx))&&(tmpincomp[j][k])&&(diffs[j][k].signum()>0)) {
 						Helix newHelix = new HelicesMaker().makeHelix(j, k, diffs, canPair);
+						if ((newHelix.getHelixLength()>=1)) {
+							for (int l = 0; l<newHelix.getHelixLength(); l++) {
+								tmpincomp[newHelix.getLeftIdx()+l][newHelix.getRightIdx()-l] = false;
+							}
+							Helices.add(newHelix);
+						}
+					}
+				}
+			}
+			return Helices;
+		}*/
+		public LinkedList<Helix> getIncompatibleHelices(boolean[][] canPair, boolean[][] incomp, PointRes [][] pairedProbs, PointRes[][] diffs, 
+				int leftIdx, int rightIdx) {
+			LinkedList<Helix> Helices = new LinkedList<Helix>();
+			boolean[][] tmpincomp = new boolean[incomp.length][incomp.length];
+			System.arraycopy(incomp, 0, tmpincomp, 0, incomp.length);
+			int length = canPair.length;
+			for (int j = 0; j<length; j++) {
+				for (int k = j+1; k<length; k++) {
+					if (((j != leftIdx)||(k != rightIdx))&&(tmpincomp[j][k])&&(diffs[j][k].signum()>0)) {
+						Helix newHelix = new HelicesMaker().makeHelix(j, k, pairedProbs, diffs, canPair);
 						if ((newHelix.getHelixLength()>=1)) {
 							for (int l = 0; l<newHelix.getHelixLength(); l++) {
 								tmpincomp[newHelix.getLeftIdx()+l][newHelix.getRightIdx()-l] = false;

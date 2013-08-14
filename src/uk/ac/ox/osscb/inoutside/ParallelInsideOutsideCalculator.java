@@ -150,7 +150,8 @@ public class ParallelInsideOutsideCalculator {
 			}
 		}*/
 
-		BasePairWeightingOxfold basePairWeighting = new BasePairWeightingOxfold(distances, weight);
+		//BasePairWeightingOxfold basePairWeighting = new BasePairWeightingOxfold(distances, weight);
+		BasePairWeightingOxfoldNormalized basePairWeighting = new BasePairWeightingOxfoldNormalized(distances, weight, canPair);
 
 		return insideParallel (pairingProbs, structure,canPair, basePairWeighting);
 	}
@@ -166,28 +167,30 @@ public class ParallelInsideOutsideCalculator {
 				basePairWeighting.set(i, j, PointRes.valueOf(Math.exp(-distances[i][j]/weight)));
 			}
 		}*/
-		BasePairWeightingOxfold basePairWeighting = new BasePairWeightingOxfold(distances, weight);
+		//BasePairWeightingOxfold basePairWeighting = new BasePairWeightingOxfold(distances, weight);
+		BasePairWeightingOxfoldNormalized basePairWeighting = new BasePairWeightingOxfoldNormalized(distances, weight, canPair);
 		return outsideParallel (insideProbs, pairingProbs, structure,canPair, basePairWeighting);
 	}
 	
 	public InsideOutsideProbabilities insideParallelOxfold (NucleotideProbsPrecise pairingProbs,  double[][] distances, double weight, int [] structure, boolean [][] canPair)
 	{
-		PointResUpperMatrix basepairWeighting = new PointResUpperMatrix(structure.length);
+		/*PointResUpperMatrix basepairWeighting = new PointResUpperMatrix(structure.length);
 		for(int i = 0 ; i < structure.length ; i++)
 		{
 			for(int j = i ; j < structure.length ; j++)
 			{
 				basepairWeighting.set(i, j, PointRes.valueOf(Math.exp(-distances[i][j]/weight)));
 			}
-		}
+		}*/
 
-		return insideParallel (pairingProbs, structure,canPair, basepairWeighting);
+		return insideParallel (pairingProbs, structure,canPair,  new BasePairWeightingOxfold(distances, weight));
+		//return insideParallel (pairingProbs, structure,canPair,  new BasePairWeightingOxfoldNormalized(distances, weight,canPair));
 	}
 	
 	public InsideOutsideProbabilities outsideParallelOxfold (InsideOutsideProbabilities insideProbs, 
 			NucleotideProbsPrecise pairingProbs, double[][] distances, double weight, int[] structure, boolean[][] canPair)
 	{
-
+/*
 		PointResUpperMatrix basepairWeighting = new PointResUpperMatrix(structure.length);
 		for(int i = 0 ; i < structure.length ; i++)
 		{
@@ -195,8 +198,9 @@ public class ParallelInsideOutsideCalculator {
 			{
 				basepairWeighting.set(i, j, PointRes.valueOf(Math.exp(-distances[i][j]/weight)));
 			}
-		}
-		return outsideParallel (insideProbs, pairingProbs, structure,canPair, basepairWeighting);
+		}*/
+		return outsideParallel (insideProbs, pairingProbs, structure,canPair,  new BasePairWeightingOxfold(distances, weight));
+		//return outsideParallel (insideProbs, pairingProbs, structure,canPair,  new BasePairWeightingOxfoldNormalized(distances, weight,canPair));
 	}
 	
 	public void runInsideJobs(InsideOutsideProbabilities iProbs,
@@ -356,41 +360,7 @@ public class ParallelInsideOutsideCalculator {
 		
 		PointResUpperMatrix basepairWeightingMatrix = sector.basepairWeighting;
 		BasePairWeighting basepairWeightingFunction = sector.basePairWeightingFunction;
-		if(basepairWeightingMatrix == null)
-		{	
-			InsideOutsideProbabilities iProbs = sector.iProbs;
-			NucleotideProbsPrecise pairingProbs = sector.pairingProbs;
-			boolean [][] canPair = sector.canPair;
-			for (int b = sector.startb; b < sector.endb ; b++) {
-				for (int j = sector.startj ; j < sector.endj ; j++) {
-					//System.out.println(b+"\t"+j+"\t");
-					// deal with contribution of rules of type U->VW
-					for (ProductionRule rule3: grammar.getRules(RuleType.RULE3)) {
-						PointRes tmp = PointRes.ZERO;
-						for (int h = j ; h < j+b  ; h++) {
-							PointRes prob1 = iProbs.getProb(rule3.getRight()[0], j, h);
-							PointRes prob2 = iProbs.getProb(rule3.getRight()[1], h+1, j+b);
-							tmp = tmp.add(prob1.multiply(prob2));
-						}
-						PointRes probIncrement = rule3.getProbability().multiply(tmp);
-
-						iProbs.increment(rule3.getLeft(), j, j+b, probIncrement);
-					}
-
-					// deal with production rules of type U->(V)				
-					if (canPair[j][j+b]) {
-						for (ProductionRule rule2: grammar.getRules(RuleType.RULE2)) {
-							PointRes probIncrement = PointRes.ZERO;
-							probIncrement = rule2.getProbability()
-									.multiply(pairingProbs.getPairingProbability(j, j+b))
-									.multiply(iProbs.getProb(rule2.getRight()[1],j+1,j+b-1));
-							iProbs.increment(rule2.getLeft(), j, j+b, probIncrement);
-						}
-					}
-				}	
-			}
-		}
-		else
+		
 		if(basepairWeightingFunction != null)
 		{
 			InsideOutsideProbabilities iProbs = sector.iProbs;
@@ -426,6 +396,7 @@ public class ParallelInsideOutsideCalculator {
 			}
 		}
 		else
+		if(basepairWeightingMatrix != null)
 		{
 			InsideOutsideProbabilities iProbs = sector.iProbs;
 			NucleotideProbsPrecise pairingProbs = sector.pairingProbs;
@@ -459,6 +430,40 @@ public class ParallelInsideOutsideCalculator {
 				}	
 			}
 		}
+		else
+		{	
+			InsideOutsideProbabilities iProbs = sector.iProbs;
+			NucleotideProbsPrecise pairingProbs = sector.pairingProbs;
+			boolean [][] canPair = sector.canPair;
+			for (int b = sector.startb; b < sector.endb ; b++) {
+				for (int j = sector.startj ; j < sector.endj ; j++) {
+					//System.out.println(b+"\t"+j+"\t");
+					// deal with contribution of rules of type U->VW
+					for (ProductionRule rule3: grammar.getRules(RuleType.RULE3)) {
+						PointRes tmp = PointRes.ZERO;
+						for (int h = j ; h < j+b  ; h++) {
+							PointRes prob1 = iProbs.getProb(rule3.getRight()[0], j, h);
+							PointRes prob2 = iProbs.getProb(rule3.getRight()[1], h+1, j+b);
+							tmp = tmp.add(prob1.multiply(prob2));
+						}
+						PointRes probIncrement = rule3.getProbability().multiply(tmp);
+
+						iProbs.increment(rule3.getLeft(), j, j+b, probIncrement);
+					}
+
+					// deal with production rules of type U->(V)				
+					if (canPair[j][j+b]) {
+						for (ProductionRule rule2: grammar.getRules(RuleType.RULE2)) {
+							PointRes probIncrement = PointRes.ZERO;
+							probIncrement = rule2.getProbability()
+									.multiply(pairingProbs.getPairingProbability(j, j+b))
+									.multiply(iProbs.getProb(rule2.getRight()[1],j+1,j+b-1));
+							iProbs.increment(rule2.getLeft(), j, j+b, probIncrement);
+						}
+					}
+				}	
+			}
+		}
 	}	
 
 
@@ -481,46 +486,7 @@ public class ParallelInsideOutsideCalculator {
 		int b = sector.startb;	
 		PointResUpperMatrix basepairWeightingMatrix = sector.basepairWeighting;
 		BasePairWeighting basepairWeightingFunction = sector.basePairWeightingFunction;
-		if(basepairWeightingMatrix == null)
-		{		
-			// iterate over (decreasing) length of inside interval
-			//for (int b = seqLen-2; b >= 0; b--) {
-			// iterate over (decreasing) length of inside interval
-			//for (int b = sector.startb ; b >= sector.endb; b--) {
-			for (int j = sector.startj; j < sector.endj ; j++) {
-				//for (int j = 0; j < seqLen - b; j++) {
-				for (ProductionRule rule3 : this.grammar.getRules(RuleType.RULE3)) {
-					PointRes tmp = PointRes.ZERO;
-					for (int k = j + b + 1; k < seqLen; k++) {
-						PointRes oProb = oProbs.getProb(rule3.getLeft(), j, k);
-						PointRes iProb = insideProbs.getProb(rule3.getRight()[1], j+b+1, k);
-						tmp = tmp.add(oProb.multiply( iProb));
-					}
-					PointRes probIncrement = tmp.multiply(rule3.getProbability());
-					oProbs.increment(rule3.getRight()[0], j, j+b, probIncrement);
-					tmp = PointRes.ZERO;
-					for(int k = 0; k<j;k++) {
-						PointRes oProb = oProbs.getProb(rule3.getLeft(), k, j+b);
-						PointRes iProb = insideProbs.getProb(rule3.getRight()[0], k, j-1);
-						tmp = tmp.add(oProb.multiply(iProb));						
-					}
-					probIncrement = tmp.multiply(rule3.getProbability());					
-					oProbs.increment(rule3.getRight()[1], j, j+b, probIncrement);
-				}
-				// get contributions of rules of type U->(V)
-				if ((j>=1)&&(j+b+1<seqLen)&&(canPair[j-1][j+b+1])) {
-					for (ProductionRule rule2: this.grammar.getRules(RuleType.RULE2)) {
-						PointRes probIncrement = PointRes.ZERO;
-						//PointRes exp = PointRes.valueOf(Math.exp(-distances[j-1][j+b+1]/weight));
-						probIncrement = rule2.getProbability()
-								.multiply(pairingProbs.getPairingProbability(j-1, j+b+1))
-								.multiply(oProbs.getProb(rule2.getLeft(), j-1, j+b+1));
-						oProbs.increment(rule2.getRight()[1], j, j+b, probIncrement);
-					}
-				}
-			}
-		}
-		else
+
 		if(basepairWeightingFunction != null)
 		{
 			// iterate over (decreasing) length of inside interval
@@ -561,6 +527,7 @@ public class ParallelInsideOutsideCalculator {
 			}
 		}
 		else
+		if(basepairWeightingMatrix != null)
 		{
 			// iterate over (decreasing) length of inside interval
 			//for (int b = seqLen-2; b >= 0; b--) {
@@ -592,6 +559,45 @@ public class ParallelInsideOutsideCalculator {
 						PointRes probIncrement = PointRes.ZERO;
 						//PointRes exp = PointRes.valueOf(Math.exp(-distances[j-1][j+b+1]/weight));
 						probIncrement = rule2.getProbability().multiply(basepairWeightingMatrix.get(j-1, j+b+1))
+								.multiply(pairingProbs.getPairingProbability(j-1, j+b+1))
+								.multiply(oProbs.getProb(rule2.getLeft(), j-1, j+b+1));
+						oProbs.increment(rule2.getRight()[1], j, j+b, probIncrement);
+					}
+				}
+			}
+		}
+		else
+		{		
+			// iterate over (decreasing) length of inside interval
+			//for (int b = seqLen-2; b >= 0; b--) {
+			// iterate over (decreasing) length of inside interval
+			//for (int b = sector.startb ; b >= sector.endb; b--) {
+			for (int j = sector.startj; j < sector.endj ; j++) {
+				//for (int j = 0; j < seqLen - b; j++) {
+				for (ProductionRule rule3 : this.grammar.getRules(RuleType.RULE3)) {
+					PointRes tmp = PointRes.ZERO;
+					for (int k = j + b + 1; k < seqLen; k++) {
+						PointRes oProb = oProbs.getProb(rule3.getLeft(), j, k);
+						PointRes iProb = insideProbs.getProb(rule3.getRight()[1], j+b+1, k);
+						tmp = tmp.add(oProb.multiply( iProb));
+					}
+					PointRes probIncrement = tmp.multiply(rule3.getProbability());
+					oProbs.increment(rule3.getRight()[0], j, j+b, probIncrement);
+					tmp = PointRes.ZERO;
+					for(int k = 0; k<j;k++) {
+						PointRes oProb = oProbs.getProb(rule3.getLeft(), k, j+b);
+						PointRes iProb = insideProbs.getProb(rule3.getRight()[0], k, j-1);
+						tmp = tmp.add(oProb.multiply(iProb));						
+					}
+					probIncrement = tmp.multiply(rule3.getProbability());					
+					oProbs.increment(rule3.getRight()[1], j, j+b, probIncrement);
+				}
+				// get contributions of rules of type U->(V)
+				if ((j>=1)&&(j+b+1<seqLen)&&(canPair[j-1][j+b+1])) {
+					for (ProductionRule rule2: this.grammar.getRules(RuleType.RULE2)) {
+						PointRes probIncrement = PointRes.ZERO;
+						//PointRes exp = PointRes.valueOf(Math.exp(-distances[j-1][j+b+1]/weight));
+						probIncrement = rule2.getProbability()
 								.multiply(pairingProbs.getPairingProbability(j-1, j+b+1))
 								.multiply(oProbs.getProb(rule2.getLeft(), j-1, j+b+1));
 						oProbs.increment(rule2.getRight()[1], j, j+b, probIncrement);

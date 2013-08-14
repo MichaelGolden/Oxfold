@@ -618,6 +618,63 @@ public class PosteriorProbabilitiesCalculator {
 			return intervals.get(0).diffs;
 		}
 		
+		public static double [][] getDiffs(double [][] pairedProbs)
+		{			
+			boolean [][] canPair = new boolean[pairedProbs.length][pairedProbs.length];
+			for(int i = 0 ; i < pairedProbs.length ; i++)
+			{
+				for(int j = 0 ; j < pairedProbs.length ; j++)
+				{
+					if(Math.abs(i-j) > 3)
+					{
+						canPair[i][j] = true;
+					}
+				}
+			}
+			
+			return getDiffs(pairedProbs, canPair);
+		}
+		
+		public static double [][] getDiffs(double [][] pairedProbs, boolean [][] canPair)
+		{
+			double [] unpairedProbs = new double[pairedProbs.length];
+			for(int i = 0 ; i < pairedProbs.length ; i++)
+			{
+				unpairedProbs[i] = 1;
+				for(int j = 0 ; j < pairedProbs.length ; j++)
+				{
+					if(i != j)
+					{
+						unpairedProbs[i] -= pairedProbs[i][j];
+					}
+				}
+			}
+			
+			PointRes[][] pairedProbs2 = new PointRes[pairedProbs.length][pairedProbs.length];
+			PointRes[] unpairedProbs2 = new PointRes[unpairedProbs.length];
+			for(int i = 0 ; i < pairedProbs.length ; i++)
+			{
+				unpairedProbs2[i] = PointRes.valueOf(unpairedProbs[i]);
+				for(int j = 0 ; j < pairedProbs.length ; j++)
+				{
+					pairedProbs2[i][j] = PointRes.valueOf(pairedProbs[i][j]);
+				}
+			}
+			
+			PosteriorProbabilitiesCalculator calc = new PosteriorProbabilitiesCalculator(null);
+			PointRes [][] diffs = calc.getDiffs(pairedProbs2, unpairedProbs2, canPair);
+			double [][] diffs2 = new double[diffs.length][diffs.length];
+			for(int i = 0 ; i < pairedProbs.length ; i++)
+			{
+				for(int j = 0 ; j < pairedProbs.length ; j++)
+				{
+					diffs2[i][j] = diffs[i][j].doubleValue();
+				}
+			}
+			
+			return diffs2;
+		}
+		
 		
 		/**
 		 * calculate probability of helix forming

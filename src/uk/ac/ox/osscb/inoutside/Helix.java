@@ -9,6 +9,13 @@ public class Helix {
 		private int rightIdx;
 		private int helixLength;
 		private PointRes score;
+		public double maxdelta;
+		
+		public Helix(int leftIdx, int rightIdx, int helixLength) {
+			this.leftIdx = leftIdx;
+			this.rightIdx = rightIdx;
+			this.helixLength = helixLength;
+		}
 		
 		public Helix(int leftIdx, int rightIdx, int helixLength, PointRes[][] diffs) {
 			this.leftIdx = leftIdx;
@@ -85,6 +92,14 @@ public class Helix {
 				return false;
 			return true;
 		}
+
+		@Override
+		public String toString() {
+			return "Helix [leftIdx=" + leftIdx + ", rightIdx=" + rightIdx
+					+ ", helixLength=" + helixLength + "]";
+		}
+		
+		
 
 		
 }

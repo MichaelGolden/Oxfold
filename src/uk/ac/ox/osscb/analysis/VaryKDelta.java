@@ -354,9 +354,11 @@ public class VaryKDelta {
 		int select = Math.min(sequences.size(), n);
 		while(select < sequences.size())
 		{
-			int i = random.nextInt(sequences.size());
-			sequences.remove(i);
-			sequenceNames.remove(i);
+			sequences.remove(sequences.size()-1);
+			sequenceNames.remove(sequenceNames.size()-1);
+			//int i = random.nextInt(sequences.size());
+			//sequences.remove(i);
+			//sequenceNames.remove(i);
 		}
 	}
 	
@@ -364,7 +366,7 @@ public class VaryKDelta {
     int threads = 8;
 	private static void runSpecificFastOxfold(double KValue, double dValue, double delta2, int uptodataset, boolean runEvol){
 		ArrayList<String> avgMetrics = new ArrayList<String>();
-		String outputDirString = "output_simulated/";
+		String outputDirString = "output_deltamu/";
 		
 		Constants.IterationCutOff = PointRes.valueOf(Double.valueOf(dValue)); 
 		
@@ -375,6 +377,8 @@ public class VaryKDelta {
 		File outputDir = new File(outputDirString + "K_" + KValue + "_Delta_" + dValue+"_delta2_"+delta2 +evol+"/");
 		outputDir.mkdirs();
 		 
+		File outputCsvDir = new File(outputDirString + "csv/" );
+		outputCsvDir.mkdirs();
 		
 		ArrayList<StructureData> experimentalStructures = new ArrayList<StructureData>();
 		for(File experimentalFile : dataDir.listFiles())
@@ -413,21 +417,32 @@ public class VaryKDelta {
 			System.out.println(experimentalStructures.get(i).file);
 			StructureData s= experimentalStructures.get(i);
 			
-			ArrayList<String> sequences = new ArrayList<String>();
+			/*ArrayList<String> sequences = new ArrayList<String>();
 			ArrayList<String> sequenceNames = new ArrayList<String>();
 			//simulate(ArrayList<String> sequences,  ArrayList<String> sequenceNames, Random random, String sequence, int [] pairedSites, double expectedMutations, int n, boolean includeFirst)
 			AlignmentSimulator.simulate(sequences, sequenceNames, random, s.sequences.get(0), s.pairedSites, 0.2, (int)delta2, true);
 			s.sequences = sequences;
-			s.sequenceNames = sequenceNames;
-			//selectN(s.sequences, s.sequenceNames, (int)delta2);
+			s.sequenceNames = sequenceNames;*/
+		//	selectN(s.sequences, s.sequenceNames, (int)delta2);
+			selectN(s.sequences, s.sequenceNames, (int)1);
 			//System.out.println("VAL"+s.sequences.size()+"\t"+delta2);
 			usedExperimental.add(s);
 			
-			predictedStructures.add(foldOxfold(outputDir, s.file.getName()+"_", s.sequences, s.sequenceNames, runEvol, KValue, delta2));
+			//StructureData data1 = PPfold.fold(outputDir, s.file.getName()+"_", s.sequences, s.sequenceNames, runEvol);
+			StructureData data1 = foldOxfold(outputDir, s.file.getName()+"_", s.sequences, s.sequenceNames, runEvol, dValue, delta2);
+			predictedStructures.add(data1);
 			//noDelta2.add(foldOxfold(outputDir, s.file.getName()+"_", s.sequences, s.sequenceNames, runEvol, KValue, delta2));
 			//File dir2 = new File(outputDirString + "K_" + KValue + "_Delta_" + dValue+"_delta2_"+(1.0) +evol+"/");
 			//dir2.mkdirs();
 			//noDelta2.add(foldOxfold(dir2, s.file.getName(), s.sequences, s.sequenceNames, runEvol, KValue, 1));
+			/*try {
+				BufferedWriter writer = new BufferedWriter(new FileWriter(outputDirString + "csv/"+s.file.getName()+"_distribution.csv", true));
+				writer.write(((int)delta2)+","+Benchmarks.getDistributionString(data1)+"\n");			
+				writer.close();
+			} catch (IOException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}*/
 			
 			try {				
 				VaryKDelta.saveBenchmarkAvgCSV(avgMetrics,experimentalStructures, predictedStructures, KValue, delta, j == maxIter - 1);
@@ -440,8 +455,6 @@ public class VaryKDelta {
 		} //end dataset iterations
 		
 		try{
-			File outputCsvDir = new File(outputDirString + "csv/" );
-			outputCsvDir.mkdirs();
 			
 			double sensitivity = 0; 
 			double ppv = 0;
@@ -482,6 +495,8 @@ public class VaryKDelta {
 			BufferedWriter writerFinal = new BufferedWriter(new FileWriter(outputDirString + "csv/result"+evol+".csv", true));
 			writerFinal.write(KValue +"," + dValue+","+delta2 +","+ (sensitivity/n)+","+ (ppv/n)+","+ (fscore/n)+","+ (mountainSim/n)+"\t"+(iterWithDelta2/n)+"\t"+(iterWithoutDelta2/n)+"\n");
 			writerFinal.close();
+			
+			
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -699,6 +714,11 @@ public class VaryKDelta {
 	
 	public static StructureData foldOxfold(File dir, String name, List<String> sequences, List<String> sequenceNames, boolean runEvolutionary, double weight, double delta2)
 	{
+		for(int i = 0 ; i < sequenceNames.size() ; i++)
+		{
+			sequenceNames.set(i, "seq"+i);
+		}
+		
 		File fastaFile = new File(dir.getAbsolutePath()+File.separatorChar+name+".fas");
 		IO.saveToFASTAfile(sequences, sequenceNames, fastaFile);
 		File outNewick = new File(dir.getAbsolutePath()+File.separatorChar+name+".nwk");

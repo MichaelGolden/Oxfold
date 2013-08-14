@@ -68,7 +68,8 @@ public class PPProbabilitiesCalculator {
 			PointRes rprob = new IncompatiblePairsFinder().calculateComp(incomp,leftIdx,rightIdx,pairedProbs);
 			PointRes[][] diffs = posteriorProbabilitiesCalculator.getDiffs(pairedProbs, unpairedProbs, canPair);
 			PointRes diff = diffs[leftIdx][rightIdx];
-			Helix helix = new HelicesMaker().makeHelix(leftIdx,rightIdx,diffs,canPair);
+			//Helix helix = new HelicesMaker().makeHelix(leftIdx,rightIdx,diffs,canPair);
+			Helix helix = new HelicesMaker().makeHelix(leftIdx,rightIdx,pairedProbs,diffs,canPair);
 			output = new PPOutput(helix.getLeftIdx(), helix.getRightIdx(), helix.getHelixLength(), diff, rprob);
 			
 			logResults(leftIdx, rightIdx, diff, rprob);			
@@ -97,7 +98,8 @@ public class PPProbabilitiesCalculator {
 			PointRes rprob = new IncompatiblePairsFinder().calculateComp(incomp,leftIdx,rightIdx,pairedProbs);
 			PointRes[][] diffs = posteriorProbabilitiesCalculator.getDiffs(pairedProbs, unpairedProbs, canPair);
 			PointRes diff = diffs[leftIdx][rightIdx];
-			Helix helix = new HelicesMaker().makeHelix(leftIdx,rightIdx,diffs,canPair);
+			//Helix helix = new HelicesMaker().makeHelix(leftIdx,rightIdx,diffs,canPair);
+			Helix helix = new HelicesMaker().makeHelix(leftIdx,rightIdx,pairedProbs,diffs,canPair);
 			output = new PPOutput(helix.getLeftIdx(), helix.getRightIdx(), helix.getHelixLength(), diff, rprob);
 			
 			logResults(leftIdx, rightIdx, diff, rprob);			
@@ -127,7 +129,8 @@ public class PPProbabilitiesCalculator {
 			PointRes rprob = new IncompatiblePairsFinder().calculateComp(incomp,leftIdx,rightIdx,pairedProbs);
 			PointRes[][] diffs = posteriorProbabilitiesCalculator.getDiffs(pairedProbs, unpairedProbs, canPair);
 			PointRes diff = diffs[leftIdx][rightIdx];
-			Helix helix = new HelicesMaker().makeHelix(leftIdx,rightIdx,diffs,canPair);
+			//Helix helix = new HelicesMaker().makeHelix(leftIdx,rightIdx,diffs,canPair);
+			Helix helix = new HelicesMaker().makeHelix(leftIdx,rightIdx, pairedProbs,diffs,canPair);
 			output = new PPOutput(helix.getLeftIdx(), helix.getRightIdx(), helix.getHelixLength(), diff, rprob);
 			
 			logResults(leftIdx, rightIdx, diff, rprob);
@@ -159,7 +162,8 @@ public class PPProbabilitiesCalculator {
 			PointRes rprob = new IncompatiblePairsFinder().calculateComp(incomp,leftIdx,rightIdx,pairedProbs);
 			PointRes[][] diffs = posteriorProbabilitiesCalculator.getDiffs(pairedProbs, unpairedProbs, canPair);
 			PointRes diff = diffs[leftIdx][rightIdx];
-			Helix helix = new HelicesMaker().makeHelix(leftIdx,rightIdx,diffs,canPair);
+			//Helix helix = new HelicesMaker().makeHelix(leftIdx,rightIdx,diffs,canPair);
+			Helix helix = new HelicesMaker().makeHelix(leftIdx,rightIdx, pairedProbs,diffs,canPair);
 			output = new PPOutputHelix(helix, diffs, diff, rprob);
 			
 			logResults(leftIdx, rightIdx, diff, rprob);			
@@ -187,7 +191,8 @@ public class PPProbabilitiesCalculator {
 			PointRes rprob = new IncompatiblePairsFinder().calculateComp(incomp,leftIdx,rightIdx,pairedProbs);
 			PointRes[][] diffs = posteriorProbabilitiesCalculator.getDiffs(pairedProbs, unpairedProbs, canPair);
 			PointRes diff = diffs[leftIdx][rightIdx];
-			Helix helix = new HelicesMaker().makeHelix(leftIdx,rightIdx,diffs,canPair);
+			//Helix helix = new HelicesMaker().makeHelix(leftIdx,rightIdx,diffs,canPair);
+			Helix helix = new HelicesMaker().makeHelix(leftIdx,rightIdx,pairedProbs,diffs,canPair);
 			output = new PPOutputHelix(helix, diffs, diff, rprob);
 			
 			logResults(leftIdx, rightIdx, diff, rprob);

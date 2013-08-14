@@ -40,7 +40,7 @@ public class KineticFoldPppCalculatorWithWeight
 	}
 	
 	public PPOutputInternalResult2 calculatePpOutputInternal(NucleotideProbsPrecise alignmentProbs, int[] structure, PosteriorProbabilities prevProbs) {
-		
+	
 		double[][] distances = new DistancesCalculator2().distCalc(structure, prevProbs);
 		boolean[][] canPair = new PossiblePairFinder().canPair(structure);
 		InsideOutsideProbabilities insideProbs = ioCalc.inside(alignmentProbs, distances, weight, structure, canPair);

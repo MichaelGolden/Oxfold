@@ -1,6 +1,10 @@
 package uk.ac.ox.osscb;
 
 
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+import java.io.IOException;
+
 import uk.ac.ox.osscb.domain.NucleotideProbsPrecise;
 import uk.ac.ox.osscb.grammar.Grammar;
 import uk.ac.ox.osscb.inoutside.IOsideCalculator;
@@ -41,6 +45,26 @@ public class DistancesCalculator2 {
 			for(int j=0; j<length-b; j++)
 				distances[j][j+b] = Math.abs(distances[j][j+b]/(double) b);
 	
+
+
+		/*
+		try {
+			BufferedWriter writer = new BufferedWriter(new FileWriter("dmatrix.txt"));
+			for(int x = 0 ; x < distances.length ; x++)
+			{
+				for(int y = 0 ; y < distances.length ; y++)
+				{
+					writer.write(Math.exp(-distances[x][y]/0.5)+"\t");
+					//writer.write(distances[x][y]+"\t");
+				}
+				writer.newLine();
+			}
+			writer.close();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}*/
+		
 		
 		return distances;
 	}

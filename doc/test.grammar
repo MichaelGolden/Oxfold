@@ -1,0 +1,7 @@
+# Test grammar
+
+!nonterminals S
+!terminals s,d
+
+# production rules
+!rule S>SS|s|dSd>1.0|1.0|1.0
