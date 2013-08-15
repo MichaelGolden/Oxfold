@@ -16,8 +16,8 @@ import uk.ac.ox.osscb.visualisation.DataVisualiser;
 public class VaryHaasMEA {
 	public static void main(String [] args)
 	{
-		double deltaStart = 50;
-		double deltaEnd = 1500;
+		double deltaStart = 1500;
+		double deltaEnd = 2500;
 		double deltaInc = 100;
 		ArrayList<Double> deltaList = new ArrayList<Double>();
 		double deltaCurr = deltaStart;
@@ -75,7 +75,7 @@ public class VaryHaasMEA {
 		//int start = 0;
 		//int end = 1;
 		int start = 0;
-		int end = 5;
+		int end = 2;
 		File outFile = new File("varyhaas.txt");
 		try {
 			IO.clearFile(outFile);
