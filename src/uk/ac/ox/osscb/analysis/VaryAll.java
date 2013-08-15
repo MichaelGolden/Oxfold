@@ -12,14 +12,31 @@ import uk.ac.ox.osscb.Constants;
 import uk.ac.ox.osscb.Program;
 import uk.ac.ox.osscb.inoutside.PosteriorProbabilitiesCalculator;
 import uk.ac.ox.osscb.visualisation.DataVisualiser;
-import uk.ac.ox.osscb.visualisation.SVG;
 
-public class Benchmarks {
+public class VaryAll {
 	public static void main(String [] args)
 	{
+		
+		String[] a = {"datasets_original"};
+		Benchmarks.main(a);
+		a[0] = "datasets_cofold";
+		Benchmarks.main(a);
+		a[0] = "datasets_cofold_supp";
+		Benchmarks.main(a);
+		//a[0] = "datasets";
+		//Benchmarks.main(a);
+		a[0] = "datasets_16s_23s_single";
+		Benchmarks.main(a);
+
+		
+		if(args.length == 7){
 		File dataDir = new File(args[0]);
 		File outputDir = new File("outputmerge/");
-		File resultsFile = new File("results_"+dataDir.getName()+"_156_all075_s01all_w05_auto_561_mb.csv");
+		Constants.p = Double.valueOf(args[1]);
+		Constants.weight = Double.valueOf(args[2]);
+		File resultsFile = new File("results_oxfold_evol_test156_all075_s01_auto.csv");
+		
+		
 
 		boolean startFile = true;
 		
@@ -202,7 +219,7 @@ public class Benchmarks {
 		}
 		
 		
-		
+		}
 		//System.out.println(dataDir.listFiles().length);
 	}
 	

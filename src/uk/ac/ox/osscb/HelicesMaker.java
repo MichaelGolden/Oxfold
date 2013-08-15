@@ -15,7 +15,7 @@ public class HelicesMaker {
 		double mu = 0; 
 		PointRes mu2 = PointRes.valueOf(mu);
 		
-		public Helix makeHelix(int leftIdx, int rightIdx, PointRes [][] pairedProbs, PointRes[][] diffs, boolean[][] canPair) {
+		/*public Helix makeHelix(int leftIdx, int rightIdx, PointRes [][] pairedProbs, PointRes[][] diffs, boolean[][] canPair) {
 			int length = diffs.length;	
 			int helixLength = 1;
 			while (diffs[leftIdx+helixLength][rightIdx-helixLength].compareTo(PointRes.valueOf(Math.min(0, Constants.IterationCutOffDouble)))>0) {
@@ -26,7 +26,7 @@ public class HelicesMaker {
 			}
 			Helix helix = new Helix(leftIdx,rightIdx,helixLength,diffs);
 			return helix;
-		}
+		}*/
 		
 	
 		/**

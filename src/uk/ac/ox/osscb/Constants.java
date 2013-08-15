@@ -41,6 +41,7 @@ public class Constants {
 	public  static PointRes NucleotideUncertainty = PointRes.valueOf(0.01);
 	
 	public static PointRes AYOffset = PointRes.valueOf(0);
+	public static Double p = 1.0; 
 	
 	public static PointRes currentIterationCutOff = IterationCutOff; 
 	

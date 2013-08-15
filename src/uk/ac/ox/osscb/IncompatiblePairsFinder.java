@@ -132,7 +132,8 @@ public class IncompatiblePairsFinder {
 			for (int j = 0; j<length; j++) {
 				for (int k = j+1; k<length; k++) {
 					if (((j != leftIdx)||(k != rightIdx))&&(tmpincomp[j][k])&&(diffs[j][k].signum()>0)) {
-						Helix newHelix = new HelicesMaker().makeHelix(j, k, pairedProbs, diffs, canPair);
+						//Helix newHelix = new HelicesMaker().makeHelix(j, k, pairedProbs, diffs, canPair);
+						Helix newHelix = new HelicesMaker().makeHelix(j, k, diffs, canPair);
 						if ((newHelix.getHelixLength()>=1)) {
 							for (int l = 0; l<newHelix.getHelixLength(); l++) {
 								tmpincomp[newHelix.getLeftIdx()+l][newHelix.getRightIdx()-l] = false;

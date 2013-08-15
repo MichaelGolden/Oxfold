@@ -41,7 +41,9 @@ public class Structure {
 		return pairings;
 	}
 	
-	
+	public void setPairings(int[] tmp){
+		pairings = tmp; 
+	}
 	
 	public void updateKeepPairs(int i, boolean f){
 		keepPairs[i] = f;
