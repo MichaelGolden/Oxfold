@@ -72,7 +72,7 @@ public class DataVisualiser {
             }
             // 
         } catch (Exception ex) {
-            Logger.getLogger(SubstructureDrawPanel.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(DataVisualiser.class.getName()).log(Level.SEVERE, null, ex);
         }
 
         minx = Double.MAX_VALUE;

@@ -127,79 +127,6 @@ public class HaasMEA {
     
     public static void main(String [] args)
     {
-    	try {
-			double [] [] bp = StructureData.getBasePairProb(new File("test.bp"));
-			double [] single = StructureData.getSingleProbs(bp);
-			double [] [] deltas = getDeltas(new File("test.deltas"));
-			//print(bp);
-			//System.out.println();
-			//print(deltas);
-			   
-			double[][] eMatrix = new double[bp.length][bp[0].length];
-	        for (int i = 0; i < eMatrix.length; i++) {
-	            for (int j = 0; j < eMatrix.length; j++) {
-	                eMatrix[i][j] = RNAFoldingTools.emptyValue;
-	            }
-	        }
-
-	        int[] pairedWith = new int[eMatrix.length];
-	        int[][] S = new int[eMatrix.length][eMatrix.length];    
-	        for(int i = 0 ; i < S.length ; i++)
-	        {
-	        	Arrays.fill(S[i], -1);
-	        }
-	        
-	    /*    for(int i = 0 ; i < eMatrix.length ; i++)
-	        {
-	        	for(int j = 0 ; j < eMatrix.length ; j++)
-		        {
-	        		haasRecurse(bp,single, deltas, eMatrix, S, i, j,0.0);
-		        }	        	
-	        }*/
-	        double delta = 0.8;
-	        double tau = Double.POSITIVE_INFINITY;
-	      //  recursePosteriorDecoding(bp,single,eMatrix,S,0,eMatrix.length-1);
-			haasRecurse(bp,single, deltas, eMatrix, S, 0, eMatrix.length-1,delta,tau);
-			
-	    
-	       System.out.println();
-	       print(eMatrix);
-	       System.out.println("SMatrix");
-	       print(S);
-
-	        System.out.println("Delta="+delta);
-	       //int [] pairedSites = new int[eMatrix.length];
-	       try
-	       {
-		      traceBack(S, 0, eMatrix.length-1, pairedWith);
-		      
-		      System.out.println("A"+RNAFoldingTools.getDotBracketStringFromPairedSites(pairedWith));
-		      int [] mea = RNAFoldingTools.getPosteriorDecodingConsensusStructure(bp);
-		      System.out.println("B"+RNAFoldingTools.getDotBracketStringFromPairedSites(mea));
-		      
-		      for(int i = 0 ; i < mea.length ; i++)
-		      {
-		    	  if(mea[i] != 0)
-		    	  {
-		    		  int x = i;
-		    		  int y = mea[i]-1;
-		    		  System.out.println("D "+x+"\t"+y+"\t"+deltas[x][y]);
-		    	  }
-		      }
-
-		      System.out.println("E.....<.<<<<<.<<<<....<<<<<..<<<...>>>>>>>>....>>>>>>>>>>...".replace('<', '(').replace('>', ')'));
-	       }
-	       catch(Exception ex)
-	       {
-	    	   System.err.println("Stackoverflow");
-	       }
-	    		 
-			
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-    	
     }
     
     
@@ -220,6 +147,7 @@ public class HaasMEA {
      * 0, then (i+1) is unpaired.
      * @return the value of the eMatrix at position (i, j).
      */
+    /*
     private static double haasRecurse2(double[][] basePairProb, double[] singleBaseProb, double [][] deltas, double[][] eMatrix, int[][] S, int i, int j, double delta) {    	
         if (i > j) {
         	System.out.println("i>j");
@@ -253,13 +181,6 @@ public class HaasMEA {
 	        			maxk = k;
 	        		}        		
 	        	}
-	        	
-	        	/*
-	        	double pair =0;
-	        	if(S[i+1][j-1] == CAN_PAIR)
-	        	{
-	        		pair = basePairProb[i][j]+ haasRecurse(basePairProb, singleBaseProb, deltas, eMatrix, S, i+1, j-1,delta);
-	        	}*/
 	        	double pair = basePairProb[i][j]+ haasRecurse(basePairProb, singleBaseProb, deltas, eMatrix, S, i+1, j-1,delta);
 
 	        	if(pair > h1)
@@ -354,7 +275,7 @@ public class HaasMEA {
         	//eMatrix[i][j] = h6;	
 	        //return eMatrix[i][j];
         }
-    }
+    }*/
     
     public static int [] haasMEA(PointRes[][] basePairProb, PointRes [] singleBaseProb, PointRes [][] deltas, double delta, double tau)
     {

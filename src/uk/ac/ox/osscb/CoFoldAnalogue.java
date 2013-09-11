@@ -406,15 +406,12 @@ public class CoFoldAnalogue {
 	}
 	
 	public void foldEvolutionary(String alignmentFile, String grammarFile, String paramsFile, String treeFile, double alpha, double tau){
-		tau = alpha;
-		alpha = 0.5;
+
 		Util.assertCanReadFile(alignmentFile);
 		Util.assertCanReadFile(grammarFile);
 		Util.assertCanReadFile(paramsFile);
 		Util.assertCanReadFile(treeFile);
-		/*if(weight < 0){
-			throw new IllegalArgumentException(String.format("Weight must be non-negative. Input: %f", weight));
-		}*/
+
 
 		Grammar grammar = GrammarParser.parse(grammarFile);
 		
@@ -424,47 +421,9 @@ public class CoFoldAnalogue {
 		
 		String[] align = alignParse.parseEvolutionary(alignmentFile,parameters.getSAlphabet());
 		
-		
-		/*
-		boolean [] delete = CoFoldAnalogue.getGappyColumns(align, 0.25);
-		for(int j = 0 ; j < align.length; j++)
-		{
-			for(int i = 0 ; i < align[j].length() ; i++)
-			{
-				System.out.print(align[j].charAt(i));
-			}
-			System.out.println();
-			for(int i = 0 ; i < delete.length ; i++)
-			{
-				System.out.print(delete[i] ? 1 : 0);
-			}
-			System.out.println();
-		}
-		System.out.println();
-		
-		//boolean [] delete = new boolean[align[0].length()];
-		//boolean [] delete2 = CoFoldAnalogue.getGappyColumns(align, 0.75);
-		*/
-		//boolean [] delete = new boolean[align[0].length()];
-		boolean [] delete = CoFoldAnalogue.getGappyColumns(align, 0.25);
+		boolean [] delete = CoFoldAnalogue.getGappyColumns(align, Constants.gapPercentage);
 		align = CoFoldAnalogue.deleteColumns(align, delete);
-		
-		/*
-		for(int j = 0 ; j < align.length; j++)
-		{
-			for(int i = 0 ; i < align[j].length() ; i++)
-			{
-				System.out.print(align[j].charAt(i));
-			}
-			System.out.println();
-			for(int i = 0 ; i < delete.length ; i++)
-			{
-				System.out.print(delete[i] ? 1 : 0);
-			}
-			System.out.println();
-		}
-		System.out.println();*/
-		
+
 				
 		EvolutionaryTree tree = new EvolutionaryTreeParser().parse(treeFile);
 		
@@ -475,20 +434,9 @@ public class CoFoldAnalogue {
 		ArrayList<String> sequences = new ArrayList<String>();
 		ArrayList<String> sequenceNames = new ArrayList<String>();
 		IO.loadFastaSequences(new File(alignmentFile), sequences, sequenceNames);
-		alignmentProbs.writeEvolutionaryProbs(new File(alignmentFile+".nonevolutionary"));
-
-		//alignmentProbsEvol = alignmentProbs;
-	
-		//NucleotideProbsPrecise cotranscriptional = cotranscriptionalWeight(alignmentProbsEvol);
-
 
 		alignmentProbsEvol = EvolProbabilitiesCalculator.calculateEvolutionaryProbsPPfold(align, sequenceNames, new File(treeFile));
-		alignmentProbsEvol.writeEvolutionaryProbs(new File(alignmentFile+".evolutionary"));
-		
-		//NucleotideProbsPrecise cotranscriptional = cotranscriptionalWeight(alignmentProbsEvol, 0.1, 5);
-		//alignmentProbsEvol = cotranscriptional;
-		//NucleotideProbsPrecise cotranscriptional = alignmentProbsEvol;
-		//cotranscriptional.writeEvolutionaryProbs(new File(alignmentFile+".cotranscriptional"));
+
 		System.out.println("alpha="+alpha);
 		
 		if(log.isDebugEnabled()){
@@ -502,17 +450,7 @@ public class CoFoldAnalogue {
 
 		//CoFoldInsideOutsideCalculator ioCalc = new CoFoldInsideOutsideCalculator(grammar);
 		ParallelInsideOutsideCalculator parallelCalc = new ParallelInsideOutsideCalculator(grammar);
-		
-		
-		//IOsideCalculator ioCalc = new ValidatingIOSideCalculator(new CoFoldInsideOutsideCalculator(grammar), grammar);
-		//alpha = 0.5;
-		//tau = 640;
-		//CoFoldPppCalculator cofoldCalc = new CoFoldPppCalculator(alpha, tau,grammar,ioCalc);
-		/*KineticFoldPppCalculator kFPppCalc = weight > 0 ? new KineticFoldPppCalculatorWithWeight(weight, grammar, ioCalc)
-			// 0 == weight, negative was rejected at the very beginning
-			:new KineticFoldPppCalculatorWeightLess(grammar, ioCalc);*/
-		
-		//ioCalc.outside(insideProbs, pairingProbs, distances, alpha, tau, structure, canPair)
+	
 		
 		boolean evol = true;
 		boolean exitBecauseOfDiff = false;
@@ -568,50 +506,17 @@ public class CoFoldAnalogue {
 		PointRes [][] diffs = ppCalc.getDiffs(currentPostProbs.pairedProbs, currentPostProbs.unpairedProbs, canPair);
 		
 		long parStart = System.nanoTime();
-		int [] decoded_structure = RNAFoldingTools.getPosteriorDecodingConsensusStructure(currentPostProbs.getBasePairProbs());
-		//int [] decoded_structure = HaasMEA.parallelHaasMEA(currentPostProbs.pairedProbs, currentPostProbs.unpairedProbs, diffs, delta, Double.POSITIVE_INFINITY);
+		//int [] decoded_structure = RNAFoldingTools.getPosteriorDecodingConsensusStructure(currentPostProbs.getBasePairProbs());
+		double delta = 0.3;
+		
+		int [] decoded_structure = HaasMEA.parallelHaasMEA(currentPostProbs.pairedProbs, currentPostProbs.unpairedProbs, diffs, delta, Double.POSITIVE_INFINITY);
 		long parEnd= System.nanoTime();
 		double parTime = (parEnd-parStart)/1e9;
-		
-		//new ParallelHaasMEA(currentPostProbs.pairedProbs, currentPostProbs.unpairedProbs, diffs,0, 500);
-		
-		/*for(int i = 0 ; i < diffs.length ; i++)
-		{
-			for(int j = 0 ; j < diffs.length ; j++)
-			{
-				System.out.print(diffs[i][j].doubleValue()+"\t");
-			}
-			System.out.println();
-		}*/
-		
-		/*long serialStart = System.nanoTime();
-		//int [] decoded_structure = HaasMEA.haasMEA(currentPostProbs.pairedProbs, currentPostProbs.unpairedProbs, diffs,0, Double.POSITIVE_INFINITY);
-		int [] decoded_structure2 = HaasMEA.haasMEA(currentPostProbs.pairedProbs, currentPostProbs.unpairedProbs, diffs,0, 1000);
-		long serialEnd = System.nanoTime();
-		double serialTime = (serialEnd-serialStart)/1e9;
-		System.out.println("TIMING:"+parTime+"\t"+serialTime);*/
+
 		System.out.println("TIMING:"+parTime);
-		
-		/*
-		int [] decoded_structure2 = RNAFoldingTools.getPosteriorDecodingConsensusStructure(currentPostProbs.getBasePairProbs());
-	    for(int i = 0 ; i < decoded_structure2.length ; i++)
-	      {
-	    	  if(decoded_structure2[i] != 0)
-	    	  {
-	    		  int x = i;
-	    		  int y = decoded_structure2[i]-1;
-	    		  if(diffs[x][y].doubleValue() <= 0 )
-	    		  {
-	    			  System.out.println(alignmentFile+"D less than zero!!"+x+"\t"+y+"\t"+diffs[x][y].doubleValue());
-	    
-	    		  }
-	    	  }
-	      }*/
-		
 		currentPostProbs.pairedProbs = CoFoldAnalogue.reinsertDeleted(currentPostProbs.pairedProbs, delete, PointRes.ZERO);
 		
 		
-		//structure = structure2;
 		decoded_structure = CoFoldAnalogue.reinsertDeleted(decoded_structure, delete, 0);
 		String dbs = RNAFoldingTools.getDotBracketStringFromPairedSites(decoded_structure);
 		structure = new int[decoded_structure.length];
@@ -620,76 +525,6 @@ public class CoFoldAnalogue {
 			structure[i] = decoded_structure[i]-1;
 		}
 		System.out.println("alpha="+alpha+"\ttau="+tau);
-		//structure = meaCalculator.calculate(currentPostProbs);
-		
-		/*
-		for (ProductionRule rule1: grammar.getRules(RuleType.RULE1)) {
-			try {
-				outsideProbs.writeTable(new File("oprobs_"+rule1.getLeft()+"_"+dummy+".txt"), rule1.getLeft());
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		}
-		
-		
-		for (ProductionRule rule2: grammar.getRules(RuleType.RULE2)) {
-			try {
-				outsideProbs.writeTable(new File("oprobs_"+rule2.getLeft()+"_"+dummy+".txt"), rule2.getLeft());
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		}
-		
-		for (ProductionRule rule3: grammar.getRules(RuleType.RULE3)) {
-			try {
-				outsideProbs.writeTable(new File("oprobs_"+rule3.getLeft()+"_"+dummy+".txt"), rule3.getLeft());
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		}
-		dummy++;*/
-		
-		//
-		//System.out.println(RNAFoldingTools.);
-		
-		//boolean[][] canPair = new PossiblePairFinder().canPair(structure);
-		//InsideOutsideProbabilities insideProbs = ioCalc.insideE(alignmentProbs, structure, canPair);
-		//InsideOutsideProbabilities outsideProbs = ioCalc.outsideE(insideProbs, alignmentProbs, structure, canPair);
-		//PosteriorProbabilitiesCalculator ppCalc = new PosteriorProbabilitiesCalculator(grammar);
-		//PosteriorProbabilities currentPostProbs = ppCalc.calculateE(insideProbs, outsideProbs, alignmentProbs, structure, canPair);
-		/*
-		for(int iterSoFar = 0; iterSoFar < Constants.MaxIterations; iterSoFar++){
-			canPair = new PossiblePairFinder().canPair(structure);			
-					
-			PPOutputInternalResult2 postProbs = evol ? 
-					cofoldCalc.calculatePpOutputInternalResult2(alignmentProbsEvol, structure, currentPostProbs) 
-						: cofoldCalc.calculatePpOutputInternalResult2(alignmentProbs, structure, currentPostProbs);
-			
-			PPOutput ppProbs = postProbs.getPpProbs();
-			currentPostProbs = postProbs.getPosteriorProbs();
-
-			//if (ppProbs.getDiff().signum()>0) {
-			if ((!evol)&&(ppProbs.getDiff().compareTo(Constants.EndNonEvolutionaryFold)<0)) {
-				evol = true;
-				continue;
-			}
-			if (ppProbs.getDiff().compareTo(Constants.IterationCutOff)>0) {
-				structure = new StructureUtils().makeNewStructure(structure, ppProbs);
-				dumpCurrentOutput(ppProbs);
-			} else {
-				exitBecauseOfDiff = true;
-				dumpCurrentOutput(ppProbs);
-				break;
-			}
-			// iterationsGenerator.generate(structure);
-			// OutputGenerator outputGenerator = new LoggingOutputGenerator();
-			// outputGenerator.generate(structure);
-			dumpStructure(structure);
-		}*/
-
 
 		dumpExitReason(exitBecauseOfDiff);
 		

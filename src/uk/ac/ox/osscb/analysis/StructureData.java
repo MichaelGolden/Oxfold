@@ -29,6 +29,29 @@ public class StructureData implements Comparable<StructureData> {
 		
 	}
 	
+	public static void main(String [] args)
+	{
+		String folder="/datasets_rrna_truncated_singleseq";
+		File [] dir = new File("datasets_all/"+folder).listFiles();
+		for(File file : dir)
+		{
+			if(file.getName().endsWith(".dat"))
+			{
+				try {
+					StructureData d = readExperimentalStructureData(file);
+					File out = new File("datasets_all/"+folder+"_alignments/");
+					File out2 = new File("datasets_all/"+folder+"_alignments/"+file.getName()+".fas");
+					out.mkdirs();
+					IO.saveToFASTAfile(d.sequences, d.sequenceNames, out2);
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+		}
+		
+	}
+	
 	public StructureData(int [] pairedSites)
 	{
 		this.pairedSites = pairedSites;

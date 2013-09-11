@@ -278,15 +278,8 @@ public class KineticFold2 {
 	}
 	
 	public void foldEvolutionary(String alignmentFile, String grammarFile, String paramsFile, String treeFile, double weight, double delta2, double p){
-		//weight = Double.POSITIVE_INFINITY;
-		//weight = 0.5;
 		weight = Constants.weight; 
-		//	double sigma = delta2;
-		double gap_perc = 0.75;
-		//double sigma = 0.1;
-		//double sigma = 0; 
-		
-		
+		double gap_perc = 0.75;				
 		
 		int numWeak = 0; 
 		int numStrong = 0; 
@@ -336,7 +329,7 @@ public class KineticFold2 {
 		
 
 		double sigma = Constants.sigma; 
-		sigma = 0.1; 
+		sigma = 0.01; 
 		boolean cotranscriptional = true;
 		if(ppfoldReliablity < 0.7)
 		{
@@ -412,7 +405,8 @@ public class KineticFold2 {
 			// should do ppfold here
 			System.out.println("hit else");
 		}
-		Constants.IterationCutOff = PointRes.valueOf(Constants.IterationCutOffDouble);
+		Constants.IterationCutOff = PointRes.valueOf(Constants.IterationCutOffDouble); // important to do this assignment
+		//Constants.IterationCutOffDr = Constants.IterationCutOffDf;
 		
 		if(log.isDebugEnabled()){
 			log.debug(String.format("Pairing probs (NON-evol):\r\n%s", Util.print2DArray(alignmentProbs.getMtx())));
@@ -495,7 +489,7 @@ public class KineticFold2 {
 			PPOutput oxfoldPProbs = ppProbs;
 			
 			boolean madeBase = true;
-			this.saveHelix = true; 
+			this.saveHelix = false; 
 			if(cotranscriptional)
 			{
 				System.out.println("Co-transcriptional foldevol");
@@ -956,7 +950,8 @@ public class KineticFold2 {
 		
 		BasePair minPair = null;
 		PointRes min = null;
-		
+
+		System.out.println("SIGMA = "+k);
 		for(BasePair basePair : possibleBasePairs)
 		{
 			PointRes j =new PointRes(Math.max(basePair.i, basePair.j));
@@ -971,11 +966,11 @@ public class KineticFold2 {
 			//PointRes val = PointRes.ONE.divide(basePair.probability).add(k.multiply(cotranscriptional));
 			if(min == null || val.compareTo(min) < 0)
 			{
+				System.out.println("COT = "+PointRes.ONE.divide(basePair.probability)+"\t"+cotranscriptional);
 				minPair = basePair;
 				min = val;
 			}
 		}
-		
 		return minPair;
 	}
 	
